@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+type RouteParams = {
+    params: Promise<{ idMesin: string }>;
+};
+
+// GET /api/master-mesin/new-mesin/:idMesin
+export async function GET(_req: Request, { params }: RouteParams) {
+    const { idMesin } = await params;
+    const numericId = Number(idMesin);
+
+    const mesin = await prisma.mst_mesin.findUnique({
+        where: { id: numericId },
+    });
+
+    if (!mesin) {
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Data tidak ditemukan",
+                data: [],
+            },
+            { status: 400 }
+        );
+    }
+
+    const model = await prisma.models.findUnique({
+        where: { id: mesin.model as number },
+    });
+
+    const listCopyFrom = await prisma.mst_mesin.findMany({
+        where: {
+            model: Number(model?.id),
+            status_template_prestaging: 1,
+        },
+    });
+
+    return NextResponse.json({
+        success: true,
+        data: {
+            ...mesin,
+            id: mesin.id.toString(),
+            model,
+        },
+        list_copy_from: listCopyFrom.map((m) => ({ ...m, id: m.id.toString() })),
+    });
+}

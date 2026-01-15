@@ -1,0 +1,1005 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model bacth_po {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model brand {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+}
+
+model crt_100 {
+  id                  Int     @id @default(autoincrement()) @db.UnsignedInt
+  UPS_MERK            String? @unique(map: "serial_unix__0") @db.VarChar(50)
+  UPS_MERK_PN         String? @db.VarChar(50)
+  UPS_MERK_PM         String? @db.VarChar(100)
+  EPP_X1              String? @unique(map: "serial_unix__1") @db.VarChar(50)
+  EPP_X1_PN           String? @db.VarChar(50)
+  EPP_X1_PM           String? @db.VarChar(100)
+  BRM50_CSM           String? @unique(map: "serial_unix__2") @db.VarChar(50)
+  BRM50_CSM_PN        String? @db.VarChar(50)
+  BRM50_CSM_PM        String? @db.VarChar(100)
+  BRM50_FRONT         String? @unique(map: "serial_unix__3") @db.VarChar(50)
+  BRM50_FRONT_PN      String? @db.VarChar(50)
+  BRM50_FRONT_PM      String? @db.VarChar(100)
+  BRM50_CSM_BD        String? @unique(map: "serial_unix__4") @db.VarChar(50)
+  BRM50_CSM_BD_PN     String? @db.VarChar(50)
+  BRM50_CSM_BD_PM     String? @db.VarChar(100)
+  BRM50_MAIN_IO_BD    String? @unique(map: "serial_unix__5") @db.VarChar(50)
+  BRM50_MAIN_IO_BD_PN String? @db.VarChar(50)
+  BRM50_MAIN_IO_BD_PM String? @db.VarChar(100)
+  BRM50_TSK           String? @unique(map: "serial_unix__6") @db.VarChar(50)
+  BRM50_TSK_PN        String? @db.VarChar(50)
+  BRM50_TSK_PM        String? @db.VarChar(100)
+  BRM50_BMU           String? @unique(map: "serial_unix__7") @db.VarChar(50)
+  BRM50_BMU_PN        String? @db.VarChar(50)
+  BRM50_BMU_PM        String? @db.VarChar(100)
+  BRM50_BMU_TOP       String? @unique(map: "serial_unix__8") @db.VarChar(50)
+  BRM50_BMU_TOP_PN    String? @db.VarChar(50)
+  BRM50_BMU_TOP_PM    String? @db.VarChar(100)
+  BCU53_M             String? @unique(map: "serial_unix__9") @db.VarChar(50)
+  BCU53_M_PN          String? @db.VarChar(50)
+  BCU53_M_PM          String? @db.VarChar(100)
+  BRM50_RBU           String? @unique(map: "serial_unix__10") @db.VarChar(50)
+  BRM50_RBU_PN        String? @db.VarChar(50)
+  BRM50_RBU_PM        String? @db.VarChar(100)
+  BRM50_BMD50_F       String? @unique(map: "serial_unix__11") @db.VarChar(50)
+  BRM50_BMD50_F_PN    String? @db.VarChar(50)
+  BRM50_BMD50_F_PM    String? @db.VarChar(100)
+  BRM50_BMD           String? @unique(map: "serial_unix__12") @db.VarChar(50)
+  BRM50_BMD_PN        String? @db.VarChar(50)
+  BRM50_BMD_PM        String? @db.VarChar(100)
+  BRM50_MID           String? @unique(map: "serial_unix__13") @db.VarChar(50)
+  BRM50_MID_PN        String? @db.VarChar(50)
+  BRM50_MID_PM        String? @db.VarChar(100)
+  RC60_BCA_A1         String? @unique(map: "serial_unix__14") @db.VarChar(50)
+  RC60_BCA_A1_PN      String? @db.VarChar(50)
+  RC60_BCA_A1_PM      String? @db.VarChar(100)
+  RC60_BCA_B1         String? @unique(map: "serial_unix__15") @db.VarChar(50)
+  RC60_BCA_B1_PN      String? @db.VarChar(50)
+  RC60_BCA_B1_PM      String? @db.VarChar(100)
+  RC60_BCA_C1         String? @unique(map: "serial_unix__16") @db.VarChar(50)
+  RC60_BCA_C1_PN      String? @db.VarChar(50)
+  RC60_BCA_C1_PM      String? @db.VarChar(100)
+  RC60_BCA_D1         String? @unique(map: "serial_unix__17") @db.VarChar(50)
+  RC60_BCA_D1_PN      String? @db.VarChar(50)
+  RC60_BCA_D1_PM      String? @db.VarChar(100)
+  RC60_BCA_E1         String? @unique(map: "serial_unix__18") @db.VarChar(50)
+  RC60_BCA_E1_PN      String? @db.VarChar(50)
+  RC60_BCA_E1_PM      String? @db.VarChar(100)
+  RC60_BCA_F1         String? @unique(map: "serial_unix__19") @db.VarChar(50)
+  RC60_BCA_F1_PN      String? @db.VarChar(50)
+  RC60_BCA_F1_PM      String? @db.VarChar(100)
+  RC60_BCA_A2         String? @unique(map: "serial_unix__20") @db.VarChar(50)
+  RC60_BCA_A2_PN      String? @db.VarChar(50)
+  RC60_BCA_A2_PM      String? @db.VarChar(100)
+  RC60_BCA_B2         String? @unique(map: "serial_unix__21") @db.VarChar(50)
+  RC60_BCA_B2_PN      String? @db.VarChar(50)
+  RC60_BCA_B2_PM      String? @db.VarChar(100)
+  BRM50_RJC_1         String? @unique(map: "serial_unix__22") @db.VarChar(50)
+  BRM50_RJC_1_PN      String? @db.VarChar(50)
+  BRM50_RJC_1_PM      String? @db.VarChar(100)
+  BRM50_RJC_2         String? @unique(map: "serial_unix__23") @db.VarChar(50)
+  BRM50_RJC_2_PN      String? @db.VarChar(50)
+  BRM50_RJC_2_PM      String? @db.VarChar(100)
+  BRM50_UTC_1         String? @unique(map: "serial_unix__24") @db.VarChar(50)
+  BRM50_UTC_1_PN      String? @db.VarChar(50)
+  BRM50_UTC_1_PM      String? @db.VarChar(100)
+  BRM50_UTC_2         String? @unique(map: "serial_unix__25") @db.VarChar(50)
+  BRM50_UTC_2_PN      String? @db.VarChar(50)
+  BRM50_UTC_2_PM      String? @db.VarChar(100)
+  CRM_MESIN           String? @unique(map: "serial_unix__26") @db.VarChar(50)
+  FSP750_10DGNHB_K    String? @unique(map: "serial_unix__27") @db.VarChar(50)
+  FSP750_10DGNHB_K_PN String? @db.VarChar(50)
+  FSP750_10DGNHB_K_PM String? @db.VarChar(100)
+  CE_D                String? @unique(map: "serial_unix__28") @db.VarChar(50)
+  CE_D_PN             String? @db.VarChar(50)
+  CE_D_PM             String? @db.VarChar(100)
+  MCU_E               String? @unique(map: "serial_unix__29") @db.VarChar(50)
+  MCU_E_PN            String? @db.VarChar(50)
+  MCU_E_PM            String? @db.VarChar(100)
+  SPR60_F             String? @unique(map: "serial_unix__30") @db.VarChar(50)
+  SPR60_F_PN          String? @db.VarChar(50)
+  SPR60_F_PM          String? @db.VarChar(100)
+  FRONT_MX8600S_Z     String? @unique(map: "serial_unix__31") @db.VarChar(50)
+  FRONT_MX8600S_Z_PN  String? @db.VarChar(50)
+  FRONT_MX8600S_Z_PM  String? @db.VarChar(100)
+  OPL_U               String? @unique(map: "serial_unix__32") @db.VarChar(50)
+  OPL_U_PN            String? @db.VarChar(50)
+  OPL_U_PM            String? @db.VarChar(100)
+  BRM50_RBU_IO_B_D    String? @unique(map: "serial_unix__33") @db.VarChar(50)
+  BRM50_RBU_IO_B_D_PN String? @db.VarChar(50)
+  BRM50_RBU_IO_B_D_PM String? @db.VarChar(100)
+  IT_TRANSFORMER      String? @unique(map: "serial_unix__34") @db.VarChar(50)
+  IT_TRANSFORMER_PN   String? @db.VarChar(50)
+  IT_TRANSFORMER_PM   String? @db.VarChar(100)
+  NO_BARIS_MESIN      Int?
+  NOTES               String? @db.VarChar(250)
+  TIME_STAGING        String? @db.VarChar(25)
+  TIME_PRELOADING     String? @db.VarChar(25)
+  TIME_CHECKLIST      String? @db.VarChar(25)
+  STATUS_MESIN        String? @db.VarChar(25)
+}
+
+model crt_317 {
+  id                 Int     @id @default(autoincrement()) @db.UnsignedInt
+  MCU_I              String? @unique(map: "serial_unix__0") @db.VarChar(50)
+  MCU_I_PN           String? @db.VarChar(50)
+  MCU_I_PM           String? @db.VarChar(100)
+  CE                 String? @unique(map: "serial_unix__1") @db.VarChar(50)
+  CE_PN              String? @db.VarChar(50)
+  CE_PM              String? @db.VarChar(100)
+  EPP_X1             String? @unique(map: "serial_unix__2") @db.VarChar(50)
+  EPP_X1_PN          String? @db.VarChar(50)
+  EPP_X1_PM          String? @db.VarChar(100)
+  CDU30_CST_N        String? @unique(map: "serial_unix__3") @db.VarChar(50)
+  CDU30_CST_N_PN     String? @db.VarChar(50)
+  CDU30_CST_N_PM     String? @db.VarChar(100)
+  CDU30_CST_A        String? @unique(map: "serial_unix__4") @db.VarChar(50)
+  CDU30_CST_A_PN     String? @db.VarChar(50)
+  CDU30_CST_A_PM     String? @db.VarChar(100)
+  CDU30_CST_V        String? @unique(map: "serial_unix__5") @db.VarChar(50)
+  CDU30_CST_V_PN     String? @db.VarChar(50)
+  CDU30_CST_V_PM     String? @db.VarChar(100)
+  CDU30_CST_S        String? @unique(map: "serial_unix__6") @db.VarChar(50)
+  CDU30_CST_S_PN     String? @db.VarChar(50)
+  CDU30_CST_S_PM     String? @db.VarChar(100)
+  CDU30_CST_J        String? @unique(map: "serial_unix__7") @db.VarChar(50)
+  CDU30_CST_J_PN     String? @db.VarChar(50)
+  CDU30_CST_J_PM     String? @db.VarChar(100)
+  CDU30_CST_G        String? @unique(map: "serial_unix__8") @db.VarChar(50)
+  CDU30_CST_G_PN     String? @db.VarChar(50)
+  CDU30_CST_G_PM     String? @db.VarChar(100)
+  CDU30_CST_R        String? @unique(map: "serial_unix__9") @db.VarChar(50)
+  CDU30_CST_R_PN     String? @db.VarChar(50)
+  CDU30_CST_R_PM     String? @db.VarChar(100)
+  CDU30_CST_B        String? @unique(map: "serial_unix__10") @db.VarChar(50)
+  CDU30_CST_B_PN     String? @db.VarChar(50)
+  CDU30_CST_B_PM     String? @db.VarChar(100)
+  CDU30_RJRT         String? @unique(map: "serial_unix__11") @db.VarChar(50)
+  CDU30_RJRT_PN      String? @db.VarChar(50)
+  CDU30_RJRT_PM      String? @db.VarChar(100)
+  CDU30_RJRT_Z       String? @unique(map: "serial_unix__12") @db.VarChar(50)
+  CDU30_RJRT_Z_PN    String? @db.VarChar(50)
+  CDU30_RJRT_Z_PM    String? @db.VarChar(100)
+  CDU30F             String? @unique(map: "serial_unix__13") @db.VarChar(50)
+  CDU30F_PN          String? @db.VarChar(50)
+  CDU30F_PM          String? @db.VarChar(100)
+  OPL_15_INC         String? @unique(map: "serial_unix__14") @db.VarChar(50)
+  OPL_15_INC_PN      String? @db.VarChar(50)
+  OPL_15_INC_PM      String? @db.VarChar(100)
+  ATM_MESIN          String? @unique(map: "serial_unix__15") @db.VarChar(50)
+  FSP750_10DGNHB     String? @unique(map: "serial_unix__16") @db.VarChar(50)
+  FSP750_10DGNHB_PN  String? @db.VarChar(50)
+  FSP750_10DGNHB_PM  String? @db.VarChar(100)
+  FRONT_MX5600S_N    String? @unique(map: "serial_unix__17") @db.VarChar(50)
+  FRONT_MX5600S_N_PN String? @db.VarChar(50)
+  FRONT_MX5600S_N_PM String? @db.VarChar(100)
+  SPR60_F            String? @unique(map: "serial_unix__18") @db.VarChar(50)
+  SPR60_F_PN         String? @db.VarChar(50)
+  SPR60_F_PM         String? @db.VarChar(100)
+  CDU30_THROAT_N     String? @unique(map: "serial_unix__19") @db.VarChar(50)
+  CDU30_THROAT_N_PN  String? @db.VarChar(50)
+  CDU30_THROAT_N_PM  String? @db.VarChar(100)
+  CDU30_MB_E         String? @unique(map: "serial_unix__20") @db.VarChar(50)
+  CDU30_MB_E_PN      String? @db.VarChar(50)
+  CDU30_MB_E_PM      String? @db.VarChar(100)
+  CDU30_FF_H         String? @unique(map: "serial_unix__21") @db.VarChar(50)
+  CDU30_FF_H_PN      String? @db.VarChar(50)
+  CDU30_FF_H_PM      String? @db.VarChar(100)
+  CDU30_SF_O         String? @unique(map: "serial_unix__22") @db.VarChar(50)
+  CDU30_SF_O_PN      String? @db.VarChar(50)
+  CDU30_SF_O_PM      String? @db.VarChar(100)
+  CDU___Board        String? @unique(map: "serial_unix__23") @db.VarChar(50)
+  CDU___Board_PN     String? @db.VarChar(50)
+  CDU___Board_PM     String? @db.VarChar(100)
+  UPS_Vektor         String? @unique(map: "serial_unix__24") @db.VarChar(50)
+  UPS_Vektor_PN      String? @db.VarChar(50)
+  UPS_Vektor_PM      String? @db.VarChar(100)
+  IT_TRANSFORMER     String? @unique(map: "serial_unix__25") @db.VarChar(50)
+  IT_TRANSFORMER_PN  String? @db.VarChar(50)
+  IT_TRANSFORMER_PM  String? @db.VarChar(100)
+  NO_BARIS_MESIN     Int?
+  NOTES              String? @db.VarChar(250)
+  TIME_STAGING       String? @db.VarChar(25)
+  TIME_PRELOADING    String? @db.VarChar(25)
+  TIME_CHECKLIST     String? @db.VarChar(25)
+  STATUS_MESIN       String? @db.VarChar(25)
+}
+
+model delivery_request {
+  id                  Int       @id @default(autoincrement()) @db.UnsignedInt
+  delivery_request_no Int?
+  tanggal_request     String?   @db.VarChar(50)
+  category            String?   @db.VarChar(50)
+  task                String?   @db.VarChar(50)
+  no_mesin            Int
+  sn_mesin            String?   @db.VarChar(50)
+  id_po               Int
+  purpose             String?   @db.VarChar(250)
+  contact_person      String?   @db.VarChar(150)
+  contact_no          String?   @db.VarChar(100)
+  address             String?   @db.VarChar(250)
+  request_by          Int?
+  status_approval     String?   @db.VarChar(50)
+  approve_by          Int?
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  updated_at          DateTime? @default(now()) @db.DateTime(0)
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model models {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @unique(map: "name") @db.VarChar(255)
+  created_at DateTime? @db.DateTime(0)
+  updated_at DateTime? @db.DateTime(0)
+}
+
+model mst_checklist_stag_mv400 {
+  id                Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_classification Int
+  checkpoint_desc   String?   @db.VarChar(500)
+  unit              String?   @db.VarChar(100)
+  part_number       String?   @db.VarChar(100)
+  rev_final         String?   @db.VarChar(100)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_checklist_staging {
+  id                       Int                       @id @default(autoincrement()) @db.UnsignedInt
+  test_desc                String?                   @db.VarChar(250)
+  result_detail            String?                   @db.VarChar(250)
+  id_divisi                Int
+  id_mesin                 Int
+  id_type_values           Int?                      @db.UnsignedInt
+  created_at               DateTime                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                 @default(now()) @db.DateTime(0)
+  mst_type_value_checklist mst_type_value_checklist? @relation(fields: [id_type_values], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mst_checklist_staging_ibfk_1")
+  mst_mesin                mst_mesin                 @relation(fields: [id_mesin], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mst_checklist_staging_ibfk_2")
+
+  @@index([id_mesin], map: "id_mesin")
+  @@index([id_type_values], map: "id_type_values")
+}
+
+model mst_checklist_staging_backup_20240212 {
+  id                       Int                       @id @default(autoincrement()) @db.UnsignedInt
+  test_desc                String?                   @db.VarChar(250)
+  result_detail            String?                   @db.VarChar(250)
+  id_divisi                Int
+  id_mesin                 Int
+  id_type_values           Int?                      @db.UnsignedInt
+  created_at               DateTime                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                 @default(now()) @db.DateTime(0)
+  mst_type_value_checklist mst_type_value_checklist? @relation(fields: [id_type_values], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mst_checklist_staging_backup_20240212_ibfk_1")
+  mst_mesin                mst_mesin                 @relation(fields: [id_mesin], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mst_checklist_staging_backup_20240212_ibfk_2")
+
+  @@index([id_mesin], map: "id_mesin")
+  @@index([id_type_values], map: "id_type_values")
+}
+
+model mst_classification {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  name       String?   @db.VarChar(150)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_customer {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  bank_desc  String    @db.VarChar(150)
+  address    String?   @db.VarChar(250)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_divisi {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  name       String?   @db.VarChar(250)
+  id_mesin   Int
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_gudang {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  gudang_desc String    @db.VarChar(150)
+  alamat      String?   @db.VarChar(250)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_inspeksi {
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  general_desc   String?   @db.VarChar(250)
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.DateTime(0)
+  orderby_atms   Int?
+  orderby_crms   Int?
+  orderby_cskios Int?
+  model_mesin    String?   @db.VarChar(500)
+  type_atm       String?   @db.VarChar(100)
+  in_out_info    String?   @db.Text
+}
+
+model mst_mesin {
+  id                                    Int                                     @id @default(autoincrement())
+  merek                                 String                                  @db.VarChar(50)
+  model                                 Int                                     @default(0)
+  type                                  String                                  @unique(map: "type") @db.VarChar(50)
+  id_mydatindo                          Int?
+  status                                String?                                 @db.VarChar(50)
+  status_template_prestaging            Int?
+  copy_from_model                       Int?
+  created_at                            DateTime?                               @db.DateTime(0)
+  updated_at                            DateTime?                               @db.DateTime(0)
+  mst_checklist_staging                 mst_checklist_staging[]
+  mst_checklist_staging_backup_20240212 mst_checklist_staging_backup_20240212[]
+}
+
+model mst_parent_type_spesifikasi_msn {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  parent     String    @db.VarChar(100)
+  type_atm   String?   @db.VarChar(500)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_part_number {
+  id          Int       @id @default(autoincrement())
+  id_mesin    Int       @default(0)
+  part_no     String?   @db.Char(50)
+  part_desc   String?   @db.VarChar(50)
+  position    Int?
+  part_column String    @db.Char(50)
+  types       String    @db.Char(50)
+  status      Int?
+  format      String?   @db.Char(50)
+  created_at  DateTime? @db.DateTime(0)
+  updated_at  DateTime? @db.DateTime(0)
+  deleted_at  DateTime? @db.DateTime(0)
+}
+
+model mst_po {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  no_po_master String    @unique(map: "no_po_master") @db.VarChar(150)
+  tgl_po       DateTime? @db.DateTime(0)
+  id_customer  String?   @db.Char(5)
+  status_po    String?   @db.VarChar(50)
+  created_at   DateTime  @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.DateTime(0)
+  deleted_at   DateTime? @db.DateTime(0)
+}
+
+model mst_spesifikasi_mesin {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  item        String    @db.VarChar(250)
+  description String    @db.VarChar(150)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_spesifikasi_mesin_fnew {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  item_id     Int       @default(0)
+  item_code   String    @db.VarChar(100)
+  description String    @db.VarChar(150)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_status_po {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  status_desc String    @db.VarChar(100)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_style {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(150)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model mst_type_spesifikasi_msn {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_parent  Int       @default(0) @db.UnsignedInt
+  val        String    @db.VarChar(150)
+  label      String    @db.VarChar(250)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model mst_type_value_checklist {
+  id                                    Int                                     @id @default(autoincrement()) @db.UnsignedInt
+  types                                 String                                  @default("") @db.VarChar(100)
+  count_data                            Int?
+  labels                                String?                                 @db.Text
+  data_from                             String?                                 @db.VarChar(250)
+  created_at                            DateTime?                               @default(now()) @db.Timestamp(0)
+  updated_at                            DateTime?                               @default(now()) @db.DateTime(0)
+  mst_checklist_staging                 mst_checklist_staging[]
+  mst_checklist_staging_backup_20240212 mst_checklist_staging_backup_20240212[]
+}
+
+model mst_ws_info {
+  id                Int       @id @default(autoincrement()) @db.UnsignedInt
+  ws_id             String?   @db.VarChar(100)
+  ws_name           String?   @db.VarChar(100)
+  serial_number     String?   @db.VarChar(10)
+  model             Int?
+  ticket            String?   @db.VarChar(250)
+  installation_date DateTime? @db.Date
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
+}
+
+model password_resets {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model pic_marketing {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(150)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model pic_mitra {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model pic_mover {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  gudang     String    @db.VarChar(150)
+  pic_mover  String    @default("") @db.VarChar(100)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model pic_tss {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(150)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model setting_prestaging {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  types       String    @default("") @db.VarChar(50)
+  description String    @db.VarChar(150)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model tbl_po {
+  id              Int       @id @default(autoincrement())
+  no_po           String?   @db.VarChar(250)
+  tgl_po          String?   @db.VarChar(50)
+  id_status_po    Int?
+  status_po       String?   @db.VarChar(50)
+  nama_gudang     Int?
+  sn_batch        String?   @db.VarChar(150)
+  part_number     String?   @db.Char(50)
+  id_po_master    Int?
+  model           Int?
+  id_type_mesin   Int       @default(0)
+  jumlah          Int
+  status_mesin    String?   @db.VarChar(50)
+  tahun_produksi  String?   @db.VarChar(50)
+  customer        Int?
+  batch           Int?
+  pic_staging     Int?
+  tgl_staging     String?   @db.VarChar(50)
+  tgl_masuk       String?   @db.VarChar(50)
+  brand           String?   @db.Char(50)
+  style           String?   @db.Char(50)
+  copy_from_id_po Int?
+  sn_mesins       String?   @db.Text
+  created_at      DateTime? @db.DateTime(0)
+  updated_at      DateTime? @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  @@index([no_po], map: "tblpo_nopo_key")
+}
+
+enum POStatus {
+  DRAFT
+  CONFIRMED
+  STAGING
+  DELIVERING
+  COMPLETED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id         Int      @id @default(autoincrement())
+  poNumber   String   @unique
+  customerId Int
+  status     POStatus
+  orderDate  DateTime
+  notes      String?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  lines PurchaseOrderLine[]
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  machineInstances MachineInstance[]
+  deliveryPlans    DeliveryPlan[]
+}
+
+model PurchaseOrderLine {
+  id              Int   @id @default(autoincrement())
+  purchaseOrderId Int
+  machineDefId    Int
+  quantity        Int
+  serialNumbers   Json?
+  configuration   Json?
+
+  purchaseOrder PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
+  machineDef    MachineDefinition @relation(fields: [machineDefId], references: [id])
+
+  machineInstances MachineInstance[]
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  address   String?
+  createdAt DateTime @default(now())
+
+  orders PurchaseOrder[]
+  users  User[]
+}
+
+enum MachineStatus {
+  PLANNED // created from PO line
+  STAGING
+  READY
+  IN_TRANSIT
+  DELIVERED
+  INSTALLED
+  REJECTED
+}
+
+model MachineDefinition {
+  id                 Int                 @id @default(autoincrement())
+  brand              String
+  model              String
+  type               String
+  machineInstances   MachineInstance[]
+  purchaseOrderLines PurchaseOrderLine[]
+
+  @@unique([brand, model, type])
+}
+
+model MachineInstance {
+  id                  Int           @id @default(autoincrement())
+  purchaseOrderId     Int
+  purchaseOrderLineId Int
+  machineDefId        Int
+  serialNumber        String?
+  status              MachineStatus
+
+  purchaseOrder     PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderLine PurchaseOrderLine @relation(fields: [purchaseOrderLineId], references: [id])
+  definition        MachineDefinition @relation(fields: [machineDefId], references: [id])
+
+  // NO workflow arrays here
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  partInstances    PartInstance[]
+  checklistResults ChecklistResult[]
+  inspections      Inspection[]
+  deliveryEvents   DeliveryEvent[]
+
+  @@index([purchaseOrderId])
+  @@index([purchaseOrderLineId])
+  @@index([serialNumber])
+}
+
+model PartDefinition {
+  id            Int            @id @default(autoincrement())
+  code          String         @unique
+  name          String
+  partInstances PartInstance[]
+}
+
+model PartInstance {
+  id        Int @id @default(autoincrement())
+  machineId Int
+  partDefId Int
+
+  serialNumber String?
+  partNumber   String?
+  pm           String?
+
+  machine    MachineInstance @relation(fields: [machineId], references: [id])
+  definition PartDefinition  @relation(fields: [partDefId], references: [id])
+
+  @@unique([machineId, partDefId])
+}
+
+model ChecklistDefinition {
+  id               Int               @id @default(autoincrement())
+  code             String            @unique
+  description      String
+  machineType      String
+  checklistResults ChecklistResult[]
+}
+
+enum CheckResult {
+  PASS
+  FAIL
+  NA
+}
+
+model ChecklistResult {
+  id             Int         @id @default(autoincrement())
+  machineId      Int
+  checklistDefId Int
+  result         CheckResult
+  notes          String?
+
+  machine   MachineInstance     @relation(fields: [machineId], references: [id])
+  checklist ChecklistDefinition @relation(fields: [checklistDefId], references: [id])
+
+  @@unique([machineId, checklistDefId])
+}
+
+enum InspectionStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+model Inspection {
+  id          Int              @id @default(autoincrement())
+  machineId   Int
+  status      InspectionStatus
+  inspectorId Int?
+  inspectedAt DateTime?
+
+  machine MachineInstance @relation(fields: [machineId], references: [id])
+}
+
+model Warehouse {
+  id      Int     @id @default(autoincrement())
+  code    String  @unique
+  name    String
+  address String?
+
+  createdAt DateTime @default(now())
+
+  // relations
+  users User[]
+
+  deliveryPlansFrom DeliveryPlan[] @relation("FromPlan")
+  deliveryPlansTo   DeliveryPlan[] @relation("ToPlan")
+}
+
+enum DeliveryPlanStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryEventType {
+  DISPATCHED
+  ARRIVED
+}
+
+model DeliveryPlan {
+  id              Int                @id @default(autoincrement())
+  purchaseOrderId Int
+  fromWarehouseId Int
+  toWarehouseId   Int
+  plannedDate     DateTime?
+  status          DeliveryPlanStatus
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  fromWarehouse Warehouse     @relation("FromPlan", fields: [fromWarehouseId], references: [id])
+  toWarehouse   Warehouse     @relation("ToPlan", fields: [toWarehouseId], references: [id])
+
+  events DeliveryEvent[]
+}
+
+model DeliveryEvent {
+  id             Int               @id @default(autoincrement())
+  deliveryPlanId Int
+  machineId      Int
+  eventType      DeliveryEventType
+  eventTime      DateTime          @default(now())
+  notes          String?
+
+  deliveryPlan DeliveryPlan    @relation(fields: [deliveryPlanId], references: [id])
+  machine      MachineInstance @relation(fields: [machineId], references: [id])
+}
+
+model LegacyIdMap {
+  id          Int    @id @default(autoincrement())
+  legacyTable String
+  legacyId    Int
+  canonicalId Int
+
+  @@unique([legacyTable, legacyId])
+}
+
+model tbl_po_history_dummy_to_valid {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  from_id_po Int
+  no_mesin   String?   @db.VarChar(50)
+  sn_mesin   String?   @db.VarChar(25)
+  to_id_po   Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_checklist_stag_approval {
+  id               Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po            Int
+  no_mesin         Int
+  sn_mesin         String    @db.VarChar(25)
+  approval_staging Int?
+  approval_tss     Int?
+  created_at       DateTime  @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_checklist_stag_mv400 {
+  id                   Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po                Int
+  no_mesin             Int
+  sn_mesin             String    @db.VarChar(20)
+  id_classification    Int
+  id_checklist_staging Int
+  checkpoint_desc      String?   @db.VarChar(250)
+  sn_part              String?   @db.VarChar(20)
+  results              String?   @db.VarChar(100)
+  inspector_sign       String?   @db.VarChar(250)
+  fix_description      String?   @db.VarChar(250)
+  created_at           DateTime? @default(now()) @db.Timestamp(0)
+  updated_at           DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_checklist_staging {
+  id                   Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po                Int
+  no_mesin             Int
+  sn_mesin             String    @db.VarChar(25)
+  id_divisi            Int
+  id_checklist_staging Int
+  result_details       String?   @db.VarChar(250)
+  results              String?   @db.VarChar(100)
+  problem              Int?
+  action               Int?
+  remark               Int?
+  fill_columns         String?   @db.LongText
+  created_at           DateTime  @default(now()) @db.Timestamp(0)
+  updated_at           DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([id_po], map: "tcs_idpo_key")
+  @@index([sn_mesin], map: "tcs_snmesin_key")
+  @@index([id_po, no_mesin, id_checklist_staging], map: "trx_checklist_stg_condition_idx")
+  @@index([result_details, results, action, problem, remark], map: "trx_checklist_stg_search_indx")
+}
+
+model transaksi_inspeksi {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po       Int
+  no_mesin    Int
+  sn_mesin    String?   @db.VarChar(25)
+  id_inspeksi Int?
+  position    String?   @db.VarChar(10)
+  quantity    Int?
+  status      String?   @db.VarChar(10)
+  keterangan  String?   @db.VarChar(250)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_inspeksi_approval {
+  id                  Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po               Int
+  no_mesin            Int
+  sn_mesin            String    @db.VarChar(25)
+  approval_by_tss     Int?
+  approval_by_datindo Int?
+  approval_by_mover   Int?
+  created_at          DateTime  @default(now()) @db.Timestamp(0)
+  updated_at          DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_spesifikasi_mesin {
+  id               Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po            Int?
+  sn_mesins        String?   @db.Text
+  id_type_mesin    Int
+  model            Int
+  pn_system        String?   @db.VarChar(25)
+  customer         Int
+  notes            String?   @db.VarChar(250)
+  approval_staging Int?
+  approval_tss     Int?
+  time_todo        String?   @db.VarChar(20)
+  created_at       DateTime  @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_spesifikasi_mesin_dtl {
+  id                Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_spek_mesin_hdr Int?
+  item_desc         String    @db.VarChar(100)
+  fill_description  String?   @db.LongText
+  results           String?   @db.VarChar(25)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_spesifikasi_mesin_dtl_new {
+  id                Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_spek_mesin_hdr Int?
+  id_parent         Int?
+  item_parent       String    @db.VarChar(100)
+  fill_description  String?   @db.LongText
+  results           String?   @db.VarChar(25)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_status_deliv_detail {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_header  Int
+  status     String    @db.Char(50)
+  keterangan String?   @db.VarChar(250)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model transaksi_status_delivery {
+  id                   Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po                Int
+  id_mesin             Int
+  sn_mesin             String?   @db.VarChar(25)
+  tgl_perkiraan_tiba   DateTime? @db.DateTime(0)
+  tgl_perkiraan_keluar DateTime? @db.DateTime(0)
+  notes                String?   @db.VarChar(250)
+  created_at           DateTime  @default(now()) @db.Timestamp(0)
+  updated_at           DateTime? @default(now()) @db.DateTime(0)
+  obsolete             String?   @db.Char(1)
+
+  @@index([obsolete], map: "trx_status_delivery_obsolete_idx")
+}
+
+model users {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String    @db.VarChar(255)
+  email                 String    @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at     DateTime? @db.Timestamp(0)
+  password              String    @db.VarChar(255)
+  remember_token        String?   @db.VarChar(100)
+  reset_code            String?   @db.VarChar(6)
+  roles                 String?   @db.Char(50)
+  id_customer           Int?
+  id_gudang             Int?
+  status                Int?
+  reset_code_expired_at DateTime? @db.Timestamp(0)
+  created_at            DateTime? @db.Timestamp(0)
+  updated_at            DateTime? @db.Timestamp(0)
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  isActive Boolean @default(true)
+
+  customerId  Int?
+  warehouseId Int?
+
+  createdAt DateTime   @default(now())
+  customer  Customer?  @relation(fields: [customerId], references: [id])
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
+  userRoles UserRole[]
+}
+
+model Role {
+  id        Int        @id @default(autoincrement())
+  code      String     @unique // ADMIN, STAGING, TSS, MOVER, CUSTOMER
+  name      String
+  userRoles UserRole[]
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model warehouse_transfer {
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_po          Int       @default(0)
+  id_customer    Int       @default(0)
+  jumlah         Int
+  sn_mesins      String    @db.Text
+  from_warehouse Int       @default(0)
+  tgl_keluar     DateTime? @db.DateTime(0)
+  to_warehouse   Int       @default(0)
+  tgl_masuk      DateTime? @db.DateTime(0)
+  tgl_staging    DateTime? @db.DateTime(0)
+  pic            Int?
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.DateTime(0)
+}

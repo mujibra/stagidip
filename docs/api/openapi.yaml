@@ -1,0 +1,385 @@
+openapi: 3.1.0
+
+info:
+  title: Stagidip API
+  version: 1.0.0
+  description: >
+    Internal API documentation for Stagidip.
+    Auto-generated offline docs come from this file.
+
+servers:
+  - url: http://localhost:3000
+    description: Local server
+
+tags:
+  - name: Auth
+  - name: Brand
+  - name: Batch
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      description: Returns JWT token + user profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login sukses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/UserWithToken"
+        '401':
+          description: Email atau password salah
+
+  /api/brand:
+    get:
+      tags: [Brand]
+      summary: List all brands
+      description: Returns list of all brands records.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List brand
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  totalDatas:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Brand"
+
+    post:
+      tags: [Brand]
+      summary: Create a new brand
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: 
+                - name
+      responses:
+        '200':
+          description: Brand created
+        '400':
+          description: Brand name missing or duplicate
+
+  /api/brand/{id}:
+    get:
+      tags: [Brand]
+      summary: Get brand by id
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        '200':
+          description: Brand detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandResponse"
+        '400':
+          description: Brand not found
+
+    put:
+      tags: [Brand]
+      summary: Update brand
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: [name]
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: [name]
+      responses:
+        '200':
+          description: Brand updated
+        '400':
+          description: Validation error
+
+    delete:
+      tags: [Brand]
+      summary: Delete brand
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        '200':
+          description: Brand deleted
+
+  /api/bacth:
+    get:
+      tags: [Batch]
+      summary: Get all batch
+      description: Returns list of all batch records.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of batch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchListResponse"
+        '500':
+          description: Server error while fetching batch data
+
+    post:
+      tags: [Batch]
+      summary: Create a new batch
+      description: Create a new batch if name is unique.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: "Batch Januari"
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: "Batch Januari"
+      responses:
+        '200':
+          description: Batch created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSingleResponse"
+        '400':
+          description: Validation error or duplicate batch name
+        '500':
+          description: Server error while creating batch
+
+  /api/bacth/{id}:
+    get:
+      tags: [Batch]
+      summary: Get batch detail
+      description: Returns detail data for a single batch by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric ID of the batch
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Batch found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSingleResponse"
+        '400':
+          description: Batch not found
+        '500':
+          description: Server error while fetching batch detail
+
+    put:
+      tags: [Batch]
+      summary: Update batch name
+      description: Updates batch name if not duplicated.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: "Batch Februari"
+      responses:
+        '200':
+          description: Batch updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSingleResponse"
+        '400':
+          description: Validation error or duplicate name
+        '500':
+          description: Server error while updating batch
+
+    delete:
+      tags: [Batch]
+      summary: Delete batch
+      description: Deletes batch if not used in Purchase Order.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Batch deleted successfully
+        '400':
+          description: Batch is in use and cannot be deleted
+        '500':
+          description: Server error while deleting batch
+
+components:
+  securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    UserWithToken:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        roles:
+          type: string
+        authToken:
+          type: string
+
+    Brand:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    BrandResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Brand"
+
+    Batch:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID as string (converted from number)
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    BatchListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Batch"
+
+    BatchSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Batch"
