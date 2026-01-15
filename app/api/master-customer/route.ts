@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId, serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
+
+type CreateCustomerDTO = {
+    bank_desc?: string;
+    address?: string | null;
+};
 
 export async function GET() {
     try {
@@ -7,65 +16,38 @@ export async function GET() {
             orderBy: { created_at: "desc" },
         });
 
-        const safeCustomers = customers.map((c) => ({
-            ...c,
-            id: c.id.toString(),
-        }));
-
         return NextResponse.json({
             success: true,
-            totalDatas: safeCustomers.length,
-            data: safeCustomers,
+            totalDatas: customers.length,
+            data: serializeMany(customers),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching customers.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const body = await parseBody<CreateCustomerDTO>(req);
 
-        if (!body.bank_desc) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "bank description is required",
-                },
-                { status: 400 }
-            );
-        }
+        const errors: Record<string, string[]> = {};
+        if (!body.bank_desc) errors.bank_desc = ["Nama Customer tidak boleh kosong"]; // align w/ Laravel-ish wording
 
-        const newCustomer = await prisma.mst_customer.create({
+        if (Object.keys(errors).length) return validationError(errors);
+
+        const created = await prisma.mst_customer.create({
             data: {
-                bank_desc: body.bank_desc,
-                address: body.address || null,
+                bank_desc: body.bank_desc!,
+                address: body.address ?? null,
             },
         });
 
         return NextResponse.json({
             success: true,
-            message: "Customer created succesfully",
-            data: {
-                ...newCustomer,
-                id: newCustomer.id.toString(),
-            },
+            message: "Customer created successfully.",
+            data: serializeId(created),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Error creating customer",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 400 }
-        );
+        return serverError(error);
     }
 }

@@ -1,70 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
 
-// GET /api/pic-mitra
 export async function GET() {
     try {
-        const list = await prisma.pic_mitra.findMany({
-            orderBy: { created_at: "desc" },
-        });
-
-        const safe = list.map((x) => ({
-            ...x,
-            id: x.id.toString(),
-        }));
+        const list = await prisma.pic_mitra.findMany({ orderBy: { created_at: "desc" } });
 
         return NextResponse.json({
             success: true,
-            totalDatas: safe.length,
-            data: safe,
+            totalDatas: list.length,
+            data: list.map((x) => ({ ...x, id: String(x.id) })),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
-// POST /api/pic-mitra
 export async function POST(req: NextRequest) {
     try {
-        const body = await parseBody<{ name: string }>(req);
-        const { name } = body;
+        const body = await parseBody<{ name?: string }>(req);
+        const name = (body.name ?? "").trim();
 
-        if (!name) {
-            return NextResponse.json({ name: ["Pic mitra tidak boleh kosong"] }, { status: 400 });
-        }
+        if (!name) return validationError({ name: ["Pic mitra tidak boleh kosong"] });
 
         const now = new Date();
-
-        const created = await prisma.pic_mitra.create({
-            data: {
-                name,
-                created_at: now,
-                updated_at: now,
-            },
-        });
+        const created = await prisma.pic_mitra.create({ data: { name, created_at: now, updated_at: now } });
 
         return NextResponse.json({
             success: true,
             message: "Pic mitra baru berhasil ditambahkan",
-            data: {
-                ...created,
-                id: created.id.toString(),
-            },
+            data: { ...created, id: String(created.id) },
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

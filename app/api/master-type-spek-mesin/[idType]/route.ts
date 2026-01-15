@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError } from "@/lib/http/errorResponse";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 type UpdateTypeSpekMesinDTO = {
     val?: string;
@@ -34,10 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: { idType: stri
         return NextResponse.json({
             success: true,
             message: "Item Type was Updated.",
-            data: {
-                ...updated!,
-                id: updated!.id.toString(),
-            },
+            data: serializeId(updated!),
         });
     } catch (error) {
         return serverError(error);
@@ -77,10 +76,7 @@ export async function DELETE(_: Request, { params }: { params: { idType: string 
         return NextResponse.json({
             success: true,
             message: `Remove Field Item [${data.val} - ${data.label}] has been deleted.`,
-            data: {
-                ...data,
-                id: data.id.toString(),
-            },
+            data: serializeId(data),
         });
     } catch (error) {
         return serverError(error);

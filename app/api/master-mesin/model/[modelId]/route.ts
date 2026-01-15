@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 type RouteParams = {
     params: Promise<{ modelId: string }>;
@@ -28,7 +30,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
         {
             success: true,
             totalDatas: list.length,
-            data: list.map((m) => ({ ...m, id: m.id.toString() })),
+            data: serializeMany(list),
         },
         { status: 200 }
     );

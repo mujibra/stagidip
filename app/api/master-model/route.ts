@@ -1,74 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
+
+type CreateModelDTO = { name?: string };
 
 export async function GET() {
     try {
         const models = await prisma.models.findMany({
-            where: {
-                NOT: {
-                    id: {
-                        in: [1, 3],
-                    },
-                },
-            },
+            where: { NOT: { id: { in: [1, 3] } } },
         });
 
         return NextResponse.json({
             success: true,
             totalDatas: models.length,
-            data: models,
+            data: models.map((m) => ({ ...m, id: String(m.id) })),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching models.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const body = await parseBody<CreateModelDTO>(req);
+        const name = (body.name ?? "").trim();
 
-        if (!body.name) {
-            return NextResponse.json({ name: ["Nama Model tidak boleh kosong"] }, { status: 400 });
-        }
+        if (!name) return validationError({ name: ["Nama Model tidak boleh kosong"] });
 
-        const exists = await prisma.models.findFirst({
-            where: { name: body.name },
-        });
-
+        const exists = await prisma.models.findFirst({ where: { name } });
         if (exists) {
             return NextResponse.json(
                 {
+                    success: false,
                     errorCode: "23000",
-                    message: "SN Mesin " + body.name + " sudah ada, Harap Isi Nama Type dengan nama lain",
+                    message: `SN Mesin ${name} sudah ada, Harap Isi Nama Type dengan nama lain`,
                 },
                 { status: 400 }
             );
         }
 
-        const newModel = await prisma.models.create({
-            data: body,
-        });
+        const created = await prisma.models.create({ data: { name } });
 
         return NextResponse.json({
             success: true,
             message: "Model baru berhasil ditambahkan",
-            data: newModel,
+            data: { ...created, id: String(created.id) },
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching models.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

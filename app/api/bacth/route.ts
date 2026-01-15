@@ -1,47 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId, serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
 
-// GET /bacth (index)
+type CreateBacthDTO = { name?: string };
+
 export async function GET() {
     try {
         const bacths = await prisma.bacth_po.findMany();
 
-        const safeBacth = bacths.map((bacth) => ({
-            ...bacth,
-            id: bacth.id.toString(),
-        }));
-
         return NextResponse.json({
             success: true,
             message: "Data semua bacth",
-            data: safeBacth,
+            totalDatas: bacths.length,
+            data: serializeMany(bacths),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Error fetching batch data",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
-// POST /bacth (store)
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const body = await parseBody<CreateBacthDTO>(req);
+        const name = (body.name ?? "").trim();
 
-        if (!body.name) {
-            return NextResponse.json({ name: ["Batch tidak boleh kosong"] }, { status: 400 });
+        if (!name) {
+            return validationError({ name: ["Batch tidak boleh kosong"] });
         }
 
-        // Check duplicate first
-        const exists = await prisma.bacth_po.findFirst({
-            where: { name: body.name },
-        });
-
+        const exists = await prisma.bacth_po.findFirst({ where: { name } });
         if (exists) {
             return NextResponse.json(
                 {
@@ -53,26 +43,14 @@ export async function POST(req: Request) {
             );
         }
 
-        const bacth = await prisma.bacth_po.create({
-            data: { name: body.name },
-        });
+        const created = await prisma.bacth_po.create({ data: { name } });
 
-        return NextResponse.json(
-            {
-                success: true,
-                message: "Bacth baru berhasil ditambahkan",
-                data: bacth,
-            },
-            { status: 200 }
-        );
+        return NextResponse.json({
+            success: true,
+            message: "Bacth baru berhasil ditambahkan",
+            data: serializeId(created),
+        });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Error add new batch",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

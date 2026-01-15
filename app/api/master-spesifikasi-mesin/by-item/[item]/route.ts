@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 // GET /api/master-spesifikasi-mesin/by-item/:item
 export async function GET(_: Request, { params }: { params: { item: string } }) {
@@ -10,9 +12,6 @@ export async function GET(_: Request, { params }: { params: { item: string } }) 
     return NextResponse.json({
         success: true,
         totalDatas: datas.length,
-        data: datas.map((d) => ({
-            ...d,
-            id: d.id.toString(),
-        })),
+        data: serializeMany(datas),
     });
 }

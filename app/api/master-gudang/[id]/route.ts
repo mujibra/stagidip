@@ -1,50 +1,42 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
 
-type MasterGudangId = {
-    params: Promise<{ id: string }>;
+type UpdateGudangDTO = {
+    gudang_desc?: string;
+    alamat?: string | null;
 };
 
-export async function GET(req: Request, { params }: MasterGudangId) {
-    const { id } = await params; // params is a Promise now
-    const numericId = Number(id);
-
+export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     try {
-        const gudang = await prisma.mst_gudang.findUnique({
-            where: { id: numericId },
-        });
+        const id = Number(ctx.params.id);
+
+        const gudang = await prisma.mst_gudang.findUnique({ where: { id } });
 
         return NextResponse.json({
             success: true,
-            data: gudang || [],
+            data: gudang ? { ...gudang, id: String(gudang.id) } : [],
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching gudangs.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
-export async function PUT(req: Request, { params }: MasterGudangId) {
-    const { id } = await params; // params is a Promise now
-    const numericId = Number(id);
-
+export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     try {
-        const body = await req.json();
+        const id = Number(ctx.params.id);
+        const body = await parseBody<UpdateGudangDTO>(req);
 
-        if (!body.gudang_desc) {
-            return NextResponse.json({ gudang_desc: ["Gudang tidak boleh kosong"] }, { status: 400 });
-        }
+        const errors: Record<string, string[]> = {};
+        if (!body.gudang_desc) errors.gudang_desc = ["Gudang tidak boleh kosong"];
+        if (Object.keys(errors).length) return validationError(errors);
 
-        const update = await prisma.mst_gudang.update({
-            where: { id: numericId },
+        const updated = await prisma.mst_gudang.update({
+            where: { id },
             data: {
-                gudang_desc: body.gudang_desc,
+                gudang_desc: body.gudang_desc!,
                 alamat: body.alamat ?? null,
             },
         });
@@ -52,60 +44,39 @@ export async function PUT(req: Request, { params }: MasterGudangId) {
         return NextResponse.json({
             success: true,
             message: "Data Gudang berhasil di update",
-            data: update,
+            data: { ...updated, id: String(updated.id) },
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching gudangs.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
-export async function DELETE(req: Request, { params }: MasterGudangId) {
+export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
     try {
-        const { id } = await params; // params is a Promise now
-        const numericId = Number(id);
+        const id = Number(ctx.params.id);
 
         const existsPo = await prisma.tbl_po.findFirst({
-            where: { nama_gudang: numericId },
+            where: { nama_gudang: id },
+            select: { id: true },
         });
 
         if (existsPo) {
             const gudang = await prisma.mst_gudang.findUnique({
-                where: { id: numericId },
+                where: { id },
+                select: { gudang_desc: true },
             });
 
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: `Gudang ${gudang?.gudang_desc} Gagal di hapus`,
-                },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, message: `Gudang ${gudang?.gudang_desc ?? ""} Gagal di hapus` }, { status: 400 });
         }
 
-        const deleted = await prisma.mst_gudang.delete({
-            where: { id: numericId },
-        });
+        const deleted = await prisma.mst_gudang.delete({ where: { id } });
 
         return NextResponse.json({
             success: true,
             message: "Data Gudang berhasil dihapus",
-            data: deleted,
+            data: { ...deleted, id: String(deleted.id) },
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while deleted gudangs.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

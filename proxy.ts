@@ -1,37 +1,43 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
-export function proxy(req: NextRequest) {
-    const protectedRoutes = ["/api/brand", "/api/master-customer", "/api/master-gudang", "/api/master-model", "/api/bacth"];
+// Everything under /api is protected EXCEPT these.
+const PUBLIC_ROUTES = ["/api/health", "/api/login"];
 
+function json401(message: string) {
+    return NextResponse.json({ success: false, type: "UNAUTHORIZED", message }, { status: 401 });
+}
+
+export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    console.log("[proxy] TRIGGER:", req.nextUrl.pathname);
-
-    // Not protected? Skip auth.
-    if (!protectedRoutes.some((p) => pathname.startsWith(p))) {
+    // Allow public routes
+    if (PUBLIC_ROUTES.some((p) => pathname.startsWith(p))) {
         return NextResponse.next();
     }
 
-    let token = "";
-
+    // Read token from Authorization header OR cookie
     const authHeader = req.headers.get("authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
 
-    if (!authHeader) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const cookieToken = req.cookies.get("token")?.value ?? null;
 
-    if (authHeader.startsWith("Bearer ")) {
-        token = authHeader.replace("Bearer ", "").trim();
+    const token = bearer ?? cookieToken;
+
+    if (!token) return json401("Unauthorized");
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        // Fail CLOSED if misconfigured (better than silently allowing access)
+        return NextResponse.json({ success: false, type: "SERVER_MISCONFIG", message: "JWT_SECRET is not set" }, { status: 500 });
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        jwt.verify(token, secret);
         return NextResponse.next();
-    } catch (error) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    } catch {
+        return json401("Invalid token");
     }
 }
 

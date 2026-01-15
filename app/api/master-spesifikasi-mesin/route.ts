@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError } from "@/lib/http/errorResponse";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 // GET /api/master-spesifikasi-mesin?page=1&perPage=10
 export async function GET(req: NextRequest) {
@@ -23,7 +25,7 @@ export async function GET(req: NextRequest) {
 
         const safeData = data.map((d) => ({
             ...d,
-            id: d.id.toString(),
+            id: String(d.id),
         }));
 
         return NextResponse.json({
@@ -73,10 +75,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: "Spesifikasi Mesin inserted successfully.",
-            data: {
-                ...spek,
-                id: spek?.id.toString(),
-            },
+            data: serializeId(spek!),
         });
     } catch (error) {
         return serverError(error);

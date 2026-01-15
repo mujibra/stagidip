@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
     try {

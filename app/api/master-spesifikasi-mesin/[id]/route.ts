@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 // PUT /api/master-spesifikasi-mesin/:id
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -26,10 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({
             success: true,
             message: "Data Spesifikasi Mesin berhasil diupdate",
-            data: {
-                ...updated,
-                id: updated.id.toString(),
-            },
+            data: serializeId(updated),
         });
     } catch (error) {
         return NextResponse.json(
@@ -54,10 +53,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
         return NextResponse.json({
             success: true,
             message: `Data Spesifikasi Mesin ${deleted.item}-${deleted.description ?? ""} berhasil dihapus`,
-            data: {
-                ...deleted,
-                id: deleted.id.toString(),
-            },
+            data: serializeId(deleted),
         });
     } catch (error) {
         return NextResponse.json(

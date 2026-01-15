@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 type UpdateParentTypeDTO = {
     type_atm?: unknown[];
@@ -36,10 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: { idParent: st
         return NextResponse.json({
             success: true,
             message: "Parent Type updated successfully.",
-            data: {
-                ...updated,
-                id: updated.id.toString(),
-            },
+            data: serializeId(updated),
         });
     } catch (error) {
         return serverError(error);
@@ -85,10 +84,7 @@ export async function DELETE(_: Request, { params }: { params: { idParent: strin
         return NextResponse.json({
             success: true,
             message: `Remove Item List [${parent.parent}] has been deleted.`,
-            data: {
-                ...parent,
-                id: parent.id.toString(),
-            },
+            data: serializeId(parent),
         });
     } catch (error) {
         return serverError(error);

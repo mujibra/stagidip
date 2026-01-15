@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId, serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
     try {
@@ -27,13 +29,6 @@ export async function GET(req: NextRequest) {
                 skip: (page - 1) * perPage,
                 take: perPage,
                 orderBy: [{ id_mesin: "asc" }, { format: "desc" }, { position: "asc" }],
-                include: {
-                    mesin: {
-                        include: {
-                            model: true,
-                        },
-                    },
-                },
             }),
             prisma.mst_part_number.count({ where }),
         ]);
@@ -41,10 +36,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             totalDatas: total,
-            data: data.map((p) => ({
-                ...p,
-                id: p.id.toString(),
-            })),
+            data: serializeMany(data),
         });
     } catch (error) {
         return serverError(error);
@@ -100,10 +92,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: `Part Number ${created.part_no} created successfully.`,
-            data: {
-                ...created,
-                id: created.id.toString(),
-            },
+            data: serializeId(created),
         });
     } catch (error) {
         return serverError(error);

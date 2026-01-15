@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 
 type RouteParams = {
     params: Promise<{ idMesin: string }>;
@@ -40,9 +41,9 @@ export async function GET(_req: Request, { params }: RouteParams) {
         success: true,
         data: {
             ...mesin,
-            id: mesin.id.toString(),
+            id: String(mesin.id),
             model,
         },
-        list_copy_from: listCopyFrom.map((m) => ({ ...m, id: m.id.toString() })),
+        list_copy_from: listCopyFrom.map((m) => ({ ...m, id: String(m.id) })),
     });
 }

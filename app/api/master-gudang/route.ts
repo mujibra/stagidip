@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
+
+type CreateGudangDTO = {
+    gudang_desc?: string;
+};
 
 export async function GET() {
     try {
@@ -8,45 +15,33 @@ export async function GET() {
         return NextResponse.json({
             success: true,
             totalDatas: gudangs.length,
-            data: gudangs,
+            data: gudangs.map((g) => ({ ...g, id: String(g.id) })),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching gudangs.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const body = await parseBody<CreateGudangDTO>(req);
 
-        if (!body.gudang_desc) {
-            return NextResponse.json({ gudang_desc: ["gudang_desc is required"] }, { status: 400 });
-        }
+        const errors: Record<string, string[]> = {};
+        if (!body.gudang_desc) errors.gudang_desc = ["Gudang wajib diisi"];
+        if (Object.keys(errors).length) return validationError(errors);
 
-        const gudang = await prisma.mst_gudang.create({
-            data: body,
+        const created = await prisma.mst_gudang.create({
+            data: {
+                gudang_desc: body.gudang_desc!,
+            },
         });
 
         return NextResponse.json({
             success: true,
             message: "Gudang created successfully.",
-            data: gudang,
+            data: { ...created, id: String(created.id) },
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching gudangs.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

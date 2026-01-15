@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 type UpdatePartDTO = {
     part_desc?: string;
@@ -27,10 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({
             success: true,
             message: `PartNumber ${updated.part_no} updated successfully.`,
-            data: {
-                ...updated,
-                id: updated.id.toString(),
-            },
+            data: serializeId(updated),
         });
     } catch (error) {
         return serverError(error);

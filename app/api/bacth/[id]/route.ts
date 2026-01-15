@@ -1,50 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/parseBody";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
-// GET /bacth/:id (show)
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params; // params is a Promise now
-    const numericId = Number(id);
+export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+    try {
+        const id = Number(ctx.params.id);
 
-    const batch = await prisma.bacth_po.findUnique({
-        where: { id: numericId },
-    });
+        const batch = await prisma.bacth_po.findUnique({ where: { id } });
+        if (!batch) {
+            return NextResponse.json({ success: false, message: "Data batch tidak ditemukan", data: "" }, { status: 400 });
+        }
 
-    if (!batch) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Data batch tidak ditemukan",
-                data: "",
-            },
-            { status: 400 }
-        );
+        return NextResponse.json({ success: true, message: "Detail data batch", data: serializeId(batch) });
+    } catch (error) {
+        return serverError(error);
     }
-
-    return NextResponse.json({
-        success: true,
-        message: "Detail data batch",
-        data: batch,
-    });
 }
 
-// PUT /bacth/:id (update)
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params; // params is a Promise now
-    const numericId = Number(id);
-    const body = await req.json();
-
-    if (!body.name) {
-        return NextResponse.json({ name: ["Batch tidak boleh kosong"] }, { status: 400 });
-    }
-
+export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     try {
-        // Check duplicate first
+        const id = Number(ctx.params.id);
+        const body = await parseBody<{ name?: string }>(req);
+        const name = (body.name ?? "").trim();
+
+        if (!name) return validationError({ name: ["Batch tidak boleh kosong"] });
+
         const exists = await prisma.bacth_po.findFirst({
-            where: {
-                name: body.name,
-                NOT: { id: numericId },
-            },
+            where: { name, NOT: { id } },
         });
 
         if (exists) {
@@ -58,63 +43,28 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             );
         }
 
-        const update = await prisma.bacth_po.update({
-            where: { id: numericId },
-            data: { name: body.name },
-        });
+        const updated = await prisma.bacth_po.update({ where: { id }, data: { name } });
 
-        return NextResponse.json(
-            {
-                success: true,
-                message: "Bacth berhasil di update",
-                data: update,
-            },
-            { status: 200 }
-        );
+        return NextResponse.json({ success: true, message: "Bacth berhasil di update", data: serializeId(updated) });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Error update bacth",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
-// DELETE /bacth/:id (destroy)
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params; // params is a Promise now
-    const numericId = Number(id);
+export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+    try {
+        const id = Number(ctx.params.id);
 
-    // Check usage in PurchaseOrder
-    const used = await prisma.tbl_po.findFirst({
-        where: { batch: numericId },
-    });
+        const used = await prisma.tbl_po.findFirst({ where: { batch: id }, select: { id: true } });
+        if (used) {
+            const batch = await prisma.bacth_po.findUnique({ where: { id }, select: { name: true } });
+            return NextResponse.json({ success: false, message: `${batch?.name ?? "Batch"} Gagal di hapus` }, { status: 400 });
+        }
 
-    if (used) {
-        const batch = await prisma.bacth_po.findUnique({ where: { id: numericId } });
+        const deleted = await prisma.bacth_po.delete({ where: { id } });
 
-        return NextResponse.json(
-            {
-                success: false,
-                message: `${batch?.name} Gagal di hapus`,
-            },
-            { status: 400 }
-        );
+        return NextResponse.json({ success: true, message: "Data berhasil di hapus", data: serializeId(deleted) });
+    } catch (error) {
+        return serverError(error);
     }
-
-    const deleted = await prisma.bacth_po.delete({
-        where: { id: numericId },
-    });
-
-    return NextResponse.json(
-        {
-            success: true,
-            message: "Data berhasil di hapus",
-            data: deleted,
-        },
-        { status: 200 }
-    );
 }

@@ -1,75 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId, serializeMany } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 export async function GET() {
     try {
         const brands = await prisma.brand.findMany({
-            orderBy: {
-                created_at: "desc",
-            },
+            orderBy: { created_at: "desc" },
         });
-
-        const safeBrands = brands.map((brand) => ({
-            ...brand,
-            id: brand.id.toString(),
-        }));
 
         return NextResponse.json({
             success: true,
-            totalDatas: safeBrands.length,
-            data: safeBrands,
+            totalDatas: brands.length,
+            data: serializeMany(brands),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "An error occurred while fetching brands.",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        let name = "";
-
         const form = await req.formData();
-        name = String(form.get("name") || "");
+        const name = String(form.get("name") || "").trim();
 
-        if (!name) {
-            return NextResponse.json({ name: ["Brand tidak boleh kosong"] }, { status: 400 });
-        }
+        const errors: Record<string, string[]> = {};
+        if (!name) errors.name = ["Brand tidak boleh kosong"];
 
-        const existed = await prisma.brand.findFirst({
-            where: { name },
-        });
+        if (Object.keys(errors).length) return validationError(errors);
 
+        const existed = await prisma.brand.findFirst({ where: { name } });
         if (existed) {
-            return NextResponse.json({ name: ["Brand sudah ada, tidak boleh sama"] }, { status: 400 });
+            return validationError({ name: ["Brand sudah ada, tidak boleh sama"] });
         }
 
-        const brand = await prisma.brand.create({
-            data: { name },
-        });
+        const brand = await prisma.brand.create({ data: { name } });
 
         return NextResponse.json({
             success: true,
             message: "Brand baru berhasil di tambahkan",
-            data: {
-                ...brand,
-                id: brand.id.toString(),
-            },
+            data: serializeId(brand),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Brand gagal ditambahkan",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            { status: 500 }
-        );
+        return serverError(error);
     }
 }

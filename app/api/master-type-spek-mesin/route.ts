@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/http/errorResponse";
+export const runtime = "nodejs";
 
 type Row = Awaited<ReturnType<typeof prisma.mst_type_spesifikasi_msn.findMany>>[number];
 
@@ -13,7 +14,7 @@ export async function GET() {
             totalDatas: rows.length,
             datas: rows.map((r) => ({
                 ...r,
-                id: r.id.toString(),
+                id: String(r.id),
             })),
         });
     } catch (error) {

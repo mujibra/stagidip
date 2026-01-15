@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest, { params }: { params: { idParent: string } }) {
     try {
@@ -41,10 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: { idParent: s
         return NextResponse.json({
             success: true,
             message: "Insert Child Type Specification Machine created successfully.",
-            data: {
-                ...created,
-                id: created.id.toString(),
-            },
+            data: serializeId(created),
         });
     } catch (error) {
         return serverError(error);

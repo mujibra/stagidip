@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
+import { serializeId } from "@/lib/serialize";
+export const runtime = "nodejs";
 
 type Row = Awaited<ReturnType<typeof prisma.mst_spesifikasi_mesin_fnew.findMany>>[number];
 
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
             totalDatas: rows.length,
             data: rows.map((r) => ({
                 ...r,
-                id: r.id.toString(),
+                id: String(r.id),
                 type: typeMap.get(r.item_id) ?? null,
             })),
         });
@@ -88,10 +90,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: "List of Machine Specification inserted successfully.",
-            data: {
-                ...created,
-                id: created.id.toString(),
-            },
+            data: serializeId(created),
         });
     } catch (error) {
         return serverError(error);
