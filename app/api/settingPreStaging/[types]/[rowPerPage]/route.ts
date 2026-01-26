@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { toJsonSafe } from "@/lib/serialize";
+
+export const runtime = "nodejs";
+
+export async function GET(req: NextRequest, ctx: { params: { types: string; rowPerPage: string } }) {
+    try {
+        const types = ctx.params.types;
+        const rowPerPage = Number(ctx.params.rowPerPage);
+        const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
+
+        if (!types) {
+            return validationError({ types: ["Types wajib diisi"] });
+        }
+
+        if (!rowPerPage || rowPerPage < 1) {
+            return validationError({ rowPerPage: ["Row per page wajib diisi"] });
+        }
+
+        const data = await prisma.setting_prestaging.findMany({
+            where: { types },
+            skip: (page - 1) * rowPerPage,
+            take: rowPerPage,
+            orderBy: { id: "desc" },
+        });
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: data.length,
+            data: toJsonSafe(data),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
