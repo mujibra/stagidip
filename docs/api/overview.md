@@ -1,157 +1,173 @@
-# Stagidip API Overview
+# StagiDIP API Overview
 
-This document explains the API from a workflow and usage perspective.  
-For full details (schemas, parameters, responses), open `api-docs.html`.  
-For testing, import `openapi.yaml` into Postman.
+This document provides an overview of the StagiDIP API, generated from the OpenAPI specification.
 
----
+## Endpoints
 
-## Authentication
+### Batch Management
 
-### Login
-**POST** `/api/auth/login`
+#### GET /bacth
+- **Description**: Get all batches
+- **Responses**:
+  - `200 OK`: A list of batches.
 
-**Inputs:**
-- `email`
-- `password`
+#### POST /bacth
+- **Description**: Create a new batch
+- **Request Body**:
+  - `name` (string): The name of the batch.
+- **Responses**:
+  - `200 OK`: The created batch.
 
-**Output:**
-- `authToken` (JWT)
-- `id`, `email`, `roles`
+#### GET /bacth/{id}
+- **Description**: Get a batch by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the batch.
+- **Responses**:
+  - `200 OK`: The batch.
 
-**Usage:**
-Send the token with every protected API call:
+#### PUT /bacth/{id}
+- **Description**: Update a batch by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the batch.
+- **Request Body**:
+  - `name` (string): The new name of the batch.
+- **Responses**:
+  - `200 OK`: The updated batch.
+
+#### DELETE /bacth/{id}
+- **Description**: Delete a batch by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the batch.
+- **Responses**:
+  - `200 OK`: The deleted batch.
+
+### Brand Management
+
+#### GET /brand
+- **Description**: Get all brands
+- **Responses**:
+  - `200 OK`: A list of brands.
+
+#### POST /brand
+- **Description**: Create a new brand
+- **Request Body**:
+  - `name` (string): The name of the brand.
+- **Responses**:
+  - `200 OK`: The created brand.
+
+#### GET /brand/{id}
+- **Description**: Get a brand by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the brand.
+- **Responses**:
+  - `200 OK`: The brand.
+
+#### PUT /brand/{id}
+- **Description**: Update a brand by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the brand.
+- **Request Body**:
+  - `name` (string): The new name of the brand.
+- **Responses**:
+  - `200 OK`: The updated brand.
+
+#### DELETE /brand/{id}
+- **Description**: Delete a brand by ID
+- **Parameters**:
+  - `id` (integer, path): The ID of the brand.
+- **Responses**:
+  - `200 OK`: The deleted brand.
+
+### Delivery Request Management
+
+#### POST /deliveryRequest
+- **Description**: Create a new delivery request
+- **Request Body**:
+  - `delivery_request_no` (integer): Delivery request number.
+  - `tanggal_request` (string, date-time): Date of request.
+  - `category` (string): Category of the request.
+  - `task` (string): Task of the request.
+  - `no_mesin` (integer): Machine number.
+  - `sn_mesin` (string): Machine serial number.
+  - `id_po` (integer): Purchase order ID.
+  - `purpose` (string): Purpose of the request.
+  - `contact_person` (string): Contact person.
+  - `contact_no` (string): Contact number.
+  - `address` (string): Address.
+  - `request_by` (integer): ID of the requester.
+  - `status_approval` (string): Approval status.
+  - `approve_by` (integer): ID of the approver.
+- **Responses**:
+  - `200 OK`: The created delivery request.
+
+#### PUT /deliveryRequest/{idDeliveryReq}
+- **Description**: Update a delivery request by ID
+- **Parameters**:
+  - `idDeliveryReq` (integer, path): The ID of the delivery request.
+- **Request Body**:
+  - `delivery_request_no` (integer): Delivery request number.
+  - `tanggal_request` (string, date-time): Date of request.
+  - `category` (string): Category of the request.
+  - `task` (string): Task of the request.
+  - `no_mesin` (integer): Machine number.
+  - `sn_mesin` (string): Machine serial number.
+  - `id_po` (integer): Purchase order ID.
+  - `purpose` (string): Purpose of the request.
+  - `contact_person` (string): Contact person.
+  - `contact_no` (string): Contact number.
+  - `address` (string): Address.
+  - `request_by` (integer): ID of the requester.
+  - `status_approval` (string): Approval status.
+  - `approve_by` (integer): ID of the approver.
+- **Responses**:
+  - `200 OK`: The updated delivery request.
+
+#### DELETE /deliveryRequest/{idDeliveryReq}
+- **Description**: Delete a delivery request by ID
+- **Parameters**:
+  - `idDeliveryReq` (integer, path): The ID of the delivery request.
+- **Responses**:
+  - `200 OK`: The deleted delivery request.
+
+### Other Endpoints
+
+#### GET /getAllDeliveryRequest
+- **Description**: Get all delivery requests
+- **Responses**:
+  - `200 OK`: A list of delivery requests.
+
+#### GET /getDetailPOBySNMesinIdPo/{snMesin}/{idPo}
+- **Description**: Get PO details by serial number and PO ID
+- **Parameters**:
+  - `snMesin` (string, path): The serial number of the machine.
+  - `idPo` (integer, path): The ID of the purchase order.
+- **Responses**:
+  - `200 OK`: The PO details.
+
+#### GET /getListApprovalBy/{user_login}
+- **Description**: Get a list of approvals by user login
+- **Parameters**:
+  - `user_login` (integer, path): The ID of the user.
+- **Responses**:
+  - `200 OK`: A list of approvals.
+
+#### GET /getListSN
+- **Description**: Get a list of serial numbers
+- **Responses**:
+  - `200 OK`: A list of serial numbers.
+
+#### GET /health
+- **Description**: Health check
+- **Responses**:
+  - `200 OK`: The service is healthy.
+
+#### POST /login
+- **Description**: Login a user
+- **Request Body**:
+  - `email` (string): The user's email.
+  - `password` (string): The user's password.
+- **Responses**:
+  - `200 OK`: The user was logged in successfully.
 
 
-If the token is missing or invalid, protected endpoints return `401`.
-
-### Token Rules
-- Tokens are stateless JWTs.
-- No refresh token mechanism.
-- If your token is invalid, request a new login.
-
----
-
-## General API Rules
-
-### Request Body Format
-Most POST/PUT endpoints accept either:
-- `application/json`
-- `application/x-www-form-urlencoded`
-
-### ID Format
-- Database IDs are integers.
-- API responses convert IDs to **string**.  
-  Example: `"id": "13"`
-
-### Timestamps
-Fields like `created_at` and `updated_at` are returned in ISO format:
-
-
----
-
-## Brand Module
-
-### List Brands
-**GET** `/api/brand`
-
-Returns:
-- `success`
-- `totalDatas`
-- `data: Brand[]`
-
-### Create Brand
-**POST** `/api/brand`
-
-Body:
-- `name` (required)
-
-Errors:
-- 400 if name missing
-- 400 if name already exists
-
-### Get Brand Detail
-**GET** `/api/brand/{id}`
-
-### Update Brand
-**PUT** `/api/brand/{id}`  
-Body:
-- `name` (required)
-
-Validation:
-- Name cannot duplicate existing brand (excluding the same ID)
-
-### Delete Brand
-**DELETE** `/api/brand/{id}`  
-Will fail if the brand is referenced by other entities (depending on your DB constraints).
-
----
-
-## Batch Module (bacth)
-
-> Note: endpoint name intentionally matches backend: `/api/bacth`, not `/api/batch`.
-
-### List Batch
-**GET** `/api/bacth`
-
-Returns:
-- List of all batch
-- `id` stringified
-
-### Create Batch
-**POST** `/api/bacth`
-
-Body:
-- `name` (required)
-
-Validation:
-- Name must be unique
-
-### Get Batch Detail
-**GET** `/api/bacth/{id}`
-
-Returns:
-- 400 if not found
-
-### Update Batch
-**PUT** `/api/bacth/{id}`
-
-Body:
-- `name` (required)
-
-Validation:
-- Name must be unique (excluding same ID)
-
-### Delete Batch
-**DELETE** `/api/bacth/{id}`
-
-Business rule:
-- Batch cannot be deleted if used in **PO** (`tbl_po`)
-
----
-
-## PIC Mitra Module
-
-### List PIC Mitra
-**GET** `/api/pic-mitra`
-
-Returns:
-- `id` (string)
-- `name`
-- `created_at`, `updated_at`
-
-### Create PIC Mitra
-**POST** `/api/pic-mitra`
-
-Body:
-- `name` (required)
-
-Errors:
-- 400 if name missing
-
----
-
-## Error Shape
-
-Most endpoints return a consistent error structure:
 

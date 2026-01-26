@@ -1,79 +1,17 @@
-openapi: 3.1.0
-
+openapi: 3.0.0
 info:
-  title: Stagidip API
+  title: StagiDIP API
+  description: API documentation for the StagiDIP application.
   version: 1.0.0
-  description: >
-    Internal API documentation for Stagidip.
-    Auto-generated offline docs come from this file.
-
 servers:
-  - url: http://localhost:3000
-    description: Local server
-
-tags:
-  - name: Auth
-  - name: Brand
-  - name: Batch
-
+  - url: /api
 paths:
-  /api/auth/login:
-    post:
-      tags: [Auth]
-      summary: Login user
-      description: Returns JWT token + user profile.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-      responses:
-        '200':
-          description: Login sukses
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-                  user:
-                    $ref: "#/components/schemas/UserWithToken"
-        '401':
-          description: Email atau password salah
-
-  /api/brand:
+  /bacth:
     get:
-      tags: [Brand]
-      summary: List all brands
-      description: Returns list of all brands records.
-      security:
-        - bearerAuth: []
+      summary: Get all batches
       responses:
         '200':
-          description: List brand
+          description: A list of batches
           content:
             application/json:
               schema:
@@ -86,49 +24,223 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Brand"
-
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
     post:
-      tags: [Brand]
+      summary: Create a new batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The created batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+  /bacth/{id}:
+    get:
+      summary: Get a batch by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+    put:
+      summary: Update a batch by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The updated batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+    delete:
+      summary: Delete a batch by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+  /brand:
+    get:
+      summary: Get all brands
+      responses:
+        '200':
+          description: A list of brands
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  totalDatas:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+    post:
       summary: Create a new brand
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
               type: object
               properties:
                 name:
                   type: string
-              required: 
-                - name
       responses:
         '200':
-          description: Brand created
-        '400':
-          description: Brand name missing or duplicate
-
-  /api/brand/{id}:
-    get:
-      tags: [Brand]
-      summary: Get brand by id
-      parameters:
-        - $ref: "#/components/parameters/IdParam"
-      responses:
-        '200':
-          description: Brand detail
+          description: The created brand
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BrandResponse"
-        '400':
-          description: Brand not found
-
-    put:
-      tags: [Brand]
-      summary: Update brand
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+  /brand/{id}:
+    get:
+      summary: Get a brand by ID
       parameters:
-        - $ref: "#/components/parameters/IdParam"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The brand
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+    put:
+      summary: Update a brand by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -138,115 +250,321 @@ paths:
               properties:
                 name:
                   type: string
-              required: [name]
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-              required: [name]
       responses:
         '200':
-          description: Brand updated
-        '400':
-          description: Validation error
-
-    delete:
-      tags: [Brand]
-      summary: Delete brand
-      parameters:
-        - $ref: "#/components/parameters/IdParam"
-      responses:
-        '200':
-          description: Brand deleted
-
-  /api/bacth:
-    get:
-      tags: [Batch]
-      summary: Get all batch
-      description: Returns list of all batch records.
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of batch
+          description: The updated brand
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BatchListResponse"
-        '500':
-          description: Server error while fetching batch data
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+    delete:
+      summary: Delete a brand by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted brand
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+  /deliveryRequest:
     post:
-      tags: [Batch]
-      summary: Create a new batch
-      description: Create a new batch if name is unique.
-      security:
-        - bearerAuth: []
+      summary: Create a new delivery request
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [name]
               properties:
-                name:
+                delivery_request_no:
+                  type: integer
+                tanggal_request:
                   type: string
-                  example: "Batch Januari"
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name:
+                  format: date-time
+                category:
                   type: string
-                  example: "Batch Januari"
+                task:
+                  type: string
+                no_mesin:
+                  type: integer
+                sn_mesin:
+                  type: string
+                id_po:
+                  type: integer
+                purpose:
+                  type: string
+                contact_person:
+                  type: string
+                contact_no:
+                  type: string
+                address:
+                  type: string
+                request_by:
+                  type: integer
+                status_approval:
+                  type: string
+                approve_by:
+                  type: integer
       responses:
         '200':
-          description: Batch created successfully
+          description: The created delivery request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BatchSingleResponse"
-        '400':
-          description: Validation error or duplicate batch name
-        '500':
-          description: Server error while creating batch
-
-  /api/bacth/{id}:
-    get:
-      tags: [Batch]
-      summary: Get batch detail
-      description: Returns detail data for a single batch by ID.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Numeric ID of the batch
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Batch found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BatchSingleResponse"
-        '400':
-          description: Batch not found
-        '500':
-          description: Server error while fetching batch detail
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+  /deliveryRequest/{idDeliveryReq}:
     put:
-      tags: [Batch]
-      summary: Update batch name
-      description: Updates batch name if not duplicated.
-      security:
-        - bearerAuth: []
+      summary: Update a delivery request by ID
+      parameters:
+        - name: idDeliveryReq
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delivery_request_no:
+                  type: integer
+                tanggal_request:
+                  type: string
+                  format: date-time
+                category:
+                  type: string
+                task:
+                  type: string
+                no_mesin:
+                  type: integer
+                sn_mesin:
+                  type: string
+                id_po:
+                  type: integer
+                purpose:
+                  type: string
+                contact_person:
+                  type: string
+                contact_no:
+                  type: string
+                address:
+                  type: string
+                request_by:
+                  type: integer
+                status_approval:
+                  type: string
+                approve_by:
+                  type: integer
+      responses:
+        '200':
+          description: The updated delivery request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+    message:
+                    type: string
+  /getAllDeliveryRequest:
+    get:
+      summary: Get all delivery requests
+      responses:
+        '200':
+          description: A list of delivery requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  totalDatas:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+  /getDetailPOBySNMesinIdPo/{snMesin}/{idPo}:
+    get:
+      summary: Get PO details by serial number and PO ID
+      parameters:
+        - name: snMesin
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: idPo
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The PO details
+          content:
+            application/json:
+              schema:
+                type: object
+  /getListApprovalBy/{user_login}:
+    get:
+      summary: Get a list of approvals by user login
+      parameters:
+        - name: user_login
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of approvals
+          content:
+            application/json:
+              schema:
+                type: object
+  /getListSN:
+    get:
+      summary: Get a list of serial numbers
+      responses:
+        '200':
+          description: A list of serial numbers
+          content:
+            application/json:
+              schema:
+                type: object
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: The service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /login:
+    post:
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: The user was logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-customer:
+    get:
+      summary: Get all customers
+      responses:
+        '200':
+          description: A list of customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  totalDatas:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+    post:
+      summary: Create a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bank_desc:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: The created customer
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-customer/{id}:
+    get:
+      summary: Get a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The customer
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a customer by ID
       parameters:
         - name: id
           in: path
@@ -259,29 +577,20 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name]
               properties:
-                name:
+                bank_desc:
                   type: string
-                  example: "Batch Februari"
+                address:
+                  type: string
       responses:
         '200':
-          description: Batch updated successfully
+          description: The updated customer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BatchSingleResponse"
-        '400':
-          description: Validation error or duplicate name
-        '500':
-          description: Server error while updating batch
-
+                type: object
     delete:
-      tags: [Batch]
-      summary: Delete batch
-      description: Deletes batch if not used in Purchase Order.
-      security:
-        - bearerAuth: []
+      summary: Delete a customer by ID
       parameters:
         - name: id
           in: path
@@ -290,96 +599,937 @@ paths:
             type: integer
       responses:
         '200':
-          description: Batch deleted successfully
-        '400':
-          description: Batch is in use and cannot be deleted
-        '500':
-          description: Server error while deleting batch
-
-components:
-  securitySchemes:
-      bearerAuth:
-        type: http
-        scheme: bearer
-        bearerFormat: JWT
-
-  parameters:
-    IdParam:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: integer
-
-  schemas:
-    UserWithToken:
-      type: object
-      properties:
-        id:
-          type: integer
-        email:
-          type: string
-        roles:
-          type: string
-        authToken:
-          type: string
-
-    Brand:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-
-    BrandResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: "#/components/schemas/Brand"
-
-    Batch:
-      type: object
-      properties:
-        id:
-          type: string
-          description: ID as string (converted from number)
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          nullable: true
-
-    BatchListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Batch"
-
-    BatchSingleResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: "#/components/schemas/Batch"
+          description: The deleted customer
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-gudang:
+    get:
+      summary: Get all warehouses
+      responses:
+        '200':
+          description: A list of warehouses
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new warehouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gudang_desc:
+                  type: string
+      responses:
+        '200':
+          description: The created warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-gudang/{id}:
+    get:
+      summary: Get a warehouse by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a warehouse by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gudang_desc:
+                  type: string
+                alamat:
+                  type: string
+      responses:
+        '200':
+          description: The updated warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a warehouse by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin:
+    get:
+      summary: Get all machines
+      responses:
+        '200':
+          description: A list of machines
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merek:
+                  type: string
+                model:
+                  type: integer
+                type:
+                  type: string
+      responses:
+        '200':
+          description: The created machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin/{id}:
+    get:
+      summary: Get a machine by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The machine
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a machine by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merek:
+                  type: string
+                model:
+                  type: integer
+                type:
+                  type: string
+      responses:
+        '200':
+          description: The updated machine
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a machine by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin/copy-template/{idMesin}:
+    post:
+      summary: Copy a template to a machine
+      parameters:
+        - name: idMesin
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                copy_from_model:
+                  type: integer
+      responses:
+        '200':
+          description: The template was copied successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin/model/{modelId}:
+    get:
+      summary: Get machines by model ID
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of machines
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin/new-mesin/{idMesin}:
+    get:
+      summary: Get new machine data
+      parameters:
+        - name: idMesin
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The new machine data
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-mesin/new-models/{idType}:
+    get:
+      summary: Get new models by type ID
+      parameters:
+        - name: idType
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of new models
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-model:
+    get:
+      summary: Get all models
+      responses:
+        '200':
+          description: A list of models
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The created model
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-model/{id}:
+    get:
+      summary: Get a model by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The model
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a model by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The updated model
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a model by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted model
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-parent-type-spek-mesin:
+    get:
+      summary: Get all parent type spec machines
+      responses:
+        '200':
+          description: A list of parent type spec machines
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new parent type spec machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent:
+                  type: string
+                type_atm:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: The created parent type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-parent-type-spek-mesin/{idParent}:
+    put:
+      summary: Update a parent type spec machine by ID
+      parameters:
+        - name: idParent
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type_atm:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: The updated parent type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a parent type spec machine by ID
+      parameters:
+        - name: idParent
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted parent type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-parent-type-spek-mesin/{idParent}/types:
+    get:
+      summary: Get all types for a parent type spec machine
+      parameters:
+        - name: idParent
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of types for a parent type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-part:
+    get:
+      summary: Get all parts
+      parameters:
+        - name: mesinId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of parts
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_mesin:
+                  type: integer
+                part_no:
+                  type: string
+                part_desc:
+                  type: string
+                status:
+                  type: integer
+                types:
+                  type: string
+                  enum:
+                    - MESIN
+                    - PART_MESIN
+      responses:
+        '200':
+          description: The created part
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-part/{id}:
+    put:
+      summary: Update a part by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                part_desc:
+                  type: string
+                status:
+                  type: integer
+      responses:
+        '200':
+          description: The updated part
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-part/staging:
+    get:
+      summary: Get all parts for staging
+      parameters:
+        - name: mesinId
+          in: query
+          schema:
+            type: integer
+        - name: customerId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of parts for staging
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spek-mesin-f-new:
+    get:
+      summary: Get all new machine specs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of new machine specs
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new machine spec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_id:
+                  type: integer
+                item_code:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: The created machine spec
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spek-mesin-f-new/{idListItem}:
+    put:
+      summary: Update a new machine spec by ID
+      parameters:
+        - name: idListItem
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_code:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: The updated machine spec
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a new machine spec by ID
+      parameters:
+        - name: idListItem
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted machine spec
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spek-mesin-f-new/by-parent/{idParent}:
+    get:
+      summary: Get new machine specs by parent ID
+      parameters:
+        - name: idParent
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of new machine specs
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spesifikasi-mesin:
+    get:
+      summary: Get all machine specifications
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of machine specifications
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new machine specification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: The created machine specification
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spesifikasi-mesin/{id}:
+    put:
+      summary: Update a machine specification by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: The updated machine specification
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a machine specification by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted machine specification
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spesifikasi-mesin/by-item/{item}:
+    get:
+      summary: Get machine specifications by item
+      parameters:
+        - name: item
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of machine specifications
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-spesifikasi-mesin/grouped:
+    get:
+      summary: Get all machine specifications, grouped by item
+      responses:
+        '200':
+          description: A list of machine specifications, grouped by item
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-type-spek-mesin:
+    get:
+      summary: Get all type spec machines
+      responses:
+        '200':
+          description: A list of type spec machines
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-type-spek-mesin/{idType}:
+    put:
+      summary: Update a type spec machine by ID
+      parameters:
+        - name: idType
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                val:
+                  type: string
+                label:
+                  type: string
+                id_parent:
+                  type: integer
+      responses:
+        '200':
+          description: The updated type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a type spec machine by ID
+      parameters:
+        - name: idType
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /master-type-spek-mesin/parent/{idParent}:
+    post:
+      summary: Create a new type spec machine for a parent
+      parameters:
+        - name: idParent
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                val:
+                  type: string
+                label:
+                  type: string
+      responses:
+        '200':
+          description: The created type spec machine
+          content:
+            application/json:
+              schema:
+                type: object
+  /pic-mitra:
+    get:
+      summary: Get all PIC mitra
+      responses:
+        '200':
+          description: A list of PIC mitra
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a new PIC mitra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The created PIC mitra
+          content:
+            application/json:
+              schema:
+                type: object
+  /pic-mitra/{id}:
+    get:
+      summary: Get a PIC mitra by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The PIC mitra
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a PIC mitra by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The updated PIC mitra
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a PIC mitra by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The deleted PIC mitra
+          content:
+            application/json:
+              schema:
+                type: object
+  /updateApproval/{id}:
+    put:
+      summary: Update an approval by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status_approval:
+                  type: string
+                approve_by:
+                  type: integer
+      responses:
+        '200':
+          description: The updated approval
+          content:
+            application/json:
+              schema:
+                type: object
