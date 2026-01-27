@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
 // Everything under /api is protected EXCEPT these.
-const PUBLIC_ROUTES = ["/api/health", "/api/login"];
+const PUBLIC_ROUTES = ["/login","/api/health", "/api/login"];
 
 function json401(message: string) {
     return NextResponse.json({ success: false, type: "UNAUTHORIZED", message }, { status: 401 });

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Adjust model/field names to your schema if needed
-        const user = await prisma.user.findFirst({
+        const user = await prisma.users.findFirst({
             where: { email: body.email },
         });
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
                 email: user.email,
             },
             secret,
-            { expiresIn: "7d" }
+            { expiresIn: "7d" },
         );
 
         const res = NextResponse.json({

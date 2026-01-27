@@ -10,7 +10,7 @@ paths:
     get:
       summary: Get all batches
       responses:
-        '200':
+        "200":
           description: A list of batches
           content:
             application/json:
@@ -42,7 +42,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created batch
           content:
             application/json:
@@ -70,7 +70,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The batch
           content:
             application/json:
@@ -106,7 +106,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated batch
           content:
             application/json:
@@ -133,7 +133,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted batch
           content:
             application/json:
@@ -155,7 +155,7 @@ paths:
     get:
       summary: Get all brands
       responses:
-        '200':
+        "200":
           description: A list of brands
           content:
             application/json:
@@ -187,7 +187,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created brand
           content:
             application/json:
@@ -215,7 +215,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The brand
           content:
             application/json:
@@ -251,7 +251,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated brand
           content:
             application/json:
@@ -278,7 +278,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted brand
           content:
             application/json:
@@ -336,7 +336,7 @@ paths:
                 approve_by:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The created delivery request
           content:
             application/json:
@@ -395,7 +395,7 @@ paths:
                 approve_by:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The updated delivery request
           content:
             application/json:
@@ -407,12 +407,12 @@ paths:
                   data:
                     type: object
     message:
-                    type: string
+      type: string
   /getAllDeliveryRequest:
     get:
       summary: Get all delivery requests
       responses:
-        '200':
+        "200":
           description: A list of delivery requests
           content:
             application/json:
@@ -442,7 +442,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The PO details
           content:
             application/json:
@@ -458,7 +458,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of approvals
           content:
             application/json:
@@ -468,7 +468,7 @@ paths:
     get:
       summary: Get a list of serial numbers
       responses:
-        '200':
+        "200":
           description: A list of serial numbers
           content:
             application/json:
@@ -478,7 +478,7 @@ paths:
     get:
       summary: Health check
       responses:
-        '200':
+        "200":
           description: The service is healthy
           content:
             application/json:
@@ -502,7 +502,7 @@ paths:
                 password:
                   type: string
       responses:
-        '200':
+        "200":
           description: The user was logged in successfully
           content:
             application/json:
@@ -512,7 +512,7 @@ paths:
     get:
       summary: Get all customers
       responses:
-        '200':
+        "200":
           description: A list of customers
           content:
             application/json:
@@ -541,7 +541,7 @@ paths:
                 address:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created customer
           content:
             application/json:
@@ -557,7 +557,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The customer
           content:
             application/json:
@@ -583,7 +583,7 @@ paths:
                 address:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated customer
           content:
             application/json:
@@ -598,7 +598,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted customer
           content:
             application/json:
@@ -608,7 +608,7 @@ paths:
     get:
       summary: Get all warehouses
       responses:
-        '200':
+        "200":
           description: A list of warehouses
           content:
             application/json:
@@ -626,7 +626,7 @@ paths:
                 gudang_desc:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created warehouse
           content:
             application/json:
@@ -642,7 +642,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The warehouse
           content:
             application/json:
@@ -668,7 +668,7 @@ paths:
                 alamat:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated warehouse
           content:
             application/json:
@@ -683,7 +683,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted warehouse
           content:
             application/json:
@@ -693,7 +693,7 @@ paths:
     get:
       summary: Get all machines
       responses:
-        '200':
+        "200":
           description: A list of machines
           content:
             application/json:
@@ -715,7 +715,7 @@ paths:
                 type:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created machine
           content:
             application/json:
@@ -731,7 +731,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The machine
           content:
             application/json:
@@ -759,7 +759,7 @@ paths:
                 type:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated machine
           content:
             application/json:
@@ -774,7 +774,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted machine
           content:
             application/json:
@@ -799,7 +799,7 @@ paths:
                 copy_from_model:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The template was copied successfully
           content:
             application/json:
@@ -815,7 +815,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of machines
           content:
             application/json:
@@ -831,7 +831,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The new machine data
           content:
             application/json:
@@ -847,7 +847,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of new models
           content:
             application/json:
@@ -857,7 +857,7 @@ paths:
     get:
       summary: Get all models
       responses:
-        '200':
+        "200":
           description: A list of models
           content:
             application/json:
@@ -875,7 +875,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created model
           content:
             application/json:
@@ -891,7 +891,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The model
           content:
             application/json:
@@ -915,7 +915,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated model
           content:
             application/json:
@@ -930,7 +930,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted model
           content:
             application/json:
@@ -940,7 +940,7 @@ paths:
     get:
       summary: Get all parent type spec machines
       responses:
-        '200':
+        "200":
           description: A list of parent type spec machines
           content:
             application/json:
@@ -962,7 +962,7 @@ paths:
                   items:
                     type: object
       responses:
-        '200':
+        "200":
           description: The created parent type spec machine
           content:
             application/json:
@@ -989,7 +989,7 @@ paths:
                   items:
                     type: object
       responses:
-        '200':
+        "200":
           description: The updated parent type spec machine
           content:
             application/json:
@@ -1004,7 +1004,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted parent type spec machine
           content:
             application/json:
@@ -1020,7 +1020,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of types for a parent type spec machine
           content:
             application/json:
@@ -1055,7 +1055,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of parts
           content:
             application/json:
@@ -1084,7 +1084,7 @@ paths:
                     - MESIN
                     - PART_MESIN
       responses:
-        '200':
+        "200":
           description: The created part
           content:
             application/json:
@@ -1111,7 +1111,7 @@ paths:
                 status:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The updated part
           content:
             application/json:
@@ -1130,7 +1130,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of parts for staging
           content:
             application/json:
@@ -1149,7 +1149,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of new machine specs
           content:
             application/json:
@@ -1171,7 +1171,7 @@ paths:
                 description:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created machine spec
           content:
             application/json:
@@ -1198,7 +1198,7 @@ paths:
                 description:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated machine spec
           content:
             application/json:
@@ -1213,7 +1213,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted machine spec
           content:
             application/json:
@@ -1229,7 +1229,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of new machine specs
           content:
             application/json:
@@ -1248,7 +1248,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of machine specifications
           content:
             application/json:
@@ -1268,7 +1268,7 @@ paths:
                 description:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created machine specification
           content:
             application/json:
@@ -1295,7 +1295,7 @@ paths:
                 description:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated machine specification
           content:
             application/json:
@@ -1310,7 +1310,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted machine specification
           content:
             application/json:
@@ -1326,7 +1326,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: A list of machine specifications
           content:
             application/json:
@@ -1336,7 +1336,7 @@ paths:
     get:
       summary: Get all machine specifications, grouped by item
       responses:
-        '200':
+        "200":
           description: A list of machine specifications, grouped by item
           content:
             application/json:
@@ -1346,7 +1346,7 @@ paths:
     get:
       summary: Get all type spec machines
       responses:
-        '200':
+        "200":
           description: A list of type spec machines
           content:
             application/json:
@@ -1375,7 +1375,7 @@ paths:
                 id_parent:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The updated type spec machine
           content:
             application/json:
@@ -1390,7 +1390,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted type spec machine
           content:
             application/json:
@@ -1417,7 +1417,7 @@ paths:
                 label:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created type spec machine
           content:
             application/json:
@@ -1427,7 +1427,7 @@ paths:
     get:
       summary: Get all PIC mitra
       responses:
-        '200':
+        "200":
           description: A list of PIC mitra
           content:
             application/json:
@@ -1445,7 +1445,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The created PIC mitra
           content:
             application/json:
@@ -1461,7 +1461,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The PIC mitra
           content:
             application/json:
@@ -1485,7 +1485,7 @@ paths:
                 name:
                   type: string
       responses:
-        '200':
+        "200":
           description: The updated PIC mitra
           content:
             application/json:
@@ -1500,7 +1500,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The deleted PIC mitra
           content:
             application/json:
@@ -1527,7 +1527,7 @@ paths:
                 approve_by:
                   type: integer
       responses:
-        '200':
+        "200":
           description: The updated approval
           content:
             application/json:
