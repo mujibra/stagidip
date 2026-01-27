@@ -1,0 +1,136 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
+import { serverError } from "@/lib/http/errorResponse";
+import { toJsonSafe } from "@/lib/serialize";
+
+export const runtime = "nodejs";
+
+function parseDateRange(dateValue: string) {
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const start = new Date(parsed);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { start, end };
+}
+
+async function enrich(records: Array<Record<string, unknown>>) {
+    const poIds = Array.from(new Set(records.map((row) => row.id_po).filter((id): id is number => Boolean(id))));
+    const purchaseOrders = poIds.length ? await prisma.tbl_po.findMany({ where: { id: { in: poIds } } }) : [];
+    const poMasterIds = Array.from(
+        new Set(purchaseOrders.map((po) => po.id_po_master).filter((id): id is number => Boolean(id)))
+    );
+    const [masterPos, customers, gudangs] = await Promise.all([
+        poMasterIds.length ? prisma.mst_po.findMany({ where: { id: { in: poMasterIds } } }) : [],
+        purchaseOrders.length
+            ? prisma.mst_customer.findMany({
+                  where: { id: { in: purchaseOrders.map((po) => po.customer).filter((id): id is number => Boolean(id)) } },
+              })
+            : [],
+        purchaseOrders.length
+            ? prisma.mst_gudang.findMany({
+                  where: { id: { in: purchaseOrders.map((po) => po.nama_gudang).filter((id): id is number => Boolean(id)) } },
+              })
+            : [],
+    ]);
+
+    const poMap = new Map(purchaseOrders.map((po) => [po.id, po]));
+    const masterPoMap = new Map(masterPos.map((po) => [po.id, po]));
+    const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
+    const gudangMap = new Map(gudangs.map((gudang) => [gudang.id, gudang]));
+
+    const detailRecords = records.length
+        ? await prisma.transaksi_status_deliv_detail.findMany({
+              where: { id_header: { in: records.map((row) => row.id as number) } },
+          })
+        : [];
+
+    const detailByHeader = new Map<number, typeof detailRecords>();
+    detailRecords.forEach((detail) => {
+        const list = detailByHeader.get(detail.id_header) ?? [];
+        list.push(detail);
+        detailByHeader.set(detail.id_header, list);
+    });
+
+    return records.map((record) => {
+        const po = poMap.get(record.id_po as number);
+        const details = detailByHeader.get(record.id as number) ?? [];
+        const tglKeluar = details.find((detail) => detail.status === "LOADING")?.updated_at ?? null;
+        const tglTiba = details.find((detail) => detail.status === "TIBA")?.updated_at ?? null;
+
+        const detailPo = po
+            ? {
+                  ...po,
+                  po_master: po.id_po_master ? masterPoMap.get(po.id_po_master) ?? null : null,
+                  customer: po.customer ? customerMap.get(po.customer) ?? null : null,
+                  gudang: po.nama_gudang ? gudangMap.get(po.nama_gudang) ?? null : null,
+              }
+            : null;
+
+        return {
+            ...record,
+            detailPo,
+            tgl_keluar: tglKeluar,
+            tgl_received: tglTiba,
+        };
+    });
+}
+
+export async function GET(
+    _req: NextRequest,
+    ctx: { params: { idPo: string; snMesin: string; id_customer: string; warehouse: string; tgl_tiba: string } }
+) {
+    try {
+        const idPo = ctx.params.idPo !== "null" ? Number(ctx.params.idPo) : null;
+        const snMesin = ctx.params.snMesin !== "null" ? ctx.params.snMesin : null;
+        const idCustomer = ctx.params.id_customer !== "null" ? Number(ctx.params.id_customer) : null;
+        const warehouse = ctx.params.warehouse !== "null" ? Number(ctx.params.warehouse) : null;
+        const tglTibaValue = ctx.params.tgl_tiba !== "null" ? ctx.params.tgl_tiba : null;
+
+        let allowedPoIds: number[] | null = null;
+        if (idCustomer || warehouse) {
+            const poWhere: Record<string, unknown> = {};
+            if (idCustomer) poWhere.customer = idCustomer;
+            if (warehouse) poWhere.nama_gudang = warehouse;
+            const pos = await prisma.tbl_po.findMany({ where: poWhere });
+            allowedPoIds = pos.map((po) => po.id);
+        }
+
+        const where: Record<string, unknown> = {
+            obsolete: null,
+        };
+
+        if (idPo) {
+            where.id_po = idPo;
+        }
+        if (snMesin) {
+            where.sn_mesin = snMesin;
+        }
+        if (allowedPoIds) {
+            where.id_po = { in: allowedPoIds };
+        }
+        if (tglTibaValue) {
+            const range = parseDateRange(tglTibaValue);
+            if (range) {
+                where.tgl_perkiraan_tiba = { gte: range.start, lt: range.end };
+            }
+        }
+
+        const records = await prisma.transaksi_status_delivery.findMany({
+            where,
+            orderBy: { id: "desc" },
+        });
+
+        const data = await enrich(records as Array<Record<string, unknown>>);
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: data.length,
+            data: toJsonSafe(data),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
