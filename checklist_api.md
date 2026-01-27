@@ -97,20 +97,20 @@
 - [x] GET `/master-parts/typeMesinPartColumn/{mesinId}/{rowPerPage}/{partColumn}`
 - [x] GET `/get-listPartNumber/{idMesin}/{partDesc}`
 
-- [ ] GET `/purchaseOrder/{user_login}`
+- [x] GET `/purchaseOrder/{user_login}`
 - [ ] GET `/purchaseOrder/exportToPdf`
 - [ ] GET `/purchaseOrder/exportToExcel`
 - [ ] GET `purchaseOrder/{dateFrom}/{dateTo}/ranges`
-- [ ] GET `/purchaseOrder/{idPo}/datas`
+- [x] GET `/purchaseOrder/{idPo}/datas`
 - [ ] PUT `/purchaseOrder/{idPo}/{rowNum}`
 - [ ] PUT `/purchaseOrder/{idPo}/{rowNum}/snMesin`
 - [ ] GET `/purchaseOrder/{idPo}/{rowNum}/snMesin`
 - [ ] GET `/purchaseOrder/{idPo}/allSnMesin/datas`
 - [ ] GET `/purchaseOrder/{idPo}/{rowNum}`
 - [ ] POST `/purchaseOrder`
-- [ ] PUT `/purchaseOrder/{idPo}`
-- [ ] DELETE `/purchaseOrder/{idPo}`
-- [ ] DELETE `/purchaseOrder/{idPo}/cancel`
+- [x] PUT `/purchaseOrder/{idPo}`
+- [x] DELETE `/purchaseOrder/{idPo}`
+- [x] DELETE `/purchaseOrder/{idPo}/cancel`
 - [ ] GET `/stagging/{type}`
 - [x] GET `/allsnmesin/{idPo}`
 - [x] GET `/checklistStaging/{idPo}/{idMesin}`
