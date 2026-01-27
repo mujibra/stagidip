@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         // Keep payload minimal
         const token = jwt.sign(
             {
-                userId: user.id,
+                userId: user.id.toString(),
                 email: user.email,
             },
             secret,
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
                 password: undefined,
                 password_hash: undefined,
                 token: undefined, // don't echo token into data
-                id: String(user.id),
+                id: user.id.toString(),
             },
         });
 

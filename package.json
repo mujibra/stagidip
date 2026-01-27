@@ -12,10 +12,13 @@
     "etl:warehouses": "tsx etl/run.ts"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.1",
     "@prisma/adapter-mariadb": "^7.1.0",
     "@prisma/client": "^7.2.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.29.2",
     "jsonwebtoken": "^9.0.2",
     "next": "16.0.8",
     "react": "19.2.1",
