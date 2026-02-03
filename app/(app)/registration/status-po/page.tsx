@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>staging-pic</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Status PO" subtitle="Manage purchase order statuses." />;
+}

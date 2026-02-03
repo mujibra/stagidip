@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>new-machine</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Staging New Machine" subtitle="Review new machine staging." />;
+}

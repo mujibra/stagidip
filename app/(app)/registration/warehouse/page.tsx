@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>warehouse</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Warehouse" subtitle="Manage warehouse data." />;
+}
