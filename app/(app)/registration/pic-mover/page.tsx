@@ -1,5 +1,16 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="PIC Mover" subtitle="Manage PIC mover assignments." />;
+  return (
+    <CrudPage
+      title="PIC Mover"
+      subtitle="Manage PIC mover assignments."
+      endpoint="/api/picMover"
+      listEndpoint="/api/picMover/10?page=1"
+      fields={[
+        { key: "gudang", label: "Warehouse" },
+        { key: "pic_mover", label: "PIC Mover" },
+      ]}
+    />
+  );
 }
