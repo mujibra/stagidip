@@ -1,5 +1,12 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Style" subtitle="Maintain style definitions." />;
+  return (
+    <CrudPage
+      title="Style"
+      subtitle="Maintain style definitions."
+      endpoint="/api/master-style"
+      fields={[{ key: "name", label: "Style Name" }]}
+    />
+  );
 }
