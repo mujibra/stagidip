@@ -15,10 +15,17 @@ type CrudPageProps = {
   title: string;
   subtitle: string;
   endpoint: string;
+  listEndpoint?: string;
+  createEndpoint?: string;
+  updateEndpoint?: string;
+  deleteEndpoint?: string;
   fields: CrudField[];
   createContentType?: "json" | "form";
   updateContentType?: "json" | "form";
   emptyText?: string;
+  allowCreate?: boolean;
+  allowEdit?: boolean;
+  allowDelete?: boolean;
 };
 
 type ApiResponse<T> = {
@@ -69,10 +76,17 @@ export default function CrudPage({
   title,
   subtitle,
   endpoint,
+  listEndpoint,
+  createEndpoint,
+  updateEndpoint,
+  deleteEndpoint,
   fields,
   createContentType = "json",
   updateContentType = "json",
   emptyText,
+  allowCreate = true,
+  allowEdit = true,
+  allowDelete = true,
 }: CrudPageProps) {
   const [items, setItems] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +109,7 @@ export default function CrudPage({
   const loadItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch(endpoint);
+      const response = await fetch(listEndpoint ?? endpoint);
       const result: ApiResponse<Record<string, any>[]> = await response.json();
       if (!response.ok || !result.success) {
         notify("error", result.message ?? "Failed to load data.");
@@ -141,7 +155,7 @@ export default function CrudPage({
     const payload = buildPayload(fields, form);
     try {
       const requestBody = buildBody(payload, createContentType);
-      const response = await fetch(endpoint, {
+      const response = await fetch(createEndpoint ?? endpoint, {
         method: "POST",
         ...requestBody,
       });
@@ -165,7 +179,7 @@ export default function CrudPage({
     const payload = buildPayload(fields, editForm);
     try {
       const requestBody = buildBody(payload, updateContentType);
-      const response = await fetch(`${endpoint}/${editForm.id}`, {
+      const response = await fetch(`${updateEndpoint ?? endpoint}/${editForm.id}`, {
         method: "PUT",
         ...requestBody,
       });
@@ -187,7 +201,7 @@ export default function CrudPage({
     const confirmed = window.confirm(`Sure to delete data ${row[fields[0]?.key] ?? ""}?`);
     if (!confirmed) return;
     try {
-      const response = await fetch(`${endpoint}/${row.id}`, { method: "DELETE" });
+      const response = await fetch(`${deleteEndpoint ?? endpoint}/${row.id}`, { method: "DELETE" });
       const result: ApiResponse<Record<string, any>> = await response.json();
       if (!response.ok || !result.success) {
         notify("error", result.message ?? "Failed to delete data.");
@@ -200,8 +214,8 @@ export default function CrudPage({
     }
   };
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         key: "no",
         label: "No",
@@ -212,35 +226,43 @@ export default function CrudPage({
         key: field.key,
         label: field.label,
       })),
-      {
+    ];
+
+    if (allowEdit || allowDelete) {
+      baseColumns.push({
         key: "actions",
         label: "Actions",
         render: (row: Record<string, any>) => (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setEditForm({ ...row });
-                setOpenEdit(true);
-              }}
-              className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDelete(row)}
-              className="rounded-md border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-50"
-            >
-              Delete
-            </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            {allowEdit ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditForm({ ...row });
+                  setOpenEdit(true);
+                }}
+                className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+              >
+                Edit
+              </button>
+            ) : null}
+            {allowDelete ? (
+              <button
+                type="button"
+                onClick={() => handleDelete(row)}
+                className="rounded-md border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-50"
+              >
+                Delete
+              </button>
+            ) : null}
           </div>
         ),
         className: "text-right",
-      },
-    ],
-    [fields]
-  );
+      });
+    }
+
+    return baseColumns;
+  }, [allowDelete, allowEdit, fields]);
 
   return (
     <div>
@@ -248,13 +270,15 @@ export default function CrudPage({
         title={title}
         subtitle={subtitle}
         right={
-          <button
-            type="button"
-            onClick={() => setOpenCreate(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-          >
-            Add New
-          </button>
+          allowCreate ? (
+            <button
+              type="button"
+              onClick={() => setOpenCreate(true)}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            >
+              Add New
+            </button>
+          ) : null
         }
       />
 
@@ -288,7 +312,7 @@ export default function CrudPage({
 
       <DataTable data={filtered} loading={loading} emptyText={emptyText} columns={columns} />
 
-      {openCreate ? (
+      {allowCreate && openCreate ? (
         <Modal title={`Add ${title}`} onClose={() => setOpenCreate(false)}>
           <form onSubmit={handleCreate} className="space-y-4">
             {fields.map((field) => (
@@ -319,7 +343,7 @@ export default function CrudPage({
         </Modal>
       ) : null}
 
-      {openEdit && editForm ? (
+      {allowEdit && openEdit && editForm ? (
         <Modal title={`Edit ${title}`} onClose={() => setOpenEdit(false)}>
           <form onSubmit={handleEdit} className="space-y-4">
             {fields.map((field) => (
