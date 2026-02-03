@@ -1,9 +1,11 @@
 "use client";
 
+import type React from "react";
+
 type Column<T> = {
   key: keyof T | string;
   label: string;
-  render?: (row: T) => React.ReactNode;
+  render?: (row: T, index: number) => React.ReactNode;
   className?: string;
 };
 
@@ -48,7 +50,7 @@ export default function DataTable<T extends Record<string, any>>({
               <tr key={row.id ?? i} className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20">
                 {columns.map((c) => (
                   <td key={String(c.key)} className={`px-3 py-3 ${c.className ?? ""}`}>
-                    {c.render ? c.render(row) : String((row as any)[c.key] ?? "")}
+                    {c.render ? c.render(row, i) : String((row as any)[c.key] ?? "")}
                   </td>
                 ))}
               </tr>
