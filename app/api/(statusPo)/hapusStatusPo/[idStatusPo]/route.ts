@@ -6,9 +6,9 @@ import { serializeId } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
-export async function DELETE(_req: Request, ctx: { params: { idStatusPo: string } }) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ idStatusPo: string }> }) {
     try {
-        const idStatusPo = Number(ctx.params.idStatusPo);
+        const idStatusPo = Number((await ctx.params).idStatusPo);
 
         const deleted = await prisma.mst_status_po.delete({
             where: { id: idStatusPo },

@@ -25,11 +25,11 @@ function normalizePartDesc(value: string) {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idMesin: string; partDesc: string } }
+    context: { params: Promise<{ idMesin: string; partDesc: string }> }
 ) {
     try {
-        const idMesin = Number(context.params.idMesin);
-        const partDesc = normalizePartDesc(context.params.partDesc);
+        const idMesin = Number((await context.params).idMesin);
+        const partDesc = normalizePartDesc((await context.params).partDesc);
 
         const list = await prisma.mst_part_number.findMany({
             where: {

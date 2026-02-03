@@ -1,4 +1,9 @@
-import { parseRoles } from "../_shared/roles";
+function parseRoles(value: unknown): string[] {
+    if (Array.isArray(value)) return value.map((entry) => String(entry).trim()).filter(Boolean);
+    if (typeof value === "string") return value.split(",").map((entry) => entry.trim()).filter(Boolean);
+    if (value == null) return [];
+    return [String(value).trim()].filter(Boolean);
+}
 
 export function transformUser(row: any) {
     return {

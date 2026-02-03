@@ -5,9 +5,9 @@ import { serverError } from "@/lib/http/errorResponse";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const mesin = await prisma.mst_mesin.findUnique({ where: { id } });
         if (!mesin) {

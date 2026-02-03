@@ -14,9 +14,9 @@ function toNumber(value: string): number | null {
 
 type UpdatePoBody = Record<string, unknown>;
 
-export async function PUT(req: NextRequest, context: { params: { idPo: string } }) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = toNumber(context.params.idPo);
+        const idPo = toNumber((await context.params).idPo);
         if (!idPo) return NextResponse.json({ success: false }, { status: 400 });
 
         const body = await parseBody<UpdatePoBody>(req);
@@ -32,9 +32,9 @@ export async function PUT(req: NextRequest, context: { params: { idPo: string } 
     }
 }
 
-export async function DELETE(_req: NextRequest, context: { params: { idPo: string } }) {
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = toNumber(context.params.idPo);
+        const idPo = toNumber((await context.params).idPo);
         if (!idPo) return NextResponse.json({ success: false }, { status: 400 });
 
         // Laravel does soft delete behavior via deleted_at in many tables; keep consistent

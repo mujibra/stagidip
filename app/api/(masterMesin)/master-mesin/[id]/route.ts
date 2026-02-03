@@ -10,9 +10,9 @@ type UpdateMesinDTO = {
     type?: string;
 };
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const mesin = await prisma.mst_mesin.findUnique({ where: { id } });
         if (!mesin) {
@@ -30,9 +30,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<UpdateMesinDTO & Record<string, unknown>>(req);
 
         const merek = String(body.merek ?? "").trim();
@@ -75,9 +75,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const usedInPo = await prisma.tbl_po.findFirst({ where: { id_type_mesin: id }, select: { id: true } });
         if (usedInPo) {

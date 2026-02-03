@@ -26,12 +26,12 @@ function parseDateRange(dateValue: string) {
     return { start, end };
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { idPo: string; snMesin: string; from_warehouse: string; tgl_keluar: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPo: string; snMesin: string; from_warehouse: string; tgl_keluar: string }> }) {
     try {
-        const idPo = ctx.params.idPo !== "null" ? Number(ctx.params.idPo) : null;
-        const snMesin = ctx.params.snMesin !== "null" ? ctx.params.snMesin : null;
-        const fromWarehouse = ctx.params.from_warehouse !== "null" ? Number(ctx.params.from_warehouse) : null;
-        const tglKeluarValue = ctx.params.tgl_keluar !== "null" ? ctx.params.tgl_keluar : null;
+        const idPo = (await ctx.params).idPo !== "null" ? Number((await ctx.params).idPo) : null;
+        const snMesin = (await ctx.params).snMesin !== "null" ? (await ctx.params).snMesin : null;
+        const fromWarehouse = (await ctx.params).from_warehouse !== "null" ? Number((await ctx.params).from_warehouse) : null;
+        const tglKeluarValue = (await ctx.params).tgl_keluar !== "null" ? (await ctx.params).tgl_keluar : null;
 
         const where: Record<string, unknown> = {};
 
@@ -56,12 +56,18 @@ export async function GET(_req: NextRequest, ctx: { params: { idPo: string; snMe
             orderBy: { id: "desc" },
         });
 
-        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id) => id)));
-        const customerIds = Array.from(new Set(transfers.map((item) => item.id_customer).filter((id) => id)));
-        const warehouseIds = Array.from(
-            new Set(transfers.flatMap((item) => [item.from_warehouse, item.to_warehouse]).filter((id) => id))
+        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id): id is number => typeof id === "number")));
+        const customerIds = Array.from(
+            new Set(transfers.map((item) => item.id_customer).filter((id): id is number => typeof id === "number"))
         );
-        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id) => id)));
+        const warehouseIds = Array.from(
+            new Set(
+                transfers
+                    .flatMap((item) => [item.from_warehouse, item.to_warehouse])
+                    .filter((id): id is number => typeof id === "number")
+            )
+        );
+        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id): id is number => typeof id === "number")));
 
         const [purchaseOrders, warehouses, pics, customers] = await Promise.all([
             poIds.length ? prisma.tbl_po.findMany({ where: { id: { in: poIds } } }) : Promise.resolve([]),

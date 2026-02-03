@@ -10,9 +10,9 @@ type UpdateSpekMesinDTO = {
     description?: string;
 };
 
-export async function PUT(req: NextRequest, { params }: { params: { idListItem: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ idListItem: string }> }) {
     try {
-        const id = Number(params.idListItem);
+        const id = Number((await params).idListItem);
         const body = await parseBody<UpdateSpekMesinDTO>(req);
 
         if (!body.item_code && !body.description) {
@@ -44,9 +44,9 @@ export async function PUT(req: NextRequest, { params }: { params: { idListItem: 
     }
 }
 
-export async function DELETE(_: Request, { params }: { params: { idListItem: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ idListItem: string }> }) {
     try {
-        const idListItem = Number(params.idListItem);
+        const idListItem = Number((await params).idListItem);
 
         const rows = await prisma.transaksi_spesifikasi_mesin_dtl_new.findMany({
             select: { fill_description: true },

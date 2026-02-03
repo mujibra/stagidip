@@ -4,9 +4,9 @@ import { serializeMany } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 // GET /api/master-spesifikasi-mesin/by-item/:item
-export async function GET(_: Request, { params }: { params: { item: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ item: string }> }) {
     const datas = await prisma.mst_spesifikasi_mesin.findMany({
-        where: { item: params.item },
+        where: { item: (await params).item },
     });
 
     return NextResponse.json({

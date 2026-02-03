@@ -19,9 +19,9 @@ function toInt(value: unknown): number | null {
     return Number.isFinite(num) ? num : null;
 }
 
-export async function POST(req: NextRequest, ctx: { params: { idMaster: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ idMaster: string }> }) {
     try {
-        const idDivisi = toInt(ctx.params.idMaster);
+        const idDivisi = toInt((await ctx.params).idMaster);
         if (!idDivisi) {
             return validationError({ idDivisi: ["Id divisi tidak valid"] });
         }
@@ -65,9 +65,9 @@ export async function POST(req: NextRequest, ctx: { params: { idMaster: string }
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { idMaster: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ idMaster: string }> }) {
     try {
-        const idMaster = toInt(ctx.params.idMaster);
+        const idMaster = toInt((await ctx.params).idMaster);
         if (!idMaster) {
             return validationError({ idMaster: ["Id master tidak valid"] });
         }
@@ -110,9 +110,9 @@ export async function PUT(req: NextRequest, ctx: { params: { idMaster: string } 
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { idMaster: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ idMaster: string }> }) {
     try {
-        const idMaster = toInt(ctx.params.idMaster);
+        const idMaster = toInt((await ctx.params).idMaster);
         if (!idMaster) {
             return validationError({ idMaster: ["Id master tidak valid"] });
         }

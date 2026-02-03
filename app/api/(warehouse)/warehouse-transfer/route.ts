@@ -61,12 +61,19 @@ export async function GET() {
             orderBy: { id: "desc" },
         });
 
-        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id) => id)));
-        const customerIds = Array.from(new Set(transfers.map((item) => item.id_customer).filter((id) => id)));
-        const warehouseIds = Array.from(
-            new Set(transfers.flatMap((item) => [item.from_warehouse, item.to_warehouse]).filter((id) => id))
+        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id): id is number => typeof id === "number")));
+        const customerIds = Array.from(
+            new Set(transfers.map((item) => item.id_customer).filter((id): id is number => typeof id === "number"))
         );
-        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id) => id)));
+        const warehouseIds = Array.from(
+            new Set(
+                transfers
+                    .flatMap((item) => [item.from_warehouse, item.to_warehouse])
+                    .filter((id): id is number => typeof id === "number")
+            )
+        );
+        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id): id is number => typeof id === "number")));
+        const picIdsBigInt = picIds.map((id) => BigInt(id));
 
         const [purchaseOrders, masterPos, warehouses, pics, customers] = await Promise.all([
             poIds.length
@@ -75,7 +82,11 @@ export async function GET() {
             poIds.length
                 ? prisma.tbl_po
                       .findMany({ where: { id: { in: poIds } }, select: { id: true, id_po_master: true } })
-                      .then((rows) => Array.from(new Set(rows.map((row) => row.id_po_master).filter((id) => id))))
+                      .then((rows) =>
+                          Array.from(
+                              new Set(rows.map((row) => row.id_po_master).filter((id): id is number => typeof id === "number"))
+                          )
+                      )
                       .then((masterIds) =>
                           masterIds.length ? prisma.mst_po.findMany({ where: { id: { in: masterIds } } }) : []
                       )
@@ -83,7 +94,7 @@ export async function GET() {
             warehouseIds.length
                 ? prisma.mst_gudang.findMany({ where: { id: { in: warehouseIds } } })
                 : Promise.resolve([]),
-            picIds.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIds } } }) : Promise.resolve([]),
+            picIdsBigInt.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIdsBigInt } } }) : Promise.resolve([]),
             customerIds.length
                 ? prisma.mst_customer.findMany({ where: { id: { in: customerIds } } })
                 : Promise.resolve([]),

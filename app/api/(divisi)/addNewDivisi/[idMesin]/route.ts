@@ -18,12 +18,12 @@ function toNumber(value: string): number | null {
 
 export async function POST(
     req: NextRequest,
-    context: { params: { idMesin: string } }
+    context: { params: Promise<{ idMesin: string }> }
 ) {
     try {
         const body = await parseBody<CreateDivisiBody>(req);
         const name = (body.name ?? "").trim();
-        const idMesin = toNumber(context.params.idMesin);
+        const idMesin = toNumber((await context.params).idMesin);
 
         const errors: Record<string, string[]> = {};
         if (!name) errors.name = ["Nama Divisi tidak boleh kosong."];

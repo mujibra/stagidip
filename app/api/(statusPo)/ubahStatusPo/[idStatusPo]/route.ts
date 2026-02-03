@@ -11,9 +11,9 @@ type UpdateStatusPoDTO = {
     status_desc?: string;
 };
 
-export async function PUT(req: NextRequest, ctx: { params: { idStatusPo: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ idStatusPo: string }> }) {
     try {
-        const idStatusPo = Number(ctx.params.idStatusPo);
+        const idStatusPo = Number((await ctx.params).idStatusPo);
         const body = await parseBody<UpdateStatusPoDTO>(req);
         const status_desc = (body.status_desc ?? "").trim();
 

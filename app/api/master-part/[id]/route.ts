@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/app/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
@@ -18,9 +18,9 @@ type UpdatePartDTO = {
     position?: number | null;
 };
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const id = Number((await params).id);
         const body = await parseBody<UpdatePartDTO>(req);
 
         if (Number.isNaN(id)) {
@@ -73,7 +73,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         if (body.id_mesin !== undefined) data.id_mesin = body.id_mesin;
         if (body.part_no !== undefined) data.part_no = body.part_no ?? null;
         if (body.part_desc !== undefined) data.part_desc = body.part_desc ?? null;
-        if (body.part_column !== undefined) data.part_column = body.part_column ?? null;
+        if (body.part_column !== undefined && body.part_column !== null) data.part_column = body.part_column;
         if (body.status !== undefined) data.status = body.status;
         if (body.types !== undefined) data.types = body.types;
         if (body.format !== undefined) data.format = body.format ?? null;
@@ -94,9 +94,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const id = Number((await params).id);
         if (Number.isNaN(id)) return validationError({ id: ["Invalid id"] });
 
         const deleted = await prisma.mst_part_number.delete({ where: { id } });

@@ -6,9 +6,9 @@ import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, ctx: { params: { types: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ types: string }> }) {
     try {
-        const types = ctx.params.types;
+        const types = (await ctx.params).types;
 
         if (!types) {
             return NextResponse.json(

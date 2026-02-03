@@ -6,10 +6,10 @@ import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, ctx: { params: { types: string; rowPerPage: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ types: string; rowPerPage: string }> }) {
     try {
-        const types = ctx.params.types;
-        const rowPerPage = Number(ctx.params.rowPerPage);
+        const types = (await ctx.params).types;
+        const rowPerPage = Number((await ctx.params).rowPerPage);
         const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
 
         if (!types) {

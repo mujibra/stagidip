@@ -12,9 +12,9 @@ const roleByType: Record<string, string> = {
     MOVER: "OPERATOR_MOVER",
 };
 
-export async function GET(_req: Request, ctx: { params: { type: string } }) {
+export async function GET(_req: Request, ctx: { params: Promise<{ type: string }> }) {
     try {
-        const type = ctx.params.type.toUpperCase();
+        const type = (await ctx.params).type.toUpperCase();
         const role = roleByType[type];
 
         if (!role) {

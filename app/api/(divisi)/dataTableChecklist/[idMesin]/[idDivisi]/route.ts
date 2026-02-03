@@ -26,11 +26,11 @@ function parseLabels(item: { types?: string | null; labels?: string | null }) {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idMesin: string; idDivisi: string } }
+    context: { params: Promise<{ idMesin: string; idDivisi: string }> }
 ) {
     try {
-        const idMesin = toNumber(context.params.idMesin);
-        const idDivisi = toNumber(context.params.idDivisi);
+        const idMesin = toNumber((await context.params).idMesin);
+        const idDivisi = toNumber((await context.params).idDivisi);
 
         if (!idMesin || !idDivisi) {
             return NextResponse.json(

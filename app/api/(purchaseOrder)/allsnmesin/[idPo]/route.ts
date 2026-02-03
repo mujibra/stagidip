@@ -13,10 +13,10 @@ function toNumber(value: string): number | null {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idPo: string } }
+    context: { params: Promise<{ idPo: string }> }
 ) {
     try {
-        const idPo = toNumber(context.params.idPo);
+        const idPo = toNumber((await context.params).idPo);
         if (!idPo) {
             return NextResponse.json(
                 { success: false, data: [] },

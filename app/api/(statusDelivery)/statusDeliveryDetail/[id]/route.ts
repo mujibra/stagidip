@@ -19,9 +19,9 @@ function toNumber(value: unknown): number | null {
     return Number.isFinite(num) ? num : null;
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const idHeader = Number(ctx.params.id);
+        const idHeader = Number((await ctx.params).id);
         const data = await prisma.transaksi_status_deliv_detail.findMany({
             where: { id_header: idHeader },
             orderBy: { id: "asc" },
@@ -48,9 +48,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<StatusDeliveryDetailBody>(req);
         const id_header = toNumber(body.id_header);
         const status = (body.status ?? "").trim();

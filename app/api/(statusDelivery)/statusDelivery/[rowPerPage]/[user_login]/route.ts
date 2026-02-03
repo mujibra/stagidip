@@ -78,14 +78,14 @@ async function enrichStatusDeliveries(records: Array<Record<string, unknown>>) {
     });
 }
 
-export async function GET(req: NextRequest, ctx: { params: { rowPerPage: string; user_login: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage: string; user_login: string }> }) {
     try {
-        const rowPerPage = Number(ctx.params.rowPerPage);
+        const rowPerPage = Number((await ctx.params).rowPerPage);
         const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
         const searchTermRaw = req.nextUrl.searchParams.get("dataSearch");
         const searchTerm = searchTermRaw ? formatDateSearch(searchTermRaw) : null;
 
-        const user = await prisma.users.findUnique({ where: { id: BigInt(ctx.params.user_login) } });
+        const user = await prisma.users.findUnique({ where: { id: BigInt((await ctx.params).user_login) } });
         const isGuest = user?.roles === "GUEST_BANK";
 
         let allowedPoIds: number[] | null = null;
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest, ctx: { params: { rowPerPage: string;
         if (searchTerm) {
             const termLower = searchTerm.toLowerCase();
             data = data.filter((row) => {
-                const sn = String(row.sn_mesin ?? "").toLowerCase();
+                const sn = String(row.detailPo?.sn_mesins ?? "").toLowerCase();
                 const noPo = String(row.detailPo?.no_po ?? "").toLowerCase();
                 const updatedAt = (row as { tgl_keluar?: Date | null }).tgl_keluar
                     ? String((row as { tgl_keluar?: Date | null }).tgl_keluar).toLowerCase()

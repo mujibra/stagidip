@@ -13,10 +13,10 @@ function toNumber(value: string): number | null {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idMesin: string } }
+    context: { params: Promise<{ idMesin: string }> }
 ) {
     try {
-        const idMesin = toNumber(context.params.idMesin);
+        const idMesin = toNumber((await context.params).idMesin);
         if (!idMesin) {
             return NextResponse.json({
                 success: true,
@@ -38,7 +38,6 @@ export async function GET(
             : null;
 
         const data = divisi.map((item) => ({
-            id_mesin: item.id_mesin,
             ...item,
             models: mesin
                 ? {

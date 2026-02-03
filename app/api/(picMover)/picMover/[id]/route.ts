@@ -12,9 +12,9 @@ type PicMoverBody = {
     pic_mover?: string;
 };
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const rowPerPage = Number(ctx.params.id);
+        const rowPerPage = Number((await ctx.params).id);
         const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
 
         if (!rowPerPage || rowPerPage < 1) {
@@ -37,9 +37,9 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<PicMoverBody>(req);
         const gudang = (body.gudang ?? "").trim();
         const pic_mover = (body.pic_mover ?? "").trim();
@@ -69,9 +69,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const deleted = await prisma.pic_mover.delete({ where: { id } });
 
         return NextResponse.json({

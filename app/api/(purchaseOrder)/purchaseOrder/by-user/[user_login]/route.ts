@@ -44,9 +44,9 @@ function toNumberSafe(v: bigint | number | null | undefined): number {
     return Number(v ?? 0);
 }
 
-export async function GET(_req: NextRequest, context: { params: { user_login: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ user_login: string }> }) {
     try {
-        const userId = toBigInt(context.params.user_login);
+        const userId = toBigInt((await context.params).user_login);
         if (!userId) return NextResponse.json({ success: false, message: "Invalid user" }, { status: 400 });
 
         const user = await prisma.users.findFirst({
@@ -74,7 +74,9 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
         const gudangIds = Array.from(new Set(pos.map((p) => p.nama_gudang).filter((v): v is number => typeof v === "number")));
         const customerIds = Array.from(new Set(pos.map((p) => p.customer).filter((v): v is number => typeof v === "number")));
         const modelIds = Array.from(new Set(pos.map((p) => p.model).filter((v): v is number => typeof v === "number")));
+        const modelIdsBigInt = modelIds.map((id) => BigInt(id));
         const picIds = Array.from(new Set(pos.map((p) => p.pic_staging).filter((v): v is number => typeof v === "number")));
+        const picIdsBigInt = picIds.map((id) => BigInt(id));
         const batchIds = Array.from(new Set(pos.map((p) => p.batch).filter((v): v is number => typeof v === "number")));
         const poMasterIds = Array.from(new Set(pos.map((p) => p.id_po_master).filter((v): v is number => typeof v === "number")));
         const styleIds = Array.from(new Set(pos.map((p) => p.style).filter((v): v is string => typeof v === "string")));
@@ -85,8 +87,8 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
             mesinIds.length ? prisma.mst_mesin.findMany({ where: { id: { in: mesinIds } } }) : Promise.resolve([]),
             gudangIds.length ? prisma.mst_gudang.findMany({ where: { id: { in: gudangIds } } }) : Promise.resolve([]),
             customerIds.length ? prisma.mst_customer.findMany({ where: { id: { in: customerIds } } }) : Promise.resolve([]),
-            modelIds.length ? prisma.models.findMany({ where: { id: { in: modelIds } } }) : Promise.resolve([]),
-            picIds.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIds } } }) : Promise.resolve([]),
+            modelIdsBigInt.length ? prisma.models.findMany({ where: { id: { in: modelIdsBigInt } } }) : Promise.resolve([]),
+            picIdsBigInt.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIdsBigInt } } }) : Promise.resolve([]),
             batchIds.length ? prisma.bacth_po.findMany({ where: { id: { in: batchIds.map((x) => BigInt(x)) } } }).catch(() => []) : Promise.resolve([]),
             poMasterIds.length ? prisma.mst_po.findMany({ where: { id: { in: poMasterIds } } }) : Promise.resolve([]),
             styleIds.length ? prisma.mst_style.findMany({ where: { id: { in: styleIds.map(Number) } } }) : Promise.resolve([]),
@@ -96,8 +98,8 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
         const mesinMap = new Map(mesins.map((x) => [x.id, x]));
         const gudangMap = new Map(gudangs.map((x) => [x.id, x]));
         const customerMap = new Map(customers.map((x) => [x.id, x]));
-        const modelMap = new Map(models.map((x) => [x.id, x]));
-        const picMap = new Map(pics.map((x) => [x.id, x]));
+        const modelMap = new Map(models.map((x) => [Number(x.id), x]));
+        const picMap = new Map(pics.map((x) => [Number(x.id), x]));
         const batchMap = new Map(batches.map((x) => [Number(x.id), x]));
         const poMasterMap = new Map(poMasters.map((x) => [x.id, x]));
         const styleMap = new Map(styles.map((x) => [x.id, x]));
@@ -164,7 +166,7 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
         // stagingCount needs dynamic crt_{id} tables -> do per PO (can’t batch cleanly without dynamic SQL hell)
         const stagingCountMap = new Map<number, number>();
         for (const po of pos) {
-            const model = po.model ? (modelMap.get(po.model) ?? null) : null;
+            const model = po.model ? (modelMap.get(Number(po.model)) ?? null) : null;
             const col = snMesinColumnByModelName(model?.name ?? null);
 
             try {
@@ -178,7 +180,7 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
 
         const data = pos.map((po) => {
             const mesin = po.id_type_mesin ? (mesinMap.get(po.id_type_mesin) ?? null) : null;
-            const model = po.model ? (modelMap.get(po.model) ?? null) : null;
+            const model = po.model ? (modelMap.get(Number(po.model)) ?? null) : null;
             const machineType = (mesin?.type ?? "").trim();
 
             const transferRows = latestTransferMap.get(po.id) ?? [];
@@ -195,10 +197,10 @@ export async function GET(_req: NextRequest, context: { params: { user_login: st
                 gudang: po.nama_gudang ? (gudangMap.get(po.nama_gudang) ?? null) : null,
                 customer: po.customer ? (customerMap.get(po.customer) ?? null) : null,
                 model,
-                pic_staging: po.pic_staging ? (picMap.get(po.pic_staging) ?? null) : null,
+                pic_staging: po.pic_staging ? (picMap.get(Number(po.pic_staging)) ?? null) : null,
                 batch: po.batch ? (batchMap.get(po.batch) ?? null) : null,
                 po_master: po.id_po_master ? (poMasterMap.get(po.id_po_master) ?? null) : null,
-                style: po.style ? (styleMap.get(po.style) ?? null) : null,
+                style: po.style ? (styleMap.get(Number(po.style)) ?? null) : null,
                 status_po_details: po.id_status_po ? (statusPoMap.get(po.id_status_po) ?? null) : null,
                 copy_from_po: null, // can be filled if you confirm column + requirement
                 sn_mesins: (() => {

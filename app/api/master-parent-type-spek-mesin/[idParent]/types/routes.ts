@@ -4,9 +4,9 @@ import { serverError } from "@/lib/http/errorResponse";
 import { serializeMany } from "@/lib/serialize";
 export const runtime = "nodejs";
 
-export async function GET(_: Request, { params }: { params: { idParent: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number(params.idParent);
+        const idParent = Number((await params).idParent);
 
         const datas = await prisma.mst_type_spesifikasi_msn.findMany({
             where: { id_parent: idParent },

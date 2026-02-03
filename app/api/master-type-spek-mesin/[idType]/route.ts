@@ -11,9 +11,9 @@ type UpdateTypeSpekMesinDTO = {
     id_parent?: number;
 };
 
-export async function PUT(req: NextRequest, { params }: { params: { idType: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ idType: string }> }) {
     try {
-        const idType = Number(params.idType);
+        const idType = Number((await params).idType);
         const body = await parseBody<UpdateTypeSpekMesinDTO>(req);
 
         const exists = await prisma.mst_type_spesifikasi_msn.findUnique({
@@ -43,9 +43,9 @@ export async function PUT(req: NextRequest, { params }: { params: { idType: stri
     }
 }
 
-export async function DELETE(_: Request, { params }: { params: { idType: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ idType: string }> }) {
     try {
-        const idType = Number(params.idType);
+        const idType = Number((await params).idType);
 
         const data = await prisma.mst_type_spesifikasi_msn.findUnique({
             where: { id: idType },

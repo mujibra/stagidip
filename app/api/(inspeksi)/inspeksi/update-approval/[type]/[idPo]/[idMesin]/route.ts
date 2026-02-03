@@ -18,12 +18,12 @@ function toNumber(value: unknown): number | null {
 
 export async function PUT(
     req: NextRequest,
-    context: { params: { type: string; idPo: string; idMesin: string } }
+    context: { params: Promise<{ type: string; idPo: string; idMesin: string }> }
 ) {
     try {
-        const type = context.params.type.toUpperCase();
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
+        const type = (await context.params).type.toUpperCase();
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
         const body = await parseBody<ApprovalBody>(req);
         const approvalBy = toNumber(body.approval_by);
 

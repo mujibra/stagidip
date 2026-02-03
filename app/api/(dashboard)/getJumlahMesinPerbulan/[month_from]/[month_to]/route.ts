@@ -17,10 +17,12 @@ function monthNameFromYYYYMM(v: string) {
     return new Intl.DateTimeFormat("en-US", { month: "long" }).format(dt);
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { month_from: string; month_to: string } }) {
+export async function GET(
+    _req: NextRequest,
+    { params }: { params: Promise<{ month_from: string; month_to: string }> }
+) {
     try {
-        const month_from = ctx.params.month_from;
-        const month_to = ctx.params.month_to;
+        const { month_from, month_to } = await params;
 
         // Build list_month similar to Laravel (last 5 months + next month)
         const list_month: string[] = [];

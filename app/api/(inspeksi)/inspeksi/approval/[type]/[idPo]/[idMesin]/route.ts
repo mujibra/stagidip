@@ -23,12 +23,12 @@ function sanitizeUser<T extends Record<string, unknown>>(user: T) {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { type: string; idPo: string; idMesin: string } }
+    context: { params: Promise<{ type: string; idPo: string; idMesin: string }> }
 ) {
     try {
-        const type = context.params.type.toUpperCase();
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
+        const type = (await context.params).type.toUpperCase();
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
 
         if (!idPo || !idMesin) {
             return NextResponse.json(
