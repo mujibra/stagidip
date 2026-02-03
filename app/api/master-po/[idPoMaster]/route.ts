@@ -20,9 +20,9 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { idPoMaster: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number(ctx.params.idPoMaster);
+        const idPoMaster = Number((await ctx.params).idPoMaster);
 
         const masterPos = await prisma.mst_po.findMany({
             where: { id: idPoMaster, deleted_at: null },
@@ -59,9 +59,9 @@ export async function GET(_req: NextRequest, ctx: { params: { idPoMaster: string
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { idPoMaster: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number(ctx.params.idPoMaster);
+        const idPoMaster = Number((await ctx.params).idPoMaster);
         const body = await parseBody<MasterPoBody>(req);
 
         const no_po_master = (body.no_po_master ?? "").trim();
@@ -131,9 +131,9 @@ export async function PUT(req: NextRequest, ctx: { params: { idPoMaster: string 
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { idPoMaster: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number(ctx.params.idPoMaster);
+        const idPoMaster = Number((await ctx.params).idPoMaster);
 
         const hasTransactions = await prisma.tbl_po.findFirst({
             where: { id_po_master: idPoMaster },

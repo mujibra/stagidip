@@ -80,14 +80,14 @@ async function enrich(records: Array<Record<string, unknown>>) {
 
 export async function GET(
     _req: NextRequest,
-    ctx: { params: { idPo: string; snMesin: string; id_customer: string; warehouse: string; tgl_tiba: string } }
+    ctx: { params: Promise<{ idPo: string; snMesin: string; id_customer: string; warehouse: string; tgl_tiba: string }> }
 ) {
     try {
-        const idPo = ctx.params.idPo !== "null" ? Number(ctx.params.idPo) : null;
-        const snMesin = ctx.params.snMesin !== "null" ? ctx.params.snMesin : null;
-        const idCustomer = ctx.params.id_customer !== "null" ? Number(ctx.params.id_customer) : null;
-        const warehouse = ctx.params.warehouse !== "null" ? Number(ctx.params.warehouse) : null;
-        const tglTibaValue = ctx.params.tgl_tiba !== "null" ? ctx.params.tgl_tiba : null;
+        const idPo = (await ctx.params).idPo !== "null" ? Number((await ctx.params).idPo) : null;
+        const snMesin = (await ctx.params).snMesin !== "null" ? (await ctx.params).snMesin : null;
+        const idCustomer = (await ctx.params).id_customer !== "null" ? Number((await ctx.params).id_customer) : null;
+        const warehouse = (await ctx.params).warehouse !== "null" ? Number((await ctx.params).warehouse) : null;
+        const tglTibaValue = (await ctx.params).tgl_tiba !== "null" ? (await ctx.params).tgl_tiba : null;
 
         let allowedPoIds: number[] | null = null;
         if (idCustomer || warehouse) {

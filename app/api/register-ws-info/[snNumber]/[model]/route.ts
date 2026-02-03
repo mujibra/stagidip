@@ -11,7 +11,7 @@ type WsInfoBody = {
     ws_name?: string;
 };
 
-export async function POST(req: NextRequest, ctx: { params: { snNumber: string; model: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ snNumber: string; model: string }> }) {
     try {
         const body = await parseBody<WsInfoBody>(req);
         const ws_id = (body.ws_id ?? "").trim();
@@ -25,8 +25,8 @@ export async function POST(req: NextRequest, ctx: { params: { snNumber: string; 
             return validationError(errors);
         }
 
-        const serial_number = ctx.params.snNumber;
-        const modelValue = Number(ctx.params.model);
+        const serial_number = (await ctx.params).snNumber;
+        const modelValue = Number((await ctx.params).model);
 
         const exists = await prisma.mst_ws_info.count({ where: { serial_number } });
         if (exists > 0) {

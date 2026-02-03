@@ -9,9 +9,9 @@ type UpdateParentTypeDTO = {
     type_atm?: unknown[];
 };
 
-export async function PUT(req: NextRequest, { params }: { params: { idParent: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number(params.idParent);
+        const idParent = Number((await params).idParent);
         const body = await parseBody<UpdateParentTypeDTO>(req);
 
         if (!body.type_atm) {
@@ -45,9 +45,9 @@ export async function PUT(req: NextRequest, { params }: { params: { idParent: st
     }
 }
 
-export async function DELETE(_: Request, { params }: { params: { idParent: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number(params.idParent);
+        const idParent = Number((await params).idParent);
 
         const parent = await prisma.mst_parent_type_spesifikasi_msn.findUnique({
             where: { id: idParent },

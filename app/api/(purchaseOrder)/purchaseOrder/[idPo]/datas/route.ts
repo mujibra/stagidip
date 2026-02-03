@@ -11,14 +11,15 @@ function toNumber(value: string): number | null {
     return Number.isFinite(n) ? n : null;
 }
 
-export async function GET(_req: NextRequest, context: { params: { idPo: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = toNumber(context.params.idPo);
+        const idPo = toNumber((await context.params).idPo);
         if (!idPo) return NextResponse.json({ success: true, data: [] });
 
         const po = await prisma.tbl_po.findFirst({ where: { id: idPo } });
         if (!po) return NextResponse.json({ success: true, data: [] });
 
+        const styleId = po.style ? toNumber(String(po.style)) : null;
         const [model, gudang, customer, pic, mesin, batch, style] = await Promise.all([
             po.model ? prisma.models.findFirst({ where: { id: po.model } }) : Promise.resolve(null),
             po.nama_gudang ? prisma.mst_gudang.findFirst({ where: { id: po.nama_gudang } }) : Promise.resolve(null),
@@ -26,7 +27,7 @@ export async function GET(_req: NextRequest, context: { params: { idPo: string }
             po.pic_staging ? prisma.pic_mitra.findFirst({ where: { id: po.pic_staging } }) : Promise.resolve(null),
             po.id_type_mesin ? prisma.mst_mesin.findFirst({ where: { id: po.id_type_mesin } }) : Promise.resolve(null),
             po.batch ? prisma.bacth_po.findFirst({ where: { id: BigInt(po.batch) } }).catch(() => null) : Promise.resolve(null),
-            po.style ? prisma.mst_style.findFirst({ where: { id: po.style } }) : Promise.resolve(null),
+            styleId ? prisma.mst_style.findFirst({ where: { id: styleId } }) : Promise.resolve(null),
         ]);
 
         return NextResponse.json({

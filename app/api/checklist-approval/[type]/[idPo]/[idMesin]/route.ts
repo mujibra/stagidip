@@ -21,11 +21,11 @@ function sanitizeUser(user: Record<string, unknown>) {
     return sanitized;
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { type: string; idPo: string; idMesin: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ type: string; idPo: string; idMesin: string }> }) {
     try {
-        const type = ctx.params.type;
-        const idPo = Number(ctx.params.idPo);
-        const idMesin = Number(ctx.params.idMesin);
+        const type = (await ctx.params).type;
+        const idPo = Number((await ctx.params).idPo);
+        const idMesin = Number((await ctx.params).idMesin);
         const body = await parseBody<ChecklistApprovalBody>(req);
         const approvalBy = body.approval_by ? Number(body.approval_by) : null;
 
@@ -62,11 +62,11 @@ export async function PUT(req: NextRequest, ctx: { params: { type: string; idPo:
     }
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { type: string; idPo: string; idMesin: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ type: string; idPo: string; idMesin: string }> }) {
     try {
-        const type = ctx.params.type;
-        const idPo = Number(ctx.params.idPo);
-        const idMesin = Number(ctx.params.idMesin);
+        const type = (await ctx.params).type;
+        const idPo = Number((await ctx.params).idPo);
+        const idMesin = Number((await ctx.params).idMesin);
 
         const record = await prisma.transaksi_checklist_stag_approval.findFirst({
             where: { id_po: idPo, no_mesin: idMesin },

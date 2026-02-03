@@ -29,9 +29,9 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<StatusDeliveryBody>(req);
         const id_po = toNumber(body.id_po);
         const id_mesin = toNumber(body.id_mesin);
@@ -69,9 +69,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const deleted = await prisma.transaksi_status_delivery.delete({ where: { id } });
 
         await prisma.transaksi_status_deliv_detail.deleteMany({ where: { id_header: id } });

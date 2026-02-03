@@ -27,10 +27,10 @@ function parseJson(value: string | null) {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = toNumber(context.params.id);
+        const id = toNumber((await context.params).id);
         if (!id) {
             return NextResponse.json(
                 { success: false, message: "Mst Inspeksi not found." },
@@ -59,10 +59,10 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = toNumber(context.params.id);
+        const id = toNumber((await context.params).id);
         const body = await parseBody<UpdateInfoBody>(req);
         const info = body.in_out_info ?? "";
 
@@ -109,10 +109,10 @@ export async function PUT(
 
 export async function DELETE(
     _req: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = toNumber(context.params.id);
+        const id = toNumber((await context.params).id);
         if (!id) {
             return NextResponse.json(
                 { success: false, message: "Mst Inspeksi not found." },

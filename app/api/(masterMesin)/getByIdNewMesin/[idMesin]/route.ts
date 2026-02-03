@@ -5,11 +5,11 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 type RouteParams = {
-    params: { idMesin: string };
+    params: Promise<{ idMesin: string }>;
 };
 
 export async function GET(_req: Request, { params }: RouteParams) {
-    const numericId = Number(params.idMesin);
+    const numericId = Number((await params).idMesin);
 
     const mesin = await prisma.mst_mesin.findUnique({
         where: { id: numericId },

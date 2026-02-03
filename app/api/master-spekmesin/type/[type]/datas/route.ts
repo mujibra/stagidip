@@ -6,9 +6,9 @@ import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, ctx: { params: { type: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ type: string }> }) {
     try {
-        const type = ctx.params.type;
+        const type = (await ctx.params).type;
         const data = await prisma.mst_spesifikasi_mesin.findMany({
             where: { item: type },
             orderBy: { id: "asc" },

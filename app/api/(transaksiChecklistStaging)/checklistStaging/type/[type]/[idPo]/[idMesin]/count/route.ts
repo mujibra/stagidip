@@ -12,12 +12,12 @@ function toNumber(value: string): number | null {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { type: string; idPo: string; idMesin: string } }
+    context: { params: Promise<{ type: string; idPo: string; idMesin: string }> }
 ) {
     try {
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
-        const type = context.params.type;
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
+        const type = (await context.params).type;
 
         if (!idPo || !idMesin) {
             return NextResponse.json({

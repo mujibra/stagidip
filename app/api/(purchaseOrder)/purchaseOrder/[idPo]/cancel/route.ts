@@ -108,9 +108,9 @@ async function cancelPO(idPo: number) {
 }
 
 // Support both POST and PUT so frontend can call either without drama.
-export async function POST(_req: NextRequest, ctx: { params: { idPo: string } }) {
+export async function POST(_req: NextRequest, ctx: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = Number(ctx.params.idPo);
+        const idPo = Number((await ctx.params).idPo);
         if (!Number.isFinite(idPo) || idPo <= 0) {
             return NextResponse.json({ success: false, message: "idPo tidak valid" }, { status: 400 });
         }
@@ -120,6 +120,6 @@ export async function POST(_req: NextRequest, ctx: { params: { idPo: string } })
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { idPo: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ idPo: string }> }) {
     return POST(req, ctx);
 }

@@ -6,11 +6,11 @@ import { serializeMany } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 type RouteParams = {
-    params: { idType: string };
+    params: Promise<{ idType: string }>;
 };
 
 export async function GET(_req: Request, { params }: RouteParams) {
-    const idType = Number(params.idType);
+    const idType = Number((await params).idType);
 
     const datas = await prisma.mst_mesin.findMany({
         where: {

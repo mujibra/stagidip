@@ -30,10 +30,10 @@ function toInt(value: unknown): number | null {
     return Number.isFinite(num) ? num : null;
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string; user_login: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string; user_login: string }> }) {
     try {
-        const id = toBigInt(ctx.params.id);
-        const userLoginId = toBigInt(ctx.params.user_login);
+        const id = toBigInt((await ctx.params).id);
+        const userLoginId = toBigInt((await ctx.params).user_login);
 
         if (!id || !userLoginId) {
             return validationError({ id: ["Invalid user id"] });
@@ -97,10 +97,10 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string; user_lo
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string; user_login: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string; user_login: string }> }) {
     try {
-        const id = toBigInt(ctx.params.id);
-        const userLoginId = toBigInt(ctx.params.user_login);
+        const id = toBigInt((await ctx.params).id);
+        const userLoginId = toBigInt((await ctx.params).user_login);
 
         if (!id || !userLoginId) {
             return validationError({ id: ["Invalid user id"] });

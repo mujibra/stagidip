@@ -26,10 +26,10 @@ function parseLabels(item: { types?: string | null; labels?: string | null }) {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idMesin: string } }
+    context: { params: Promise<{ idMesin: string }> }
 ) {
     try {
-        const idMesin = toNumber(context.params.idMesin);
+        const idMesin = toNumber((await context.params).idMesin);
         if (!idMesin) {
             return NextResponse.json({
                 success: true,
@@ -51,9 +51,19 @@ export async function GET(
               })
             : [];
 
+        type ChecklistItem = (typeof checklist)[number];
+        type ChecklistTypeValues =
+            | (NonNullable<ChecklistItem["mst_type_value_checklist"]> & {
+                  labels: ReturnType<typeof parseLabels>;
+              })
+            | null;
+        type ChecklistWithTypeValues = ChecklistItem & {
+            item_type_values: ChecklistTypeValues;
+        };
+
         const checklistByDivisi = checklist.reduce((acc, item) => {
             const list = acc.get(item.id_divisi) ?? [];
-            const typeValues = item.mst_type_value_checklist
+            const typeValues: ChecklistTypeValues = item.mst_type_value_checklist
                 ? {
                       ...item.mst_type_value_checklist,
                       labels: parseLabels(item.mst_type_value_checklist),
@@ -63,10 +73,10 @@ export async function GET(
             list.push({
                 ...item,
                 item_type_values: typeValues,
-            });
+            } as ChecklistWithTypeValues);
             acc.set(item.id_divisi, list);
             return acc;
-        }, new Map<number, typeof checklist>());
+        }, new Map<number, ChecklistWithTypeValues[]>());
 
         const data = divisi.map((item) => ({
             ...item,

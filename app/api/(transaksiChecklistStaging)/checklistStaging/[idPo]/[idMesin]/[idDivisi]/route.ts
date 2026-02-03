@@ -37,12 +37,12 @@ function shouldEncodeFillColumns(resultDetails: string | null) {
 
 export async function PUT(
     req: NextRequest,
-    context: { params: { idPo: string; idMesin: string; idDivisi: string } }
+    context: { params: Promise<{ idPo: string; idMesin: string; idDivisi: string }> }
 ) {
     try {
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
-        const idDivisiRaw = context.params.idDivisi;
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
+        const idDivisiRaw = (await context.params).idDivisi;
         const payload = await parseBody<ChecklistItem[]>(req);
 
         if (!idPo || !idMesin || !Array.isArray(payload)) {

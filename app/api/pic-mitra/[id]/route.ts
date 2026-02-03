@@ -4,9 +4,9 @@ import { parseBody } from "@/lib/parseBody";
 import { validationError, serverError } from "@/lib/http/errorResponse";
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const pic = await prisma.pic_mitra.findUnique({ where: { id } });
         if (!pic) {
@@ -19,9 +19,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<{ name?: string }>(req);
         const name = (body.name ?? "").trim();
 
@@ -38,9 +38,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const used = await prisma.tbl_po.findFirst({ where: { pic_staging: id }, select: { id: true } });
         if (used) {

@@ -13,9 +13,9 @@ type MasterSpekMesinBody = {
     description?: string;
 };
 
-export async function PUT(req: NextRequest, ctx: { params: { param: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.param);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<MasterSpekMesinBody>(req);
         const item = (body.item ?? "").trim();
 
@@ -40,9 +40,9 @@ export async function PUT(req: NextRequest, ctx: { params: { param: string } }) 
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { param: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.param);
+        const id = Number((await ctx.params).id);
         const deleted = await prisma.mst_spesifikasi_mesin.delete({ where: { id } });
 
         return NextResponse.json({

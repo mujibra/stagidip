@@ -23,11 +23,11 @@ function toNumber(value: string): number | null {
 
 export async function GET(
     _req: NextRequest,
-    context: { params: { idPo: string; idMesin: string } }
+    context: { params: Promise<{ idPo: string; idMesin: string }> }
 ) {
     try {
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
 
         if (!idPo || !idMesin) {
             return NextResponse.json({ success: true, data: [] });
@@ -62,11 +62,11 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    context: { params: { idPo: string; idMesin: string } }
+    context: { params: Promise<{ idPo: string; idMesin: string }> }
 ) {
     try {
-        const idPo = toNumber(context.params.idPo);
-        const idMesin = toNumber(context.params.idMesin);
+        const idPo = toNumber((await context.params).idPo);
+        const idMesin = toNumber((await context.params).idMesin);
         const payload = await parseBody<ChecklistItem[]>(req);
 
         if (!idPo || !idMesin || !Array.isArray(payload)) {

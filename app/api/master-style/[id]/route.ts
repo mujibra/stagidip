@@ -11,9 +11,9 @@ type UpdateStyleDTO = {
     name?: string;
 };
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const style = await prisma.mst_style.findFirst({
             where: { id, deleted_at: null },
@@ -33,9 +33,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<UpdateStyleDTO>(req);
         const name = (body.name ?? "").trim();
 
@@ -61,9 +61,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const deleted = await prisma.mst_style.update({
             where: { id },

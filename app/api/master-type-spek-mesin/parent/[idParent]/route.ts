@@ -5,9 +5,9 @@ import { validationError, serverError } from "@/lib/http/errorResponse";
 import { serializeId } from "@/lib/serialize";
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest, { params }: { params: { idParent: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number(params.idParent);
+        const idParent = Number((await params).idParent);
         const body = await parseBody<{ val?: string; label?: string }>(req);
 
         const errors: Record<string, string[]> = {};

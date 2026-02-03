@@ -30,9 +30,9 @@ function findDivisiTo(
     return found ? found.id_divisi_to : null;
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { idMesin: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ idMesin: string }> }) {
     try {
-        const idMesin = Number(ctx.params.idMesin);
+        const idMesin = Number((await ctx.params).idMesin);
         const body = await parseBody<CopyTemplateBody>(req);
         const copyFromModel = Number(body.copy_from_model);
 

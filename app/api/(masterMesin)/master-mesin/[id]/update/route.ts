@@ -12,9 +12,9 @@ type UpdateMesinDTO = {
     type?: string;
 };
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<UpdateMesinDTO & Record<string, unknown>>(req);
 
         const merek = String(body.merek ?? "").trim();

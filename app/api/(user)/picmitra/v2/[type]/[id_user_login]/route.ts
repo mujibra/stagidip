@@ -21,10 +21,10 @@ function sanitizeUser(user: UserResponse) {
     return rest;
 }
 
-export async function GET(_req: Request, ctx: { params: { type: string; id_user_login: string } }) {
+export async function GET(_req: Request, ctx: { params: Promise<{ type: string; id_user_login: string }> }) {
     try {
-        const type = ctx.params.type.toUpperCase();
-        const idUserLogin = Number(ctx.params.id_user_login);
+        const type = (await ctx.params).type.toUpperCase();
+        const idUserLogin = Number((await ctx.params).id_user_login);
         if (!Number.isFinite(idUserLogin)) {
             return NextResponse.json({ success: false, message: "Invalid user login" }, { status: 400 });
         }

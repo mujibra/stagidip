@@ -56,9 +56,9 @@ function parseSnMesins(value: string | null): string[] {
     }
 }
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const rowPerPage = Number(ctx.params.id);
+        const rowPerPage = Number((await ctx.params).id);
         const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
 
         if (!rowPerPage || rowPerPage < 1) {
@@ -71,19 +71,26 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
             take: rowPerPage,
         });
 
-        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id) => id)));
-        const customerIds = Array.from(new Set(transfers.map((item) => item.id_customer).filter((id) => id)));
-        const warehouseIds = Array.from(
-            new Set(transfers.flatMap((item) => [item.from_warehouse, item.to_warehouse]).filter((id) => id))
+        const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id): id is number => typeof id === "number")));
+        const customerIds = Array.from(
+            new Set(transfers.map((item) => item.id_customer).filter((id): id is number => typeof id === "number"))
         );
-        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id) => id)));
+        const warehouseIds = Array.from(
+            new Set(
+                transfers
+                    .flatMap((item) => [item.from_warehouse, item.to_warehouse])
+                    .filter((id): id is number => typeof id === "number")
+            )
+        );
+        const picIds = Array.from(new Set(transfers.map((item) => item.pic).filter((id): id is number => typeof id === "number")));
+        const picIdsBigInt = picIds.map((id) => BigInt(id));
 
         const [purchaseOrders, warehouses, pics, customers] = await Promise.all([
             poIds.length ? prisma.tbl_po.findMany({ where: { id: { in: poIds } } }) : Promise.resolve([]),
             warehouseIds.length
                 ? prisma.mst_gudang.findMany({ where: { id: { in: warehouseIds } } })
                 : Promise.resolve([]),
-            picIds.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIds } } }) : Promise.resolve([]),
+            picIdsBigInt.length ? prisma.pic_mitra.findMany({ where: { id: { in: picIdsBigInt } } }) : Promise.resolve([]),
             customerIds.length
                 ? prisma.mst_customer.findMany({ where: { id: { in: customerIds } } })
                 : Promise.resolve([]),
@@ -99,7 +106,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
             purchaseOrder: transfer.id_po ? poMap.get(transfer.id_po) ?? null : null,
             from_warehouse: transfer.from_warehouse ? warehouseMap.get(transfer.from_warehouse) ?? null : null,
             to_warehouse: transfer.to_warehouse ? warehouseMap.get(transfer.to_warehouse) ?? null : null,
-            pic: transfer.pic ? picMap.get(transfer.pic) ?? null : null,
+            pic: transfer.pic ? picMap.get(Number(transfer.pic)) ?? null : null,
             customer: transfer.id_customer ? customerMap.get(transfer.id_customer) ?? null : null,
             sn_mesins: parseSnMesins(transfer.sn_mesins),
         }));
@@ -114,9 +121,9 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<WarehouseTransferBody>(req);
 
         const data: Record<string, unknown> = {
@@ -151,9 +158,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const deleted = await prisma.warehouse_transfer.delete({ where: { id } });
 
         return NextResponse.json({

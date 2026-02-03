@@ -5,9 +5,9 @@ import { serializeId } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 // PUT /api/master-spesifikasi-mesin/:id
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const id = Number((await params).id);
         const body = await parseBody<{
             item: string;
             description?: string;
@@ -42,9 +42,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/master-spesifikasi-mesin/:id
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const id = Number((await params).id);
 
         const deleted = await prisma.mst_spesifikasi_mesin.delete({
             where: { id },

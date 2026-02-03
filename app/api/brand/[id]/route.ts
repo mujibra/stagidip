@@ -5,9 +5,9 @@ import { validationError, serverError } from "@/lib/http/errorResponse";
 import { serializeId } from "@/lib/serialize";
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const brand = await prisma.brand.findUnique({ where: { id } });
         if (!brand) {
@@ -20,9 +20,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
         const body = await parseBody<{ name?: string }>(req);
         const name = (body.name ?? "").trim();
 
@@ -38,9 +38,9 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(ctx.params.id);
+        const id = Number((await ctx.params).id);
 
         const deleted = await prisma.brand.delete({ where: { id } });
 
