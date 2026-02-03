@@ -64,11 +64,11 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   },
   {
     section: "SPECIFICATION",
-    items: [{ href: toHref("spesification"), label: "SPECIFICATION", icon: <FontAwesomeIcon icon={faArrowRight} /> }],
+    items: [{ href: toHref("spesification"), label: "Specification", icon: <FontAwesomeIcon icon={faArrowRight} /> }],
   },
   {
     section: "STAGING REGISTRATION",
-    items: [{ href: toHref("porcaheOrder"), label: "STAGING REGISTRATION", icon: <FontAwesomeIcon icon={faFolderPlus} /> }],
+    items: [{ href: toHref("porcaheOrder"), label: "Staging Registration", icon: <FontAwesomeIcon icon={faFolderPlus} /> }],
   },
   {
     section: "PRE STAGING",
@@ -86,7 +86,7 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   },
   {
     section: "STATUS DELIVERY",
-    items: [{ href: toHref("statusDelivery"), label: "STATUS DELIVERY", icon: <FontAwesomeIcon icon={faTruck} /> }],
+    items: [{ href: toHref("statusDelivery"), label: "Status Delivery", icon: <FontAwesomeIcon icon={faTruck} /> }],
   },
   {
     section: "WAREHOUSE",
@@ -117,7 +117,7 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   },
   {
     section: "MY DATINDO INTEGRATION",
-    items: [{ href: toHref("integration/my-datindo"), label: "MY DATINDO INTEGRATION", icon: <FontAwesomeIcon icon={faLink} /> }],
+    items: [{ href: toHref("integration/my-datindo"), label: "My Datindo Integration", icon: <FontAwesomeIcon icon={faLink} /> }],
   },
 ];
 
