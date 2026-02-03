@@ -1,5 +1,20 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Summary Pre-Staging" subtitle="Pre-staging summary insights." />;
+  return (
+    <CrudPage
+      title="Summary Pre-Staging"
+      subtitle="Pre-staging summary insights."
+      endpoint="/api/mst-checkliststaging"
+      fields={[
+        { key: "test_desc", label: "Test Description" },
+        { key: "result_detail", label: "Result Detail" },
+        { key: "id_divisi", label: "Division ID" },
+        { key: "id_mesin", label: "Machine ID" },
+      ]}
+      allowCreate={false}
+      allowEdit={false}
+      allowDelete={false}
+    />
+  );
 }

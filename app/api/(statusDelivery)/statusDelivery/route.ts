@@ -28,6 +28,22 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export async function GET() {
+    try {
+        const rows = await prisma.transaksi_status_delivery.findMany({
+            orderBy: { id: "desc" },
+        });
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: rows.length,
+            data: toJsonSafe(rows),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
+
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<StatusDeliveryBody>(req);
