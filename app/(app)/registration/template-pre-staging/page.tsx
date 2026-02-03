@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>template-pre-staging</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Template Pre-Staging" subtitle="Define pre-staging templates." />;
+}
