@@ -5,10 +5,10 @@
 - [x] POST `/send-email`
 - [x] POST `/verif-email`
 - [x] POST `/change-new-password`
-- [ ] GET `/profile`
-- [ ] GET `/test`
-- [ ] GET `/get-data-ims`
-- [ ] POST `/insert-data-ims`
+- [x] GET `/profile`
+- [x] GET `/test`
+- [x] GET `/get-data-ims`
+- [x] POST `/insert-data-ims`
 
 - [x] POST `/master-customer`
 - [x] GET `/master-customer`
@@ -98,20 +98,20 @@
 - [x] GET `/get-listPartNumber/{idMesin}/{partDesc}`
 
 - [x] GET `/purchaseOrder/{user_login}`
-- [ ] GET `/purchaseOrder/exportToPdf`
-- [ ] GET `/purchaseOrder/exportToExcel`
-- [ ] GET `purchaseOrder/{dateFrom}/{dateTo}/ranges`
+- [x] GET `/purchaseOrder/exportToPdf`
+- [x] GET `/purchaseOrder/exportToExcel`
+- [x] GET `purchaseOrder/{dateFrom}/{dateTo}/ranges`
 - [x] GET `/purchaseOrder/{idPo}/datas`
-- [ ] PUT `/purchaseOrder/{idPo}/{rowNum}`
-- [ ] PUT `/purchaseOrder/{idPo}/{rowNum}/snMesin`
-- [ ] GET `/purchaseOrder/{idPo}/{rowNum}/snMesin`
-- [ ] GET `/purchaseOrder/{idPo}/allSnMesin/datas`
-- [ ] GET `/purchaseOrder/{idPo}/{rowNum}`
-- [ ] POST `/purchaseOrder`
+- [x] PUT `/purchaseOrder/{idPo}/{rowNum}`
+- [x] PUT `/purchaseOrder/{idPo}/{rowNum}/snMesin`
+- [x] GET `/purchaseOrder/{idPo}/{rowNum}/snMesin`
+- [x] GET `/purchaseOrder/{idPo}/allSnMesin/datas`
+- [x] GET `/purchaseOrder/{idPo}/{rowNum}`
+- [x] POST `/purchaseOrder`
 - [x] PUT `/purchaseOrder/{idPo}`
 - [x] DELETE `/purchaseOrder/{idPo}`
 - [x] DELETE `/purchaseOrder/{idPo}/cancel`
-- [ ] GET `/stagging/{type}`
+- [x] GET `/stagging/{type}`
 - [x] GET `/allsnmesin/{idPo}`
 - [x] GET `/checklistStaging/{idPo}/{idMesin}`
 - [x] GET `/checklistStaging/{idPo}/{idMesin}/{idDivisi}`
@@ -120,40 +120,40 @@
 - [x] GET `/checklistStagingMv400/{idPo}/{idMesin}/spek`
 - [x] GET `/checklistStagingMv400/v2/{idPo}/{idMesin}/spek`
 - [x] GET `/checklistStagingMv400/{idPo}/{idMesin}/{idClassif}/details`
-- [ ] GET `get-all-data-snmsin`
+- [x] GET `get-all-data-snmsin`
 - [x] GET `/inspeksi/{idPo}/`
 - [x] PUT `/inspeksi/update-approval/{type}/{idPo}/{idMesin}`
 - [x] GET `/inspeksi/approval/{type}/{idPo}/{idMesin}`
 - [x] PUT `/update-notes/{idPo}/{idMesin}`
 - [x] GET `/get-notes/{idPo}/{idMesin}`
-- [ ] GET `/getTemplateStagingFormat/{idPo}`
-- [ ] GET `/get-data-summary/{idPoMaster}/{type}`
-- [ ] GET `/get-data-summary/{idCustomer}/{idWarehouse}/{idModel}/{idPoMaster}/{type}`
-- [ ] GET `/getWarehouseByCustomer/{idCustomer}/{type}`
-- [ ] GET `/getModelByCustWarehouse/{idCustomer}/{idWarehouse}/{type}`
-- [ ] GET `/getPoByCustWarehouseModel/{idCustomer}/{idWarehouse}/{idModel}/{type}`
-- [ ] GET `/implement-summary/{idPoMaster}/{idCustomer}/{idGudang}/{dateFrom}/{dateTo}`
-- [ ] GET `/implement-summary-v2/{idPoMaster}/{idCustomer}/{dateFrom}/{dateTo}`
-- [ ] GET `/getPreStagingSummary/{idCustomer}/{idModel}/{idPoMaster}`
-- [ ] GET `/getWarehouseSummary/{idWarehouse}/{idCustomer}/{idModel}/{idStyle}/{statusMesin}/{process}/{dateFrom}/{dateTo}`
-- [ ] GET `/getMachineSummary/{idPoMaster}/{idBatch}`
-- [ ] GET `/getBatchOnPoMaster/{idPoMaster}`
-- [ ] GET `getAccessoriesSummary/{idPomaster}/{idBatch}`
-- [ ] GET `getAccessoriesSummary/v2/{idPomaster}/{idBatch}`
-- [ ] GET `getMachineDeliveryByType`
-- [ ] GET `getUPSSummary/{idPoMaster}/{idBatch}`
-- [ ] GET `getMachineActivationByCustomer`
-- [ ] GET `getMachineReceivedByCustomer`
-- [ ] GET `getTimeDurationSummary/{date_from}/{date_to}/{idPo}`
-- [ ] GET `getPoBySpekDateFromTo/{date_from}/{date_to}`
-- [ ] GET `getDevelopmentSummary`
-- [ ] GET `getStaginDurationReport`
-- [ ] GET `getDetailMesinPerPo/{idPo}`
-- [ ] GET `getStaginDurationReportV2`
-- [ ] GET `/getAllPoDummyBasedOnIdModel/{idStatusPo}`
-- [ ] GET `/getSnMesinByIdPoDummy/{idPoDummay}`
-- [ ] GET `/filterDataSNMesinByApprovalChecklist/{idPo}/{approved_by}/{type}`
-- [ ] GET `/filterDataSNMesinByApprovalPreLoading/{idPo}/{approved_by}/{type}`
+- [x] GET `/getTemplateStagingFormat/{idPo}`
+- [x] GET `/get-data-summary/{idPoMaster}/{type}`
+- [x] GET `/get-data-summary/{idCustomer}/{idWarehouse}/{idModel}/{idPoMaster}/{type}`
+- [x] GET `/getWarehouseByCustomer/{idCustomer}/{type}`
+- [x] GET `/getModelByCustWarehouse/{idCustomer}/{idWarehouse}/{type}`
+- [x] GET `/getPoByCustWarehouseModel/{idCustomer}/{idWarehouse}/{idModel}/{type}`
+- [x] GET `/implement-summary/{idPoMaster}/{idCustomer}/{idGudang}/{dateFrom}/{dateTo}`
+- [x] GET `/implement-summary-v2/{idPoMaster}/{idCustomer}/{dateFrom}/{dateTo}`
+- [x] GET `/getPreStagingSummary/{idCustomer}/{idModel}/{idPoMaster}`
+- [x] GET `/getWarehouseSummary/{idWarehouse}/{idCustomer}/{idModel}/{idStyle}/{statusMesin}/{process}/{dateFrom}/{dateTo}`
+- [x] GET `/getMachineSummary/{idPoMaster}/{idBatch}`
+- [x] GET `/getBatchOnPoMaster/{idPoMaster}`
+- [x] GET `getAccessoriesSummary/{idPomaster}/{idBatch}`
+- [x] GET `getAccessoriesSummary/v2/{idPomaster}/{idBatch}`
+- [x] GET `getMachineDeliveryByType`
+- [x] GET `getUPSSummary/{idPoMaster}/{idBatch}`
+- [x] GET `getMachineActivationByCustomer`
+- [x] GET `getMachineReceivedByCustomer`
+- [x] GET `getTimeDurationSummary/{date_from}/{date_to}/{idPo}`
+- [x] GET `getPoBySpekDateFromTo/{date_from}/{date_to}`
+- [x] GET `getDevelopmentSummary`
+- [x] GET `getStaginDurationReport`
+- [x] GET `getDetailMesinPerPo/{idPo}`
+- [x] GET `getStaginDurationReportV2`
+- [x] GET `/getAllPoDummyBasedOnIdModel/{idStatusPo}`
+- [x] GET `/getSnMesinByIdPoDummy/{idPoDummay}`
+- [x] GET `/filterDataSNMesinByApprovalChecklist/{idPo}/{approved_by}/{type}`
+- [x] GET `/filterDataSNMesinByApprovalPreLoading/{idPo}/{approved_by}/{type}`
 
 - [x] GET `getListSN`
 - [x] GET `getDetailPOBySNMesinIdPo/{snMesin}/{idPo}`
@@ -168,7 +168,7 @@
 - [x] GET `/getData3TopByCustomer`
 - [x] GET `/getDataMachineStatus`
 - [x] GET `/getDataProjectStatus`
-- [ ] GET `/getDataJenisMesin`
+- [x] GET `/getDataJenisMesin`
 - [x] GET `/getJumlahMesinPerbulan/{month_from}/{month_to}`
 - [x] GET `/getJumlahMesinPerbulan/v2/{month_from}/{month_to}`
 
@@ -289,5 +289,5 @@
 - [x] GET `/mst-checkliststaging`
 - [x] GET `/get-list-typeValues`
 - [x] PUT `/mst-checkliststaging/{idMaster}`
-- [ ] POST `/mst-checkliststaging/{idDivisi}`
+- [x] POST `/mst-checkliststaging/{idDivisi}`
 - [x] DELETE `/mst-checkliststaging/{idMaster}`
