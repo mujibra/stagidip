@@ -1,5 +1,15 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Customer" subtitle="Maintain customer records." />;
+  return (
+    <CrudPage
+      title="Customer"
+      subtitle="Maintain customer records."
+      endpoint="/api/master-customer"
+      fields={[
+        { key: "bank_desc", label: "Customer Name" },
+        { key: "address", label: "Address", type: "textarea" },
+      ]}
+    />
+  );
 }
