@@ -120,7 +120,7 @@ export default function CrudPage({
       }
       const data = (dataKey ? (result as Record<string, any>)[dataKey] : undefined) ?? result.data ?? result.datas ?? [];
       setItems(Array.isArray(data) ? data : []);
-    } catch (error) {
+    } catch (_error) {
       notify("error", "Failed to load data.");
     } finally {
       setLoading(false);
@@ -170,7 +170,7 @@ export default function CrudPage({
       setForm(buildPayload(fields, {}));
       setOpenCreate(false);
       loadItems();
-    } catch (error) {
+    } catch (_error) {
       notify("error", "Failed to create data.");
     }
   };
@@ -194,7 +194,7 @@ export default function CrudPage({
       setOpenEdit(false);
       setEditForm(null);
       loadItems();
-    } catch (error) {
+    } catch (_error) {
       notify("error", "Failed to update data.");
     }
   };
@@ -211,7 +211,7 @@ export default function CrudPage({
       }
       notify("success", result.message ?? "Data deleted successfully.");
       loadItems();
-    } catch (error) {
+    } catch (_error) {
       notify("error", "Failed to delete data.");
     }
   };
@@ -221,7 +221,7 @@ export default function CrudPage({
       {
         key: "no",
         label: "No",
-        render: (_row: Record<string, any>, index: number) => <span>{index + 1}</span>,
+        render: (_row: Record<string, string | number | boolean>, index: number) => <span>{index + 1}</span>,
         className: "w-16 text-center",
       },
       ...fields.map((field) => ({
@@ -234,7 +234,7 @@ export default function CrudPage({
       baseColumns.push({
         key: "actions",
         label: "Actions",
-        render: (row: Record<string, any>) => (
+        render: (row: Record<string, string | number | boolean>) => (
           <div className="flex flex-wrap justify-end gap-2">
             {allowEdit ? (
               <button

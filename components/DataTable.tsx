@@ -9,7 +9,7 @@ type Column<T> = {
   className?: string;
 };
 
-export default function DataTable<T extends Record<string, any>>({
+export default function DataTable<T extends Record<string, string | number | boolean>>({
   data,
   columns,
   loading,
@@ -21,12 +21,12 @@ export default function DataTable<T extends Record<string, any>>({
   emptyText?: string;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="overflow-x-auto h-[800px] rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
           <tr>
             {columns.map((c) => (
-              <th key={String(c.key)} className={`px-3 py-3 ${c.className ?? ""}`}> 
+              <th key={String(c.key)} className={`px-3 py-3 ${c.className ?? ""}`}>
                 {c.label}
               </th>
             ))}
@@ -47,10 +47,10 @@ export default function DataTable<T extends Record<string, any>>({
             </tr>
           ) : (
             data.map((row, i) => (
-              <tr key={row.id ?? i} className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20">
+              <tr key={typeof row.id === "string" || typeof row.id === "number" ? row.id : i} className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20">
                 {columns.map((c) => (
                   <td key={String(c.key)} className={`px-3 py-3 ${c.className ?? ""}`}>
-                    {c.render ? c.render(row, i) : String((row as any)[c.key] ?? "")}
+                    {c.render ? c.render(row, i) : String(row[c.key as keyof T] ?? "")}
                   </td>
                 ))}
               </tr>
