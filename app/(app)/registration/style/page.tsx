@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>style</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Style" subtitle="Maintain style definitions." />;
+}

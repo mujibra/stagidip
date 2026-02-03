@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>ups</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Summary UPS" subtitle="UPS summary insights." />;
+}

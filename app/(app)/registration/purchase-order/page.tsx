@@ -1,1 +1,5 @@
-﻿export default function Page(){ return <div>purchase-order</div> }
+import Placeholder from "@/components/Placeholder";
+
+export default function Page() {
+  return <Placeholder title="Purchase Order" subtitle="Review and manage purchase orders." />;
+}
