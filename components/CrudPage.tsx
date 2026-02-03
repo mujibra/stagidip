@@ -26,6 +26,7 @@ type CrudPageProps = {
   allowCreate?: boolean;
   allowEdit?: boolean;
   allowDelete?: boolean;
+  dataKey?: string;
 };
 
 type ApiResponse<T> = {
@@ -87,6 +88,7 @@ export default function CrudPage({
   allowCreate = true,
   allowEdit = true,
   allowDelete = true,
+  dataKey,
 }: CrudPageProps) {
   const [items, setItems] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ export default function CrudPage({
         setItems([]);
         return;
       }
-      const data = result.data ?? result.datas ?? [];
+      const data = (dataKey ? (result as Record<string, any>)[dataKey] : undefined) ?? result.data ?? result.datas ?? [];
       setItems(Array.isArray(data) ? data : []);
     } catch (error) {
       notify("error", "Failed to load data.");

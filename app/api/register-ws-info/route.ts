@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
+import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,22 @@ function toDate(value: unknown): Date | null {
     if (!value) return null;
     const date = new Date(String(value));
     return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export async function GET() {
+    try {
+        const rows = await prisma.mst_ws_info.findMany({
+            orderBy: { id: "desc" },
+        });
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: rows.length,
+            data: toJsonSafe(rows),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
 }
 
 export async function POST(req: NextRequest) {

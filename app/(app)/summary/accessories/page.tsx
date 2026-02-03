@@ -1,5 +1,19 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Summary Accessories" subtitle="Accessories summary insights." />;
+  return (
+    <CrudPage
+      title="Summary Accessories"
+      subtitle="Accessories summary insights."
+      endpoint="/api/purchaseOrder"
+      fields={[
+        { key: "id", label: "PO ID" },
+        { key: "jumlah", label: "Jumlah" },
+        { key: "status_mesin", label: "Status" },
+      ]}
+      allowCreate={false}
+      allowEdit={false}
+      allowDelete={false}
+    />
+  );
 }

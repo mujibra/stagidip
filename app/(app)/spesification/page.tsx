@@ -1,5 +1,17 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Specification" subtitle="Maintain specification records." />;
+  return (
+    <CrudPage
+      title="Specification"
+      subtitle="Maintain specification records."
+      endpoint="/api/master-spekmesin"
+      fields={[
+        { key: "item", label: "Item" },
+        { key: "description", label: "Description" },
+      ]}
+      allowEdit={false}
+      allowDelete={false}
+    />
+  );
 }

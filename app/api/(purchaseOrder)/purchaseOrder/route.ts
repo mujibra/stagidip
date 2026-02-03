@@ -28,6 +28,22 @@ function cleanJsonString(v: string): string {
     return v.replace(/\\\\/g, "");
 }
 
+export async function GET() {
+    try {
+        const rows = await prisma.tbl_po.findMany({
+            orderBy: { id: "desc" },
+        });
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: rows.length,
+            data: toJsonSafe(rows),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
+
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<PurchaseOrderCreateBody>(req);

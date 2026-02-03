@@ -1,5 +1,20 @@
-import Placeholder from "@/components/Placeholder";
+import CrudPage from "@/components/CrudPage";
 
 export default function Page() {
-  return <Placeholder title="Summary Old Machine" subtitle="Old machine summary insights." />;
+  return (
+    <CrudPage
+      title="Summary Old Machine"
+      subtitle="Old machine summary insights."
+      endpoint="/api/master-mesin"
+      fields={[
+        { key: "merek", label: "Brand" },
+        { key: "model", label: "Model ID" },
+        { key: "type", label: "Type" },
+        { key: "status", label: "Status" },
+      ]}
+      allowCreate={false}
+      allowEdit={false}
+      allowDelete={false}
+    />
+  );
 }
