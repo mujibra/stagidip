@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
 import { serializeId } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 export const runtime = "nodejs";
 
 type Row = Awaited<ReturnType<typeof prisma.mst_spesifikasi_mesin_fnew.findMany>>[number];
@@ -10,14 +11,11 @@ type Row = Awaited<ReturnType<typeof prisma.mst_spesifikasi_mesin_fnew.findMany>
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-        const page = Number(searchParams.get("page") ?? 1);
-        const perPage = Number(searchParams.get("perPage") ?? 10);
-
-        const skip = (page - 1) * perPage;
+        const { skip, take } = getPagination(searchParams);
 
         const rows = await prisma.mst_spesifikasi_mesin_fnew.findMany({
             skip,
-            take: perPage,
+            take,
         });
 
         const typeIds = [...new Set(rows.map((r) => r.item_id))];

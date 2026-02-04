@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -81,7 +82,6 @@ async function enrichStatusDeliveries(records: Array<Record<string, unknown>>) {
 export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage: string; user_login: string }> }) {
     try {
         const rowPerPage = Number((await ctx.params).rowPerPage);
-        const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
         const searchTermRaw = req.nextUrl.searchParams.get("dataSearch");
         const searchTerm = searchTermRaw ? formatDateSearch(searchTermRaw) : null;
 
@@ -94,6 +94,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage:
             allowedPoIds = pos.map((po) => po.id);
         }
 
+        const { skip, take } = getPagination(req.nextUrl.searchParams, { perPageOverride: rowPerPage });
+
         const records = await prisma.transaksi_status_delivery.findMany({
             where: {
                 ...(allowedPoIds ? { id_po: { in: allowedPoIds } } : {}),
@@ -102,8 +104,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage:
             ...(searchTerm
                 ? {}
                 : {
-                      skip: (page - 1) * rowPerPage,
-                      take: rowPerPage,
+                      skip,
+                      take,
                   }),
         });
 

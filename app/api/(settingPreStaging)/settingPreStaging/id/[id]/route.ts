@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -15,15 +16,16 @@ type SettingPreStagingBody = {
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
         const rowPerPage = Number((await ctx.params).id);
-        const page = Number(req.nextUrl.searchParams.get("page") ?? "1");
 
         if (!rowPerPage || rowPerPage < 1) {
             return validationError({ rowPerPage: ["Row per page wajib diisi"] });
         }
 
+        const { skip, take } = getPagination(req.nextUrl.searchParams, { perPageOverride: rowPerPage });
+
         const data = await prisma.setting_prestaging.findMany({
-            skip: (page - 1) * rowPerPage,
-            take: rowPerPage,
+            skip,
+            take,
             orderBy: { id: "desc" },
         });
 

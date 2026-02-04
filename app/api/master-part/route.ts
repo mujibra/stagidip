@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { validationError, serverError } from "@/lib/http/errorResponse";
 import { serializeId, serializeMany } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -64,8 +65,7 @@ export async function GET(req: NextRequest) {
         const typeParam = searchParams.get("type"); // MESIN/PART_MESIN
         const search = (searchParams.get("search") ?? "").trim();
 
-        const page = Number(searchParams.get("page") ?? 1);
-        const perPage = Number(searchParams.get("perPage") ?? 10);
+        const { skip, take } = getPagination(searchParams);
 
         const mesinId = toIntOrNull(mesinIdParam);
 
@@ -115,8 +115,8 @@ export async function GET(req: NextRequest) {
         const [data, total] = await Promise.all([
             prisma.mst_part_number.findMany({
                 where,
-                skip: (page - 1) * perPage,
-                take: perPage,
+                skip,
+                take,
                 orderBy: [{ id_mesin: "asc" }, { format: "desc" }, { position: "asc" }],
             }),
             prisma.mst_part_number.count({ where }),

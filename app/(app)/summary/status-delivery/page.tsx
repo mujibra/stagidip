@@ -6,6 +6,7 @@ export default function Page() {
       title="Summary Status Delivery"
       subtitle="Status delivery summary insights."
       endpoint="/api/statusDelivery"
+      listEndpoint="/api/statusDelivery?page=1&perPage=10"
       fields={[
         { key: "id_po", label: "PO ID" },
         { key: "id_mesin", label: "Machine ID" },
