@@ -21,6 +21,10 @@ export function toJsonSafe<T>(value: T): T {
     const walk = (v: unknown): unknown => {
         if (typeof v === "bigint") return v.toString();
         if (v === null || v === undefined) return v;
+        if (v instanceof Date) {
+            const time = v.getTime();
+            return Number.isNaN(time) ? null : v.toISOString();
+        }
         if (typeof v !== "object") return v;
 
         if (seen.has(v)) return v;

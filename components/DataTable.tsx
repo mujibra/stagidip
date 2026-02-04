@@ -9,7 +9,36 @@ type Column<T> = {
   className?: string;
 };
 
-export default function DataTable<T extends Record<string, string | number | boolean>>({
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return value.toLocaleDateString();
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (typeof value === "object") {
+    if ("value" in value && (typeof value.value === "string" || typeof value.value === "number")) {
+      return String(value.value);
+    }
+    if ("label" in value && (typeof value.label === "string" || typeof value.label === "number")) {
+      return String(value.label);
+    }
+    if ("toISOString" in value && typeof value.toISOString === "function") {
+      try {
+        return new Date(value.toISOString()).toLocaleDateString();
+      } catch {
+        return String(value);
+      }
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+}
+
+export default function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   loading,
@@ -50,7 +79,7 @@ export default function DataTable<T extends Record<string, string | number | boo
               <tr key={typeof row.id === "string" || typeof row.id === "number" ? row.id : i} className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20">
                 {columns.map((c) => (
                   <td key={String(c.key)} className={`px-3 py-3 ${c.className ?? ""}`}>
-                    {c.render ? c.render(row, i) : String(row[c.key as keyof T] ?? "")}
+                    {c.render ? c.render(row, i) : formatValue(row[c.key as keyof T])}
                   </td>
                 ))}
               </tr>
