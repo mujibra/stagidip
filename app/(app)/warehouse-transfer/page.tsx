@@ -6,6 +6,7 @@ export default function Page() {
       title="Warehouse Transfer"
       subtitle="Manage warehouse transfer operations."
       endpoint="/api/warehouse-transfer"
+      listEndpoint="/api/warehouse-transfer/10?page=1"
       fields={[
         { key: "id_po", label: "PO ID" },
         { key: "id_customer", label: "Customer ID" },

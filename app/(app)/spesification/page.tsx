@@ -6,6 +6,7 @@ export default function Page() {
       title="Specification"
       subtitle="Maintain specification records."
       endpoint="/api/master-spekmesin"
+      listEndpoint="/api/master-spekmesin/paging/10?page=1"
       fields={[
         { key: "item", label: "Item" },
         { key: "description", label: "Description" },

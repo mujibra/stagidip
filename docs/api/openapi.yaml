@@ -1204,6 +1204,164 @@ paths:
             application/json:
               schema:
                 type: object
+  /master-spekmesin/paging/{rowPerPage}:
+    get:
+      summary: Get paged machine specifications
+      parameters:
+        - name: rowPerPage
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of machine specifications
+          content:
+            application/json:
+              schema:
+                type: object
+  /settingPreStaging/{rowPerPage}:
+    get:
+      summary: Get paged setting pre-staging entries
+      parameters:
+        - name: rowPerPage
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of setting pre-staging entries
+          content:
+            application/json:
+              schema:
+                type: object
+  /picMover/{rowPerPage}:
+    get:
+      summary: Get paged PIC mover entries
+      parameters:
+        - name: rowPerPage
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of PIC mover entries
+          content:
+            application/json:
+              schema:
+                type: object
+  /warehouse-transfer/{rowPerPage}:
+    get:
+      summary: Get paged warehouse transfers
+      parameters:
+        - name: rowPerPage
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of warehouse transfers
+          content:
+            application/json:
+              schema:
+                type: object
+  /statusDelivery:
+    get:
+      summary: Get paged status deliveries
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of status deliveries
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a status delivery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_po:
+                  type: integer
+                id_mesin:
+                  type: integer
+                sn_mesin:
+                  type: string
+                tgl_perkiraan_tiba:
+                  type: string
+                  format: date-time
+                tgl_perkiraan_keluar:
+                  type: string
+                  format: date-time
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: The created status delivery
+          content:
+            application/json:
+              schema:
+                type: object
+  /statusDelivery/{rowPerPage}/{user_login}:
+    get:
+      summary: Get paged status deliveries for a user
+      parameters:
+        - name: rowPerPage
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_login
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: dataSearch
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of status deliveries
+          content:
+            application/json:
+              schema:
+                type: object
     delete:
       summary: Delete a new machine spec by ID
       parameters:

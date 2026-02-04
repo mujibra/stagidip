@@ -3,21 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError } from "@/lib/http/errorResponse";
 import { serializeId } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 export const runtime = "nodejs";
 
 // GET /api/master-spesifikasi-mesin?page=1&perPage=10
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-        const page = Number(searchParams.get("page") ?? 1);
-        const perPage = Number(searchParams.get("perPage") ?? 10);
-
-        const skip = (page - 1) * perPage;
+        const { skip, take } = getPagination(searchParams);
 
         const [data, total] = await Promise.all([
             prisma.mst_spesifikasi_mesin.findMany({
                 skip,
-                take: perPage,
+                take,
                 orderBy: { id: "desc" },
             }),
             prisma.mst_spesifikasi_mesin.count(),

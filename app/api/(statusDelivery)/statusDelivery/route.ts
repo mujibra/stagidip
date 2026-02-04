@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -28,15 +29,23 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const rows = await prisma.transaksi_status_delivery.findMany({
-            orderBy: { id: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take } = getPagination(searchParams);
+
+        const [rows, total] = await Promise.all([
+            prisma.transaksi_status_delivery.findMany({
+                orderBy: { id: "desc" },
+                skip,
+                take,
+            }),
+            prisma.transaksi_status_delivery.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: rows.length,
+            totalDatas: total,
             data: toJsonSafe(rows),
         });
     } catch (error) {

@@ -4,6 +4,20 @@ This document provides an overview of the StagiDIP API, generated from the OpenA
 
 ## Endpoints
 
+## Pagination
+
+The following endpoints accept pagination parameters and return paged results:
+
+- `GET /master-part` (query: `page`, `perPage`)
+- `GET /master-spek-mesin-f-new` (query: `page`, `perPage`)
+- `GET /master-spesifikasi-mesin` (query: `page`, `perPage`)
+- `GET /statusDelivery` (query: `page`, `perPage`)
+- `GET /statusDelivery/{rowPerPage}/{user_login}` (path: `rowPerPage`, query: `page`, optional `dataSearch`)
+- `GET /master-spekmesin/paging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+- `GET /settingPreStaging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+- `GET /picMover/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+- `GET /warehouse-transfer/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+
 ### Batch Management
 
 #### GET /bacth
@@ -168,6 +182,5 @@ This document provides an overview of the StagiDIP API, generated from the OpenA
   - `password` (string): The user's password.
 - **Responses**:
   - `200 OK`: The user was logged in successfully.
-
 
 
