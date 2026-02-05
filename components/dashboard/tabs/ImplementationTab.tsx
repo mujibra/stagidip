@@ -47,16 +47,17 @@ function formatDate(value: string | null) {
 }
 
 export default function ImplementationTab() {
-    const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "idle" });
+    const perPage = 20;
+    const [page, setPage] = useState(1);
+    const [reloadKey, setReloadKey] = useState(0);
+    const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
 
     useEffect(() => {
         let cancelled = false;
 
-        async function load() {
-            setStatusDelivery({ state: "loading" });
-
+        async function loadPage() {
             try {
-                const data = await fetchJson<StatusDeliveryResponse>("/api/statusDelivery?perPage=50");
+                const data = await fetchJson<StatusDeliveryResponse>(`/api/statusDelivery?page=${page}&perPage=${perPage}`);
                 if (cancelled) return;
                 setStatusDelivery({ state: "success", data });
             } catch (e) {
@@ -66,12 +67,17 @@ export default function ImplementationTab() {
             }
         }
 
-        void load();
+        void loadPage();
 
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [page, perPage, reloadKey]);
+
+    const totalPages = useMemo(() => {
+        if (statusDelivery.state !== "success") return 1;
+        return Math.max(1, Math.ceil((statusDelivery.data.totalDatas ?? 0) / perPage));
+    }, [statusDelivery]);
 
     const statusSummary = useMemo(() => {
         if (statusDelivery.state !== "success") return null;
@@ -144,6 +150,47 @@ export default function ImplementationTab() {
                     <div className="text-xs text-zinc-500">Data source: /api/statusDelivery</div>
                 </div>
 
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                    <div className="text-xs text-zinc-500">
+                        Page {page} of {totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            disabled={page <= 1 || statusDelivery.state === "loading"}
+                            onClick={() => {
+                                setStatusDelivery({ state: "loading" });
+                                setPage((p) => Math.max(1, p - 1));
+                            }}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
+                        >
+                            Prev
+                        </button>
+                        <button
+                            type="button"
+                            disabled={page >= totalPages || statusDelivery.state === "loading"}
+                            onClick={() => {
+                                setStatusDelivery({ state: "loading" });
+                                setPage((p) => Math.min(totalPages, p + 1));
+                            }}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
+                        >
+                            Next
+                        </button>
+                        <button
+                            type="button"
+                            disabled={statusDelivery.state === "loading"}
+                            onClick={() => {
+                                setStatusDelivery({ state: "loading" });
+                                setReloadKey((k) => k + 1);
+                            }}
+                            className="h-8 rounded-lg bg-zinc-900 px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+                        >
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
                 <div className="mt-3">
                     {statusDelivery.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
                     {statusDelivery.state === "error" && (
@@ -184,7 +231,7 @@ export default function ImplementationTab() {
                                     {statusDelivery.data.data.length === 0 && (
                                         <tr>
                                             <td className="px-3 py-6 text-sm text-zinc-500" colSpan={5}>
-                                                No delivery records found for the latest 50 entries.
+                                                No delivery records found for this page.
                                             </td>
                                         </tr>
                                     )}
