@@ -1,9 +1,196 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+type Loadable<T> =
+    | { state: "idle" | "loading" }
+    | { state: "error"; message: string }
+    | { state: "success"; data: T };
+
+type CustomerRow = {
+    id: number;
+    bank_desc: string;
+};
+
+type CustomerResponse = {
+    success: boolean;
+    totalDatas: number;
+    data: CustomerRow[];
+};
+
+type PurchaseOrderRow = {
+    id: number;
+    customer: number | null;
+    jumlah: number | string | null;
+};
+
+type PurchaseOrderResponse = {
+    success: boolean;
+    totalDatas: number;
+    data: PurchaseOrderRow[];
+};
+
+type MesinPerBulanRow = {
+    periode: string;
+    id_bank: number;
+    bank: string;
+    bulan: string;
+    total_mesin: number;
+};
+
+type MesinPerBulanResponse = {
+    success: boolean;
+    data: MesinPerBulanRow[];
+};
+
+async function fetchJson<T>(url: string): Promise<T> {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    return (await res.json()) as T;
+}
+
+function toNumber(v: unknown): number {
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    if (typeof v === "string") {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+    }
+    return 0;
+}
+
 export default function CustomerTab() {
+    const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
+    const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
+    const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            setCustomers({ state: "loading" });
+            setPurchaseOrders({ state: "loading" });
+            setMesinPerBulan({ state: "loading" });
+
+            try {
+                const [cust, pos, mesin] = await Promise.all([
+                    fetchJson<CustomerResponse>("/api/master-customer"),
+                    fetchJson<PurchaseOrderResponse>("/api/purchaseOrder"),
+                    fetchJson<MesinPerBulanResponse>("/api/getJumlahMesinPerbulan/null/null"),
+                ]);
+
+                if (cancelled) return;
+
+                setCustomers({ state: "success", data: cust });
+                setPurchaseOrders({ state: "success", data: pos });
+                setMesinPerBulan({ state: "success", data: mesin });
+            } catch (e) {
+                if (cancelled) return;
+                const msg = e instanceof Error ? e.message : "Unknown error";
+                setCustomers({ state: "error", message: msg });
+                setPurchaseOrders({ state: "error", message: msg });
+                setMesinPerBulan({ state: "error", message: msg });
+            }
+        }
+
+        void load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const customerSummary = useMemo(() => {
+        if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
+
+        const totalCustomers = customers.data.data.length;
+        const uniquePoCustomers = new Set(
+            purchaseOrders.data.data.map((po) => po.customer).filter((v): v is number => typeof v === "number")
+        );
+        const totalMachines = purchaseOrders.data.data.reduce((acc, po) => acc + toNumber(po.jumlah), 0);
+
+        return {
+            totalCustomers,
+            customersWithPo: uniquePoCustomers.size,
+            totalMachines,
+        };
+    }, [customers, purchaseOrders]);
+
+    const topBanks = useMemo(() => {
+        if (mesinPerBulan.state !== "success") return [];
+        const totals = new Map<string, number>();
+
+        for (const row of mesinPerBulan.data.data) {
+            totals.set(row.bank, (totals.get(row.bank) ?? 0) + toNumber(row.total_mesin));
+        }
+
+        return Array.from(totals.entries())
+            .map(([bank, total]) => ({ bank, total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 8);
+    }, [mesinPerBulan]);
+
     return (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Customer</div>
-            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                TODO: port Customer dashboard widgets.
+        <div className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="text-xs text-zinc-500">Total Customers</div>
+                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                        {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                    </div>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="text-xs text-zinc-500">Customers with PO</div>
+                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                        {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                    </div>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
+                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                        {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
+                    </div>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Top Customers by Mesin (6 months)</div>
+                    <div className="text-xs text-zinc-500">/api/getJumlahMesinPerbulan</div>
+                </div>
+
+                <div className="mt-3">
+                    {mesinPerBulan.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
+                    {mesinPerBulan.state === "error" && (
+                        <div className="text-sm text-red-500">{mesinPerBulan.message}</div>
+                    )}
+                    {mesinPerBulan.state === "success" && (
+                        <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                            <table className="min-w-[520px] w-full text-left text-sm">
+                                <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+                                    <tr>
+                                        <th className="px-3 py-2">Customer</th>
+                                        <th className="px-3 py-2">Total Mesin</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {topBanks.map((row) => (
+                                        <tr key={row.bank} className="border-t border-zinc-200 dark:border-zinc-800">
+                                            <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.total.toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                    {topBanks.length === 0 && (
+                                        <tr>
+                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={2}>
+                                                No data
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
