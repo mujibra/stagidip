@@ -6,6 +6,7 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 
 - Legacy module registry: `react-frontend/src/app/main/apps/appsConfig.js`
 - Current Next.js route group: `app/(app)`
+- Execution plan: `docs/migration/FRONTEND_MIGRATION_PLAN.md`
 - Status legend:
   - ✅ Present in Next.js route tree
   - ⚠️ Present but needs parity audit (feature-level comparison)

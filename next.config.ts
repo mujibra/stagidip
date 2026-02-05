@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
       "framer-motion",
     ],
   },
+
+  async redirects() {
+    return [
+      { source: "/porcaheOrder", destination: "/purchase-order", permanent: true },
+      { source: "/statusDelivery", destination: "/status-delivery", permanent: true },
+      { source: "/warehouseTransfer", destination: "/warehouse-transfer", permanent: true },
+      { source: "/stagging/:path*", destination: "/staging/:path*", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

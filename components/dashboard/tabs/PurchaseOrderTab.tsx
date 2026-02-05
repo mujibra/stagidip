@@ -138,6 +138,13 @@ export default function PurchaseOrderTab() {
                 const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
                 setPurchaseOrders({ state: "error", message: msg });
             }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
         }
 
         void load();
