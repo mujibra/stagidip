@@ -68,7 +68,7 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   },
   {
     section: "STAGING REGISTRATION",
-    items: [{ href: toHref("porcaheOrder"), label: "Staging Registration", icon: <FontAwesomeIcon icon={faFolderPlus} /> }],
+    items: [{ href: toHref("purchase-order"), label: "Staging Registration", icon: <FontAwesomeIcon icon={faFolderPlus} /> }],
   },
   {
     section: "PRE STAGING",
@@ -86,13 +86,13 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   },
   {
     section: "STATUS DELIVERY",
-    items: [{ href: toHref("statusDelivery"), label: "Status Delivery", icon: <FontAwesomeIcon icon={faTruck} /> }],
+    items: [{ href: toHref("status-delivery"), label: "Status Delivery", icon: <FontAwesomeIcon icon={faTruck} /> }],
   },
   {
     section: "WAREHOUSE",
     collapsible: true,
     items: [
-      { href: toHref("warehouseTransfer"), label: "WAREHOUSE TRANSFER", icon: <FontAwesomeIcon icon={faArrowRight} /> },
+      { href: toHref("warehouse-transfer"), label: "WAREHOUSE TRANSFER", icon: <FontAwesomeIcon icon={faArrowRight} /> },
       { href: toHref("summary/deliveryRequest"), label: "Delivery Request", icon: <FontAwesomeIcon icon={faStickyNote} /> },
     ],
   },
