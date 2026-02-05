@@ -71,23 +71,32 @@ export default function CustomerTab() {
             setPurchaseOrders({ state: "loading" });
             setMesinPerBulan({ state: "loading" });
 
-            try {
-                const [cust, pos, mesin] = await Promise.all([
-                    fetchJson<CustomerResponse>("/api/master-customer"),
-                    fetchJson<PurchaseOrderResponse>("/api/purchaseOrder"),
-                    fetchJson<MesinPerBulanResponse>("/api/getJumlahMesinPerbulan/null/null"),
-                ]);
+            const [cust, pos, mesin] = await Promise.allSettled([
+                fetchJson<CustomerResponse>("/api/master-customer"),
+                fetchJson<PurchaseOrderResponse>("/api/purchaseOrder"),
+                fetchJson<MesinPerBulanResponse>("/api/getJumlahMesinPerbulan/null/null"),
+            ]);
 
-                if (cancelled) return;
+            if (cancelled) return;
 
-                setCustomers({ state: "success", data: cust });
-                setPurchaseOrders({ state: "success", data: pos });
-                setMesinPerBulan({ state: "success", data: mesin });
-            } catch (e) {
-                if (cancelled) return;
-                const msg = e instanceof Error ? e.message : "Unknown error";
+            if (cust.status === "fulfilled") {
+                setCustomers({ state: "success", data: cust.value });
+            } else {
+                const msg = cust.reason instanceof Error ? cust.reason.message : "Failed to load customers";
                 setCustomers({ state: "error", message: msg });
+            }
+
+            if (pos.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: pos.value });
+            } else {
+                const msg = pos.reason instanceof Error ? pos.reason.message : "Failed to load purchase orders";
                 setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (mesin.status === "fulfilled") {
+                setMesinPerBulan({ state: "success", data: mesin.value });
+            } else {
+                const msg = mesin.reason instanceof Error ? mesin.reason.message : "Failed to load mesin per bulan";
                 setMesinPerBulan({ state: "error", message: msg });
             }
         }
@@ -131,31 +140,44 @@ export default function CustomerTab() {
 
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Total Customers</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Customer Summary</div>
+                    <div className="text-xs text-zinc-500">Data source: /api/master-customer, /api/purchaseOrder</div>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Total Customers</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Customers with PO</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
+                        </div>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Customers with PO</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                {(customers.state === "error" || purchaseOrders.state === "error") && (
+                    <div className="mt-3 text-sm text-red-500">
+                        {customers.state === "error" ? customers.message : null}
+                        {customers.state === "error" && purchaseOrders.state === "error" ? " · " : null}
+                        {purchaseOrders.state === "error" ? purchaseOrders.message : null}
                     </div>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
-                    </div>
-                </div>
+                )}
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Top Customers by Mesin (6 months)</div>
-                    <div className="text-xs text-zinc-500">/api/getJumlahMesinPerbulan</div>
+                    <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
                 </div>
 
                 <div className="mt-3">
@@ -182,7 +204,7 @@ export default function CustomerTab() {
                                     {topBanks.length === 0 && (
                                         <tr>
                                             <td className="px-3 py-6 text-sm text-zinc-500" colSpan={2}>
-                                                No data
+                                                No mesin totals found for the last 6 months.
                                             </td>
                                         </tr>
                                     )}

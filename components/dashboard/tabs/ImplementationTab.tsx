@@ -39,7 +39,11 @@ function parseDate(value: string | null): Date | null {
 function formatDate(value: string | null) {
     const parsed = parseDate(value);
     if (!parsed) return "—";
-    return parsed.toLocaleDateString();
+    return new Intl.DateTimeFormat("id-ID", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(parsed);
 }
 
 export default function ImplementationTab() {
@@ -98,37 +102,46 @@ export default function ImplementationTab() {
 
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Total Delivery Records</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Implementation Summary</div>
+                    <div className="text-xs text-zinc-500">Data source: /api/statusDelivery</div>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-4">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Total Delivery Records</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Overdue Arrivals</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="text-xs text-zinc-500">Scheduled Departures</div>
+                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                            {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
+                        </div>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
-                    </div>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Overdue Arrivals</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
-                    </div>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Scheduled Departures</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
-                    </div>
-                </div>
+                {statusDelivery.state === "error" && (
+                    <div className="mt-3 text-sm text-red-500">{statusDelivery.message}</div>
+                )}
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Latest Delivery Status</div>
-                    <div className="text-xs text-zinc-500">/api/statusDelivery</div>
+                    <div className="text-xs text-zinc-500">Data source: /api/statusDelivery</div>
                 </div>
 
                 <div className="mt-3">
@@ -171,7 +184,7 @@ export default function ImplementationTab() {
                                     {statusDelivery.data.data.length === 0 && (
                                         <tr>
                                             <td className="px-3 py-6 text-sm text-zinc-500" colSpan={5}>
-                                                No data
+                                                No delivery records found for the latest 50 entries.
                                             </td>
                                         </tr>
                                     )}

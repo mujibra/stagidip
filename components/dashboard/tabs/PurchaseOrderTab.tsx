@@ -102,24 +102,33 @@ export default function PurchaseOrderTab() {
             setTop3Customer({ state: "loading" });
             setPurchaseOrders({ state: "loading" });
 
-            try {
-                const [w, t, po] = await Promise.all([
-                    fetchJson<MesinPerWarehouseResponse>(warehouseUrl),
-                    fetchJson<TopCustomerResponse>(top3Url),
-                    fetchJson<PurchaseOrderResponse>("/api/purchaseOrder"),
-                ]);
+            const [w, t, po] = await Promise.allSettled([
+                fetchJson<MesinPerWarehouseResponse>(warehouseUrl),
+                fetchJson<TopCustomerResponse>(top3Url),
+                fetchJson<PurchaseOrderResponse>("/api/purchaseOrder"),
+            ]);
 
-                if (cancelled) return;
+            if (cancelled) return;
 
-                setMesinPerWarehouse({ state: "success", data: w });
-                setTop3Customer({ state: "success", data: t });
-                setPurchaseOrders({ state: "success", data: po });
-            } catch (e) {
-                if (cancelled) return;
-
-                const msg = e instanceof Error ? e.message : "Unknown error";
+            if (w.status === "fulfilled") {
+                setMesinPerWarehouse({ state: "success", data: w.value });
+            } else {
+                const msg = w.reason instanceof Error ? w.reason.message : "Failed to load warehouse data";
                 setMesinPerWarehouse({ state: "error", message: msg });
+            }
+
+            if (t.status === "fulfilled") {
+                setTop3Customer({ state: "success", data: t.value });
+            } else {
+                const msg = t.reason instanceof Error ? t.reason.message : "Failed to load top customers";
                 setTop3Customer({ state: "error", message: msg });
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
                 setPurchaseOrders({ state: "error", message: msg });
             }
         }
@@ -233,7 +242,7 @@ export default function PurchaseOrderTab() {
 
                                             return (
                                                 <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
-                                                    <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{toNumber(r.gudang_name)}</td>
+                                                    <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
                                                     <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
                                                     <td className="px-3 py-2">
                                                         <div className="flex items-center gap-2">
@@ -255,7 +264,7 @@ export default function PurchaseOrderTab() {
                                     {mesinPerWarehouse.data.data.length === 0 && (
                                         <tr>
                                             <td className="px-3 py-6 text-sm text-zinc-500" colSpan={3}>
-                                                No data
+                                                No warehouse machine totals found.
                                             </td>
                                         </tr>
                                     )}
@@ -304,7 +313,7 @@ export default function PurchaseOrderTab() {
                                     {top3Customer.data.data.length === 0 && (
                                         <tr>
                                             <td className="px-3 py-6 text-sm text-zinc-500" colSpan={3}>
-                                                No data
+                                                No customer purchases found for {year}.
                                             </td>
                                         </tr>
                                     )}
@@ -317,7 +326,10 @@ export default function PurchaseOrderTab() {
 
             {/* Purchase order snapshot */}
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Purchase Order Snapshot</div>
+                <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Purchase Order Snapshot</div>
+                    <div className="text-xs text-zinc-500">Data source: /api/purchaseOrder</div>
+                </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                     <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                         <div className="text-xs text-zinc-500">Total PO</div>
