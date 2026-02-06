@@ -10,7 +10,8 @@
     "docs:build": "redocly build-docs ./docs/api/openapi.yaml -o ./docs/api/api-docs.html",
     "etl:customers": "tsx etl/run.ts",
     "etl:warehouses": "tsx etl/run.ts",
-    "migration:check-routes": "node scripts/check-canonical-routes.mjs"
+    "migration:check-routes": "node scripts/check-canonical-routes.mjs",
+    "docs:infer-examples": "node scripts/infer-openapi-examples.mjs"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
