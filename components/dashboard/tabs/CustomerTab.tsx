@@ -59,6 +59,29 @@ function toNumber(v: unknown): number {
     return 0;
 }
 
+function getSummaryState(
+    customers: Loadable<CustomerResponse>,
+    purchaseOrders: Loadable<PurchaseOrderResponse>
+): "idle" | "loading" | "error" | "success" {
+    if (customers.state === "error" || purchaseOrders.state === "error") return "error";
+    if (customers.state === "loading" || purchaseOrders.state === "loading") return "loading";
+    if (customers.state === "idle" || purchaseOrders.state === "idle") return "idle";
+    return "success";
+}
+
+function getSummaryError(
+    customers: Loadable<CustomerResponse>,
+    purchaseOrders: Loadable<PurchaseOrderResponse>
+): string | undefined {
+    if (customers.state !== "error" && purchaseOrders.state !== "error") return undefined;
+    return [
+        customers.state === "error" ? customers.message : null,
+        purchaseOrders.state === "error" ? purchaseOrders.message : null,
+    ]
+        .filter(Boolean)
+        .join(" · ");
+}
+
 export default function CustomerTab() {
     const [reloadKey, setReloadKey] = useState(0);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
@@ -110,6 +133,18 @@ export default function CustomerTab() {
         };
     }, [reloadKey]);
 
+    const summaryState = useMemo(
+        () => getSummaryState(customers, purchaseOrders),
+        [customers, purchaseOrders]
+    );
+
+    const summaryError = useMemo(
+        () => getSummaryError(customers, purchaseOrders),
+        [customers, purchaseOrders]
+    );
+
+    const handleRetry = () => setReloadKey((key) => key + 1);
+
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
 
@@ -147,39 +182,34 @@ export default function CustomerTab() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Customer Summary</div>
                     <div className="text-xs text-zinc-500">Data source: /api/master-customer, /api/purchaseOrder</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Total Customers</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                <div className="mt-3">
+                    <DataState
+                        state={summaryState}
+                        errorMessage={summaryError}
+                        onRetry={handleRetry}
+                    >
+                        <div className="grid gap-3 md:grid-cols-3">
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Total Customers</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Customers with PO</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Customers with PO</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
-                        </div>
-                    </div>
+                    </DataState>
                 </div>
-                {(customers.state === "error" || purchaseOrders.state === "error") && (
-                    <div className="mt-3">
-                        <DataState
-                            state="error"
-                            errorMessage={[customers.state === "error" ? customers.message : null, purchaseOrders.state === "error" ? purchaseOrders.message : null]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            onRetry={() => setReloadKey((key) => key + 1)}
-                        >
-                            <></>
-                        </DataState>
-                    </div>
-                )}
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -194,7 +224,7 @@ export default function CustomerTab() {
                         errorMessage={mesinPerBulan.state === "error" ? mesinPerBulan.message : undefined}
                         empty={mesinPerBulan.state === "success" && topBanks.length === 0}
                         emptyMessage="No mesin totals found for the last 6 months."
-                        onRetry={() => setReloadKey((key) => key + 1)}
+                        onRetry={handleRetry}
                     >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[520px] w-full text-left text-sm">
