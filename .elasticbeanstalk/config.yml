@@ -1,0 +1,19 @@
+branch-defaults:
+  master:
+    environment: stagidip-env2
+environment-defaults:
+  stagidip-env2:
+    branch: null
+    repository: null
+global:
+  application_name: stagidip-dev
+  default_ec2_keyname: mydatindo-vpn-dev
+  default_platform: Node.js 22 running on 64bit Amazon Linux 2023
+  default_region: ap-southeast-3
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  sc: git
+  workspace_type: Application
