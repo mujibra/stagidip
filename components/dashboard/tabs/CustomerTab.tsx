@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import DataState from "@/components/dashboard/DataState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -59,6 +60,7 @@ function toNumber(v: unknown): number {
 }
 
 export default function CustomerTab() {
+    const [reloadKey, setReloadKey] = useState(0);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
     const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
@@ -106,7 +108,7 @@ export default function CustomerTab() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [reloadKey]);
 
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
@@ -166,10 +168,16 @@ export default function CustomerTab() {
                     </div>
                 </div>
                 {(customers.state === "error" || purchaseOrders.state === "error") && (
-                    <div className="mt-3 text-sm text-red-500">
-                        {customers.state === "error" ? customers.message : null}
-                        {customers.state === "error" && purchaseOrders.state === "error" ? " · " : null}
-                        {purchaseOrders.state === "error" ? purchaseOrders.message : null}
+                    <div className="mt-3">
+                        <DataState
+                            state="error"
+                            errorMessage={[customers.state === "error" ? customers.message : null, purchaseOrders.state === "error" ? purchaseOrders.message : null]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            onRetry={() => setReloadKey((key) => key + 1)}
+                        >
+                            <></>
+                        </DataState>
                     </div>
                 )}
             </div>
@@ -181,11 +189,13 @@ export default function CustomerTab() {
                 </div>
 
                 <div className="mt-3">
-                    {mesinPerBulan.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {mesinPerBulan.state === "error" && (
-                        <div className="text-sm text-red-500">{mesinPerBulan.message}</div>
-                    )}
-                    {mesinPerBulan.state === "success" && (
+                    <DataState
+                        state={mesinPerBulan.state}
+                        errorMessage={mesinPerBulan.state === "error" ? mesinPerBulan.message : undefined}
+                        empty={mesinPerBulan.state === "success" && topBanks.length === 0}
+                        emptyMessage="No mesin totals found for the last 6 months."
+                        onRetry={() => setReloadKey((key) => key + 1)}
+                    >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[520px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
@@ -201,17 +211,10 @@ export default function CustomerTab() {
                                             <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.total.toLocaleString()}</td>
                                         </tr>
                                     ))}
-                                    {topBanks.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={2}>
-                                                No mesin totals found for the last 6 months.
-                                            </td>
-                                        </tr>
-                                    )}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    </DataState>
                 </div>
             </div>
         </div>
