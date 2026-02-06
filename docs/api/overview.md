@@ -1,43 +1,37 @@
-# StagiDIP API QA Handbook
+# StagiDIP API Docs Workflow (Conflict-Safe)
 
-This API documentation is now aligned with the **actual implemented handlers** in `app/api/**/route.ts` and prepared for QA execution.
+To avoid frequent merge conflicts on long-lived branches, **generated API docs are no longer committed as source-of-truth files**.
 
-## Documentation map
+## Source of truth
 
-- Endpoint inventory (method/path/source map + request-json reference):
-  - [`docs/api/endpoints-inventory.md`](./endpoints-inventory.md)
-- Response examples for **every API method**:
-  - [`docs/api/response-examples.md`](./response-examples.md)
-- OpenAPI spec (importable in Swagger/Postman):
-  - [`docs/api/openapi.yaml`](./openapi.yaml)
-- Postman collection (ready to import):
-  - [`docs/api/stagidip.postman_collection.json`](./stagidip.postman_collection.json)
+- API implementation: `app/api/**/route.ts`
+- Data shape hints: `prisma/schema.prisma`
+- Generator script: `scripts/generate_api_docs.py`
 
-## Base URL
+## Generated outputs (local / CI artifact)
 
-- Local: `http://localhost:3000/api`
-- Environment: `{host}/api`
+Running the generator writes files into `docs/api/generated/`:
 
-## QA checklist (recommended order)
+- `endpoints-inventory.md`
+- `response-examples.md`
+- `openapi.yaml`
+- `stagidip.postman_collection.json`
 
-1. Validate endpoint routing & methods (correct method vs incorrect method).
-2. Validate path params and query params combinations.
-3. Validate request payload contract (required, type mismatch, edge values).
-4. Validate response body against examples and business expectations.
-5. Validate integration workflows across modules:
-   - Purchase order -> checklist -> status delivery
-   - Pre-staging setup -> checklist execution -> approval
-   - Inspection master -> transaction -> approval updates
-   - Delivery request -> approval update -> list/detail checks
+These are generated artifacts and should be regenerated **after merge** instead of manually resolving conflicts.
 
-## Source of truth policy
+## Commands
 
-If behavior differs from docs:
+```bash
+npm run docs:generate
+npm run docs:build
+```
 
-1. Route handler under `app/api/**/route.ts` is authoritative.
-2. Regenerate/update docs in `docs/api/` to keep QA references current.
+- `docs:generate` creates `docs/api/generated/*`.
+- `docs:build` renders HTML docs from `docs/api/generated/openapi.yaml` into `docs/api/generated/api-docs.html`.
 
+## Recommended team policy
 
-## Example data generation notes
-
-Request/response examples are generated using a hybrid strategy: route handler parsing (`parseBody` / `.json()` / `body.<field>`) plus Prisma schema field type hints when available.
+1. Keep generator logic reviewed and versioned.
+2. Do not hand-edit generated files.
+3. Regenerate locally (or in CI) after rebasing/merging.
+4. If your release process needs published docs, upload generated files as build artifacts.

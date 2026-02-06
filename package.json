@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "docs:build": "redocly build-docs ./docs/api/openapi.yaml -o ./docs/api/api-docs.html",
+    "docs:build": "npm run docs:generate && redocly build-docs ./docs/api/generated/openapi.yaml -o ./docs/api/generated/api-docs.html",
     "etl:customers": "tsx etl/run.ts",
-    "etl:warehouses": "tsx etl/run.ts"
+    "etl:warehouses": "tsx etl/run.ts",
+    "docs:generate": "python scripts/generate_api_docs.py"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
