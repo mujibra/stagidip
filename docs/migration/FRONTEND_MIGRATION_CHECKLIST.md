@@ -7,6 +7,7 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 - Legacy module registry: `react-frontend/src/app/main/apps/appsConfig.js`
 - Current Next.js route group: `app/(app)`
 - Execution plan: `docs/migration/FRONTEND_MIGRATION_PLAN.md`
+- Execution status: `docs/migration/PARITY_EXECUTION_STATUS.md`
 - Status legend:
   - ✅ Present in Next.js route tree
   - ⚠️ Present but needs parity audit (feature-level comparison)
@@ -19,7 +20,7 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 | Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_DASHBOARD.md`. |
 | Purchase Order | `porchase-order/porchaseOderConfig.js` | `/purchase-order` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_PURCHASE_ORDER.md`. |
 | Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SUMMARY.md`. |
-| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`. |
+| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration/my-datindo` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`; `/integration` redirects to canonical child. |
 | Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SPESIFICATION.md`. |
 | Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_REGISTRATION.md`. |
 | Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_WAREHOUSE_TRANSFER.md`. |
