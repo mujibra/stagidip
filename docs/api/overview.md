@@ -1,186 +1,38 @@
-# StagiDIP API Overview
+# StagiDIP API QA Handbook
 
-This document provides an overview of the StagiDIP API, generated from the OpenAPI specification.
+This API documentation is now aligned with the **actual implemented handlers** in `app/api/**/route.ts` and prepared for QA execution.
 
-## Endpoints
+## Documentation map
 
-## Pagination
+- Endpoint inventory (method/path/source map):
+  - [`docs/api/endpoints-inventory.md`](./endpoints-inventory.md)
+- Response examples for **every API method**:
+  - [`docs/api/response-examples.md`](./response-examples.md)
+- OpenAPI spec (importable in Swagger/Postman):
+  - [`docs/api/openapi.yaml`](./openapi.yaml)
+- Postman collection (ready to import):
+  - [`docs/api/stagidip.postman_collection.json`](./stagidip.postman_collection.json)
 
-The following endpoints accept pagination parameters and return paged results:
+## Base URL
 
-- `GET /master-part` (query: `page`, `perPage`)
-- `GET /master-spek-mesin-f-new` (query: `page`, `perPage`)
-- `GET /master-spesifikasi-mesin` (query: `page`, `perPage`)
-- `GET /statusDelivery` (query: `page`, `perPage`)
-- `GET /statusDelivery/{rowPerPage}/{user_login}` (path: `rowPerPage`, query: `page`, optional `dataSearch`)
-- `GET /master-spekmesin/paging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /settingPreStaging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /picMover/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /warehouse-transfer/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+- Local: `http://localhost:3000/api`
+- Environment: `{host}/api`
 
-### Batch Management
+## QA checklist (recommended order)
 
-#### GET /bacth
-- **Description**: Get all batches
-- **Responses**:
-  - `200 OK`: A list of batches.
+1. Validate endpoint routing & methods (correct method vs incorrect method).
+2. Validate path params and query params combinations.
+3. Validate request payload contract (required, type mismatch, edge values).
+4. Validate response body against examples and business expectations.
+5. Validate integration workflows across modules:
+   - Purchase order -> checklist -> status delivery
+   - Pre-staging setup -> checklist execution -> approval
+   - Inspection master -> transaction -> approval updates
+   - Delivery request -> approval update -> list/detail checks
 
-#### POST /bacth
-- **Description**: Create a new batch
-- **Request Body**:
-  - `name` (string): The name of the batch.
-- **Responses**:
-  - `200 OK`: The created batch.
+## Source of truth policy
 
-#### GET /bacth/{id}
-- **Description**: Get a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Responses**:
-  - `200 OK`: The batch.
+If behavior differs from docs:
 
-#### PUT /bacth/{id}
-- **Description**: Update a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Request Body**:
-  - `name` (string): The new name of the batch.
-- **Responses**:
-  - `200 OK`: The updated batch.
-
-#### DELETE /bacth/{id}
-- **Description**: Delete a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Responses**:
-  - `200 OK`: The deleted batch.
-
-### Brand Management
-
-#### GET /brand
-- **Description**: Get all brands
-- **Responses**:
-  - `200 OK`: A list of brands.
-
-#### POST /brand
-- **Description**: Create a new brand
-- **Request Body**:
-  - `name` (string): The name of the brand.
-- **Responses**:
-  - `200 OK`: The created brand.
-
-#### GET /brand/{id}
-- **Description**: Get a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Responses**:
-  - `200 OK`: The brand.
-
-#### PUT /brand/{id}
-- **Description**: Update a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Request Body**:
-  - `name` (string): The new name of the brand.
-- **Responses**:
-  - `200 OK`: The updated brand.
-
-#### DELETE /brand/{id}
-- **Description**: Delete a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Responses**:
-  - `200 OK`: The deleted brand.
-
-### Delivery Request Management
-
-#### POST /deliveryRequest
-- **Description**: Create a new delivery request
-- **Request Body**:
-  - `delivery_request_no` (integer): Delivery request number.
-  - `tanggal_request` (string, date-time): Date of request.
-  - `category` (string): Category of the request.
-  - `task` (string): Task of the request.
-  - `no_mesin` (integer): Machine number.
-  - `sn_mesin` (string): Machine serial number.
-  - `id_po` (integer): Purchase order ID.
-  - `purpose` (string): Purpose of the request.
-  - `contact_person` (string): Contact person.
-  - `contact_no` (string): Contact number.
-  - `address` (string): Address.
-  - `request_by` (integer): ID of the requester.
-  - `status_approval` (string): Approval status.
-  - `approve_by` (integer): ID of the approver.
-- **Responses**:
-  - `200 OK`: The created delivery request.
-
-#### PUT /deliveryRequest/{idDeliveryReq}
-- **Description**: Update a delivery request by ID
-- **Parameters**:
-  - `idDeliveryReq` (integer, path): The ID of the delivery request.
-- **Request Body**:
-  - `delivery_request_no` (integer): Delivery request number.
-  - `tanggal_request` (string, date-time): Date of request.
-  - `category` (string): Category of the request.
-  - `task` (string): Task of the request.
-  - `no_mesin` (integer): Machine number.
-  - `sn_mesin` (string): Machine serial number.
-  - `id_po` (integer): Purchase order ID.
-  - `purpose` (string): Purpose of the request.
-  - `contact_person` (string): Contact person.
-  - `contact_no` (string): Contact number.
-  - `address` (string): Address.
-  - `request_by` (integer): ID of the requester.
-  - `status_approval` (string): Approval status.
-  - `approve_by` (integer): ID of the approver.
-- **Responses**:
-  - `200 OK`: The updated delivery request.
-
-#### DELETE /deliveryRequest/{idDeliveryReq}
-- **Description**: Delete a delivery request by ID
-- **Parameters**:
-  - `idDeliveryReq` (integer, path): The ID of the delivery request.
-- **Responses**:
-  - `200 OK`: The deleted delivery request.
-
-### Other Endpoints
-
-#### GET /getAllDeliveryRequest
-- **Description**: Get all delivery requests
-- **Responses**:
-  - `200 OK`: A list of delivery requests.
-
-#### GET /getDetailPOBySNMesinIdPo/{snMesin}/{idPo}
-- **Description**: Get PO details by serial number and PO ID
-- **Parameters**:
-  - `snMesin` (string, path): The serial number of the machine.
-  - `idPo` (integer, path): The ID of the purchase order.
-- **Responses**:
-  - `200 OK`: The PO details.
-
-#### GET /getListApprovalBy/{user_login}
-- **Description**: Get a list of approvals by user login
-- **Parameters**:
-  - `user_login` (integer, path): The ID of the user.
-- **Responses**:
-  - `200 OK`: A list of approvals.
-
-#### GET /getListSN
-- **Description**: Get a list of serial numbers
-- **Responses**:
-  - `200 OK`: A list of serial numbers.
-
-#### GET /health
-- **Description**: Health check
-- **Responses**:
-  - `200 OK`: The service is healthy.
-
-#### POST /login
-- **Description**: Login a user
-- **Request Body**:
-  - `email` (string): The user's email.
-  - `password` (string): The user's password.
-- **Responses**:
-  - `200 OK`: The user was logged in successfully.
-
-
+1. Route handler under `app/api/**/route.ts` is authoritative.
+2. Regenerate/update docs in `docs/api/` to keep QA references current.
