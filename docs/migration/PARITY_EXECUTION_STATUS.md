@@ -42,3 +42,8 @@ A module is done when:
 
 - Legacy alias pages now redirect to canonical routes for purchase-order, status-delivery, warehouse-transfer, staging aliases, and summary camelCase aliases.
 - Canonical navigation no longer depends only on `next.config.ts` redirects.
+
+
+## Automation helper
+
+- Run `npm run migration:check-routes` to verify legacy alias pages still redirect to canonical routes.
