@@ -122,6 +122,42 @@ export default function PurchaseOrderTab() {
             } else {
                 const msg = t.reason instanceof Error ? t.reason.message : "Failed to load top customers";
                 setTop3Customer({ state: "error", message: msg });
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
             }
 
             if (po.status === "fulfilled") {
