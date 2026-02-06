@@ -79,7 +79,7 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
     section: "STAGING",
     collapsible: true,
     items: [
-      { href: toHref("viewOldMachine"), label: "Staging Old Machine", disabled: true, icon: <FontAwesomeIcon icon={faSquareCheck} /> },
+      { href: toHref("staging/old-machine"), label: "Staging Old Machine", disabled: true, icon: <FontAwesomeIcon icon={faSquareCheck} /> },
       { href: toHref("staging/new-machine"), label: "Staging New Machine", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
       { href: toHref("staging/inspection-testing"), label: "Pre Loading Inspection", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
     ],

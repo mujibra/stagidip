@@ -21,14 +21,14 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 | Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Route exists; needs detailed feature parity check. |
 | Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Route exists; verify all views/actions ported. |
 | Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Route exists; verify data flow parity. |
-| Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Route exists; validate all nested pages/forms. |
+| Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_REGISTRATION.md`. |
 | Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ✅ | Canonical nav path is set; redirect from `/warehouseTransfer` is in place. |
 | Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery` | ✅ | Canonical nav path is set; redirect from `/statusDelivery` is in place. |
-| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging` | ⚠️ | Route exists; verify checklist flows and approvals. |
-| Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/viewOldMachine` | ⚠️ | Route likely mapped; verify filters/detail actions. |
-| Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/viewNewMachine` | ⚠️ | Route likely mapped; verify parity and naming. |
-| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` or `/stagging` | ⚠️ | Both spellings exist in Next route tree; choose one canonical path. |
-| Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/stagging` or `/staging` | ⚠️ | Needs explicit page mapping + naming cleanup. |
+| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging/checklist` | ✅ | Canonical nav path in use; checklist page route exists. |
+| Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/staging/old-machine` | ✅ | Canonical nav path in use; redirect from `/viewOldMachine` is in place. |
+| Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/staging/new-machine` | ✅ | Canonical nav path in use; redirect from `/viewNewMachine` is in place. |
+| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` | ✅ | Canonical route chosen; legacy `/stagging/*` redirects to `/staging/*`. |
+| Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/staging/inspection-testing` | ✅ | Canonical nav path in use; legacy `/stagging/*` redirects to `/staging/*`. |
 
 ## High-Priority Cleanup (Do Next)
 
@@ -64,19 +64,23 @@ Current `app/(app)` entries found:
 
 - `dashboard`
 - `integration`
-- `porcaheOrder`
+- `porcaheOrder` (legacy alias with redirect)
 - `pre-staging`
 - `registration`
 - `spesification`
-- `stagging`
+- `stagging` (legacy alias with redirect)
 - `staging`
 - `status-delivery`
-- `statusDelivery`
+- `statusDelivery` (legacy alias with redirect)
 - `summary`
-- `viewNewMachine`
-- `viewOldMachine`
+- `viewNewMachine` (legacy alias with redirect)
+- `viewOldMachine` (legacy alias with redirect)
 - `warehouse-transfer`
-- `warehouseTransfer`
+- `warehouseTransfer` (legacy alias with redirect)
+
+## Parity audit artifacts
+
+- Registration: `docs/migration/PARITY_AUDIT_REGISTRATION.md`
 
 ## How to Use This Checklist
 
