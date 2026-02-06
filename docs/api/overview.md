@@ -4,7 +4,7 @@ This API documentation is now aligned with the **actual implemented handlers** i
 
 ## Documentation map
 
-- Endpoint inventory (method/path/source map):
+- Endpoint inventory (method/path/source map + request-json reference):
   - [`docs/api/endpoints-inventory.md`](./endpoints-inventory.md)
 - Response examples for **every API method**:
   - [`docs/api/response-examples.md`](./response-examples.md)
