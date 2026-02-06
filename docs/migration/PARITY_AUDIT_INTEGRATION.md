@@ -8,6 +8,9 @@ Legacy source:
 Next.js targets:
 - `app/(app)/integration/*`
 
+Canonical behavior:
+- `/integration` redirects to `/integration/my-datindo`.
+
 ## Route Presence Matrix
 
 Status legend:
@@ -18,7 +21,7 @@ Status legend:
 | Feature | Legacy route intent | Next.js route | Status | Notes |
 |---|---|---|---|---|
 | My Datindo Integration landing | `apps/myDatindoIntergration` | `/integration/my-datindo` | ✅ | Canonical route exists |
-| Integration module entry | n/a (legacy app shell route) | `/integration` | ✅ | Route exists and should link to canonical child |
+| Integration module entry | n/a (legacy app shell route) | `/integration` | ✅ | Route exists and now redirects to canonical child |
 
 ## Functional Parity Tasks
 

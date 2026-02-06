@@ -7,6 +7,7 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 - Legacy module registry: `react-frontend/src/app/main/apps/appsConfig.js`
 - Current Next.js route group: `app/(app)`
 - Execution plan: `docs/migration/FRONTEND_MIGRATION_PLAN.md`
+- Execution status: `docs/migration/PARITY_EXECUTION_STATUS.md`
 - Status legend:
   - ✅ Present in Next.js route tree
   - ⚠️ Present but needs parity audit (feature-level comparison)
@@ -19,22 +20,22 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 | Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_DASHBOARD.md`. |
 | Purchase Order | `porchase-order/porchaseOderConfig.js` | `/purchase-order` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_PURCHASE_ORDER.md`. |
 | Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SUMMARY.md`. |
-| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`. |
+| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration/my-datindo` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`; `/integration` redirects to canonical child. |
 | Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SPESIFICATION.md`. |
 | Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_REGISTRATION.md`. |
 | Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_WAREHOUSE_TRANSFER.md`. |
 | Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STATUS_DELIVERY.md`. |
-| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging/checklist` | ✅ | Canonical nav path in use; checklist page route exists. |
-| Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/staging/old-machine` | ✅ | Canonical nav path in use; redirect from `/viewOldMachine` is in place. |
-| Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/staging/new-machine` | ✅ | Canonical nav path in use; redirect from `/viewNewMachine` is in place. |
-| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` | ✅ | Canonical route chosen; legacy `/stagging/*` redirects to `/staging/*`. |
-| Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/staging/inspection-testing` | ✅ | Canonical nav path in use; legacy `/stagging/*` redirects to `/staging/*`. |
+| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging/checklist` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/staging/old-machine` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/staging/new-machine` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/staging/inspection-testing` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
 
 ## High-Priority Cleanup (Do Next)
 
 ### Progress update
 
-- ✅ Canonicalized navigation and redirects for: Purchase Order, Status Delivery, Warehouse Transfer, and key summary/staging aliases.
+- ✅ Canonicalized navigation and redirects completed, including legacy alias page-level redirects for summary/staging/warehouse/status/purchase-order paths.
 
 1. **Normalize route names and remove duplicates**
    - Fix typo path: `porcaheOrder` → `purchase-order` (or agreed canonical slug).
@@ -88,6 +89,7 @@ Current `app/(app)` entries found:
 - Purchase Order: `docs/migration/PARITY_AUDIT_PURCHASE_ORDER.md`
 - Status Delivery: `docs/migration/PARITY_AUDIT_STATUS_DELIVERY.md`
 - Warehouse Transfer: `docs/migration/PARITY_AUDIT_WAREHOUSE_TRANSFER.md`
+- Staging/Pre-Staging: `docs/migration/PARITY_AUDIT_STAGING.md`
 
 ## How to Use This Checklist
 
