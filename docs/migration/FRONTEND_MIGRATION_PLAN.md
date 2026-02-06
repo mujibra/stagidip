@@ -63,6 +63,12 @@ For each module in checklist:
 - Dashboard tabs use consistent async UI patterns.
 - Basic smoke tests pass in CI.
 
+
+## Execution Process Link
+
+- After planning, execute module work using `NEXT_EXECUTION_PROCESS.md`.
+- Treat that document as the operational runbook for weekly execution and QA closeout.
+
 ## Suggested Delivery Order
 
 1. Route canonicalization PR

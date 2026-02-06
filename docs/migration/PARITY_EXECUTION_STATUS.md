@@ -47,3 +47,9 @@ A module is done when:
 ## Automation helper
 
 - Run `npm run migration:check-routes` to verify legacy alias pages still redirect to canonical routes.
+
+## Next Process
+
+- Follow `NEXT_EXECUTION_PROCESS.md` for the per-module 7-step execution workflow.
+- Use the weekly cadence and status values there to keep reporting consistent.
+
