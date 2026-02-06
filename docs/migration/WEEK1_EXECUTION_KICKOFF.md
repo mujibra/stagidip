@@ -49,7 +49,13 @@ This kickoff converts planning documents into executable daily actions for the f
 ## Frontend improvements
 
 - Track confirmed UI/UX gaps in `FRONTEND_IMPROVEMENTS_NEXT.md`.
+- Execute by priority from `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
 - Link items to parity audit notes and target PRs.
+
+## Evidence Log
+
+- Record validation evidence in `WEEK1_EVIDENCE_LOG.md`.
+- Link evidence entries to parity audit items.
 
 ## Required Outputs by Friday
 

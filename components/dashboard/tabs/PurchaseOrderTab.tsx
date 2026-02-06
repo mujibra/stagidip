@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import DataState from "@/components/dashboard/DataState";
+
 type Loadable<T> =
     | { state: "idle" | "loading" }
     | { state: "error"; message: string }
@@ -93,6 +95,11 @@ export default function PurchaseOrderTab() {
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({
         state: "idle",
     });
+    const [reloadKey, setReloadKey] = useState(0);
+
+    function retryLoad() {
+        setReloadKey((v) => v + 1);
+    }
 
     useEffect(() => {
         let cancelled = false;
@@ -215,13 +222,20 @@ export default function PurchaseOrderTab() {
                 const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
                 setPurchaseOrders({ state: "error", message: msg });
             }
+
+            if (po.status === "fulfilled") {
+                setPurchaseOrders({ state: "success", data: po.value });
+            } else {
+                const msg = po.reason instanceof Error ? po.reason.message : "Failed to load purchase orders";
+                setPurchaseOrders({ state: "error", message: msg });
+            }
         }
 
         void load();
         return () => {
             cancelled = true;
         };
-    }, [top3Url]);
+    }, [top3Url, reloadKey]);
 
     const totalWarehouseMachines = useMemo(() => {
         if (mesinPerWarehouse.state !== "success") return null;
@@ -302,60 +316,56 @@ export default function PurchaseOrderTab() {
                 </div>
 
                 <div className="mt-3">
-                    {mesinPerWarehouse.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {mesinPerWarehouse.state === "error" && (
-                        <div className="text-sm text-red-500">{mesinPerWarehouse.message}</div>
-                    )}
-                    {mesinPerWarehouse.state === "success" && (
-                        <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-                            <table className="min-w-[640px] w-full text-left text-sm">
-                                <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-                                    <tr>
-                                        <th className="px-3 py-2">Warehouse</th>
-                                        <th className="px-3 py-2">Jumlah</th>
-                                        <th className="px-3 py-2">Share</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mesinPerWarehouse.data.data
-                                        .slice()
-                                        .sort((a, b) => toNumber(b.jumlah) - toNumber(a.jumlah))
-                                        .map((r) => {
-                                            const total = totalWarehouseMachines ?? 0;
-                                            const pct = total ? (toNumber(r.jumlah) * 100) / total : 0;
-
-                                            return (
-                                                <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
-                                                    <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
-                                                    <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
-                                                    <td className="px-3 py-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
-                                                                <div
-                                                                    className="h-full bg-linear-to-r from-indigo-500 via-sky-500 to-emerald-500"
-                                                                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                                                                />
-                                                            </div>
-                                                            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                                                                {pct.toFixed(1)}%
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-
-                                    {mesinPerWarehouse.data.data.length === 0 && (
+                    <DataState
+                        state={mesinPerWarehouse.state}
+                        errorMessage={mesinPerWarehouse.state === "error" ? mesinPerWarehouse.message : undefined}
+                        empty={mesinPerWarehouse.state === "success" && mesinPerWarehouse.data.data.length === 0}
+                        emptyMessage="No warehouse machine totals found."
+                        onRetry={retryLoad}
+                    >
+                        {mesinPerWarehouse.state === "success" && (
+                            <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                <table className="min-w-[640px] w-full text-left text-sm">
+                                    <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                                         <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={3}>
-                                                No warehouse machine totals found.
-                                            </td>
+                                            <th className="px-3 py-2">Warehouse</th>
+                                            <th className="px-3 py-2">Jumlah</th>
+                                            <th className="px-3 py-2">Share</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                        {mesinPerWarehouse.data.data
+                                            .slice()
+                                            .sort((a, b) => toNumber(b.jumlah) - toNumber(a.jumlah))
+                                            .map((r) => {
+                                                const total = totalWarehouseMachines ?? 0;
+                                                const pct = total ? (toNumber(r.jumlah) * 100) / total : 0;
+
+                                                return (
+                                                    <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
+                                                        <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
+                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
+                                                        <td className="px-3 py-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
+                                                                    <div
+                                                                        className="h-full bg-linear-to-r from-indigo-500 via-sky-500 to-emerald-500"
+                                                                        style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                                                                    />
+                                                                </div>
+                                                                <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                                                                    {pct.toFixed(1)}%
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </DataState>
                 </div>
             </div>
 
@@ -367,44 +377,42 @@ export default function PurchaseOrderTab() {
                 </div>
 
                 <div className="mt-3">
-                    {top3Customer.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {top3Customer.state === "error" && <div className="text-sm text-red-500">{top3Customer.message}</div>}
-                    {top3Customer.state === "success" && (
-                        <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-                            <table className="min-w-[520px] w-full text-left text-sm">
-                                <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-                                    <tr>
-                                        <th className="px-3 py-2">Rank</th>
-                                        <th className="px-3 py-2">Customer</th>
-                                        <th className="px-3 py-2">Total Mesin</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {top3Customer.data.data.map((r, idx) => (
-                                        <tr key={r.id} className="border-t border-zinc-200 dark:border-zinc-800">
-                                            <td className="px-3 py-2">
-                                                <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
-                                                    #{idx + 1}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
-                                                {Number(r.total_mesin_per_customer ?? 0).toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))}
-
-                                    {top3Customer.data.data.length === 0 && (
+                    <DataState
+                        state={top3Customer.state}
+                        errorMessage={top3Customer.state === "error" ? top3Customer.message : undefined}
+                        empty={top3Customer.state === "success" && top3Customer.data.data.length === 0}
+                        emptyMessage={`No customer purchases found for ${year}.`}
+                        onRetry={retryLoad}
+                    >
+                        {top3Customer.state === "success" && (
+                            <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                <table className="min-w-[520px] w-full text-left text-sm">
+                                    <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                                         <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={3}>
-                                                No customer purchases found for {year}.
-                                            </td>
+                                            <th className="px-3 py-2">Rank</th>
+                                            <th className="px-3 py-2">Customer</th>
+                                            <th className="px-3 py-2">Total Mesin</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                        {top3Customer.data.data.map((r, idx) => (
+                                            <tr key={r.id} className="border-t border-zinc-200 dark:border-zinc-800">
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
+                                                        #{idx + 1}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
+                                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                                                    {Number(r.total_mesin_per_customer ?? 0).toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </DataState>
                 </div>
             </div>
 

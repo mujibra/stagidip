@@ -67,4 +67,10 @@ A module is done when:
 ## Frontend Improvements
 
 - UI/UX follow-ups are tracked in `FRONTEND_IMPROVEMENTS_NEXT.md`.
+- Execute items in priority order from `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
 - Update the list when parity audits surface frontend gaps.
+
+## Evidence Log
+
+- Week 1 evidence is captured in `WEEK1_EVIDENCE_LOG.md`.
+- Keep entries aligned with parity audit tasks.

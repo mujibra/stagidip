@@ -7,6 +7,7 @@ This list captures frontend parity/quality improvements identified during execut
 - Add items when a gap is confirmed in a parity audit.
 - Keep each entry scoped to a single UI/UX concern.
 - Link to the module audit file and target PR when available.
+- Prioritize execution using `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
 
 ## Dashboard (Week 1 focus)
 
