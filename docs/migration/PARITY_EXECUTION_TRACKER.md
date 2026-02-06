@@ -9,8 +9,8 @@ Status values must follow `NEXT_EXECUTION_PROCESS.md`:
 
 | Module | Canonical Route | Audit File | Owner | Reviewer | Status | Current Focus | Blockers | Target PR |
 |---|---|---|---|---|---|---|---|---|
-| Dashboard | `/dashboard` | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | None | _TBD_ |
-| Purchase Order | `/purchase-order` | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | None | _TBD_ |
+| Dashboard | `/dashboard` | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ | _TBD_ | `in-progress` | Week 1 scope lock + baseline | None | _TBD_ |
+| Purchase Order | `/purchase-order` | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ | _TBD_ | `in-progress` | Week 1 scope lock + baseline | None | _TBD_ |
 | Registration | `/registration` | `PARITY_AUDIT_REGISTRATION.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | Unknown legacy edge cases | _TBD_ |
 | Status Delivery | `/status-delivery` | `PARITY_AUDIT_STATUS_DELIVERY.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | API response variance review | _TBD_ |
 | Warehouse Transfer | `/warehouse-transfer` | `PARITY_AUDIT_WAREHOUSE_TRANSFER.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | API response variance review | _TBD_ |
@@ -20,6 +20,8 @@ Status values must follow `NEXT_EXECUTION_PROCESS.md`:
 | Staging | `/staging/*`, `/pre-staging/*` | `PARITY_AUDIT_STAGING.md` | _TBD_ | _TBD_ | `not-started` | Scope lock + baseline | Approval-flow edge cases | _TBD_ |
 
 ## First Execution Cycle (Suggested)
+
+Execution playbook: `WEEK1_EXECUTION_KICKOFF.md`.
 
 ### Week 1
 
