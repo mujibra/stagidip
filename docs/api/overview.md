@@ -1,186 +1,90 @@
-# StagiDIP API Overview
+# StagiDIP API QA Handbook
 
-This document provides an overview of the StagiDIP API, generated from the OpenAPI specification.
+This documentation has been updated to reflect the **actual implemented API routes in the codebase** under `app/api/**/route.ts`.
 
-## Endpoints
+## What changed
 
-## Pagination
+- The old API overview was based on a partial/outdated OpenAPI snapshot.
+- QA should now use the route-driven inventory as the primary source of truth.
+- A complete endpoint matrix is available in:
+  - [`docs/api/endpoints-inventory.md`](./endpoints-inventory.md)
 
-The following endpoints accept pagination parameters and return paged results:
+## Base URL
 
-- `GET /master-part` (query: `page`, `perPage`)
-- `GET /master-spek-mesin-f-new` (query: `page`, `perPage`)
-- `GET /master-spesifikasi-mesin` (query: `page`, `perPage`)
-- `GET /statusDelivery` (query: `page`, `perPage`)
-- `GET /statusDelivery/{rowPerPage}/{user_login}` (path: `rowPerPage`, query: `page`, optional `dataSearch`)
-- `GET /master-spekmesin/paging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /settingPreStaging/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /picMover/{rowPerPage}` (path: `rowPerPage`, query: `page`)
-- `GET /warehouse-transfer/{rowPerPage}` (path: `rowPerPage`, query: `page`)
+- Local: `http://localhost:3000/api`
+- Production/staging: `{your-host}/api`
 
-### Batch Management
+## QA-first testing strategy
 
-#### GET /bacth
-- **Description**: Get all batches
-- **Responses**:
-  - `200 OK`: A list of batches.
+### 1) Method & routing validation (fast smoke)
 
-#### POST /bacth
-- **Description**: Create a new batch
-- **Request Body**:
-  - `name` (string): The name of the batch.
-- **Responses**:
-  - `200 OK`: The created batch.
+For each endpoint in the inventory:
 
-#### GET /bacth/{id}
-- **Description**: Get a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Responses**:
-  - `200 OK`: The batch.
+- Send request with the documented HTTP method => expect non-404 response.
+- Send request with a wrong method => expect `405`/error response.
+- For dynamic paths, test:
+  - valid parameter format
+  - invalid parameter format (`abc`, `-1`, empty where applicable)
 
-#### PUT /bacth/{id}
-- **Description**: Update a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Request Body**:
-  - `name` (string): The new name of the batch.
-- **Responses**:
-  - `200 OK`: The updated batch.
+### 2) Input contract validation
 
-#### DELETE /bacth/{id}
-- **Description**: Delete a batch by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the batch.
-- **Responses**:
-  - `200 OK`: The deleted batch.
+For endpoints marked with `Body: JSON` in the inventory:
 
-### Brand Management
+- Minimum valid payload.
+- Missing required fields.
+- Invalid field types.
+- Extra/unknown fields.
 
-#### GET /brand
-- **Description**: Get all brands
-- **Responses**:
-  - `200 OK`: A list of brands.
+For endpoints with query params:
 
-#### POST /brand
-- **Description**: Create a new brand
-- **Request Body**:
-  - `name` (string): The name of the brand.
-- **Responses**:
-  - `200 OK`: The created brand.
+- No query params (default behavior).
+- Each query param individually.
+- Full query combination.
 
-#### GET /brand/{id}
-- **Description**: Get a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Responses**:
-  - `200 OK`: The brand.
+### 3) Data lifecycle validation
 
-#### PUT /brand/{id}
-- **Description**: Update a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Request Body**:
-  - `name` (string): The new name of the brand.
-- **Responses**:
-  - `200 OK`: The updated brand.
+Prioritize CRUD groups and execute full flow:
 
-#### DELETE /brand/{id}
-- **Description**: Delete a brand by ID
-- **Parameters**:
-  - `id` (integer, path): The ID of the brand.
-- **Responses**:
-  - `200 OK`: The deleted brand.
+1. Create entity (`POST`)
+2. Read list/detail (`GET`)
+3. Update (`PUT`)
+4. Delete (`DELETE`)
+5. Re-read deleted item and verify expected error/not found behavior
 
-### Delivery Request Management
+### 4) Cross-module workflow validation
 
-#### POST /deliveryRequest
-- **Description**: Create a new delivery request
-- **Request Body**:
-  - `delivery_request_no` (integer): Delivery request number.
-  - `tanggal_request` (string, date-time): Date of request.
-  - `category` (string): Category of the request.
-  - `task` (string): Task of the request.
-  - `no_mesin` (integer): Machine number.
-  - `sn_mesin` (string): Machine serial number.
-  - `id_po` (integer): Purchase order ID.
-  - `purpose` (string): Purpose of the request.
-  - `contact_person` (string): Contact person.
-  - `contact_no` (string): Contact number.
-  - `address` (string): Address.
-  - `request_by` (integer): ID of the requester.
-  - `status_approval` (string): Approval status.
-  - `approve_by` (integer): ID of the approver.
-- **Responses**:
-  - `200 OK`: The created delivery request.
+High-value integrated flows to prioritize:
 
-#### PUT /deliveryRequest/{idDeliveryReq}
-- **Description**: Update a delivery request by ID
-- **Parameters**:
-  - `idDeliveryReq` (integer, path): The ID of the delivery request.
-- **Request Body**:
-  - `delivery_request_no` (integer): Delivery request number.
-  - `tanggal_request` (string, date-time): Date of request.
-  - `category` (string): Category of the request.
-  - `task` (string): Task of the request.
-  - `no_mesin` (integer): Machine number.
-  - `sn_mesin` (string): Machine serial number.
-  - `id_po` (integer): Purchase order ID.
-  - `purpose` (string): Purpose of the request.
-  - `contact_person` (string): Contact person.
-  - `contact_no` (string): Contact number.
-  - `address` (string): Address.
-  - `request_by` (integer): ID of the requester.
-  - `status_approval` (string): Approval status.
-  - `approve_by` (integer): ID of the approver.
-- **Responses**:
-  - `200 OK`: The updated delivery request.
+- Purchase order -> machine/checklist -> status delivery
+- Pre-staging setup -> checklist execution -> approval
+- Inspection master -> inspection transaction -> approval updates
+- Delivery request creation -> approval update -> retrieval
 
-#### DELETE /deliveryRequest/{idDeliveryReq}
-- **Description**: Delete a delivery request by ID
-- **Parameters**:
-  - `idDeliveryReq` (integer, path): The ID of the delivery request.
-- **Responses**:
-  - `200 OK`: The deleted delivery request.
+## Suggested QA execution order
 
-### Other Endpoints
+1. **Master data APIs** (customer, model, warehouse, style, batch, etc.)
+2. **Transaction APIs** (purchase order, checklist staging, inspection, delivery)
+3. **Summary/reporting APIs** (dashboard + summary endpoints)
+4. **Approval/auth-related APIs**
 
-#### GET /getAllDeliveryRequest
-- **Description**: Get all delivery requests
-- **Responses**:
-  - `200 OK`: A list of delivery requests.
+## Minimal smoke command template
 
-#### GET /getDetailPOBySNMesinIdPo/{snMesin}/{idPo}
-- **Description**: Get PO details by serial number and PO ID
-- **Parameters**:
-  - `snMesin` (string, path): The serial number of the machine.
-  - `idPo` (integer, path): The ID of the purchase order.
-- **Responses**:
-  - `200 OK`: The PO details.
+```bash
+curl -i -X GET "http://localhost:3000/api/<endpoint-path>"
+```
 
-#### GET /getListApprovalBy/{user_login}
-- **Description**: Get a list of approvals by user login
-- **Parameters**:
-  - `user_login` (integer, path): The ID of the user.
-- **Responses**:
-  - `200 OK`: A list of approvals.
+JSON request template:
 
-#### GET /getListSN
-- **Description**: Get a list of serial numbers
-- **Responses**:
-  - `200 OK`: A list of serial numbers.
+```bash
+curl -i -X POST "http://localhost:3000/api/<endpoint-path>" \
+  -H "Content-Type: application/json" \
+  -d '{"example":"value"}'
+```
 
-#### GET /health
-- **Description**: Health check
-- **Responses**:
-  - `200 OK`: The service is healthy.
+## Source of truth policy
 
-#### POST /login
-- **Description**: Login a user
-- **Request Body**:
-  - `email` (string): The user's email.
-  - `password` (string): The user's password.
-- **Responses**:
-  - `200 OK`: The user was logged in successfully.
+If any mismatch exists between docs and runtime behavior:
 
-
+1. Treat the corresponding route handler file under `app/api/**/route.ts` as source of truth.
+2. Update `docs/api/endpoints-inventory.md` accordingly.
+3. Keep this handbook focused on QA process and execution guidance.
