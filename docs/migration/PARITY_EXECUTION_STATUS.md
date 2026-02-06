@@ -36,3 +36,9 @@ A module is done when:
 - all checklist boxes in its `PARITY_AUDIT_*` file are complete,
 - canonical route + legacy redirect behavior validated,
 - QA signs off no regression in core user journey.
+
+
+## Phase 1 completion update
+
+- Legacy alias pages now redirect to canonical routes for purchase-order, status-delivery, warehouse-transfer, staging aliases, and summary camelCase aliases.
+- Canonical navigation no longer depends only on `next.config.ts` redirects.

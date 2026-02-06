@@ -35,7 +35,7 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 
 ### Progress update
 
-- ✅ Canonicalized navigation and redirects for: Purchase Order, Status Delivery, Warehouse Transfer, and key summary/staging aliases.
+- ✅ Canonicalized navigation and redirects completed, including legacy alias page-level redirects for summary/staging/warehouse/status/purchase-order paths.
 
 1. **Normalize route names and remove duplicates**
    - Fix typo path: `porcaheOrder` → `purchase-order` (or agreed canonical slug).
