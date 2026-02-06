@@ -16,11 +16,11 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 
 | Legacy React module | Legacy config file | Next.js route candidate | Status | Notes |
 |---|---|---|---|---|
-| Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Route exists; tab widgets migrated incrementally, full parity still pending. |
+| Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_DASHBOARD.md`. |
 | Purchase Order | `porchase-order/porchaseOderConfig.js` | `/purchase-order` | ✅ | Canonical route and redirect from `/porcaheOrder` are in place. |
-| Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Route exists; needs detailed feature parity check. |
-| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Route exists; verify all views/actions ported. |
-| Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Route exists; verify data flow parity. |
+| Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SUMMARY.md`. |
+| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`. |
+| Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SPESIFICATION.md`. |
 | Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_REGISTRATION.md`. |
 | Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ✅ | Canonical nav path is set; redirect from `/warehouseTransfer` is in place. |
 | Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery` | ✅ | Canonical nav path is set; redirect from `/statusDelivery` is in place. |
@@ -80,7 +80,11 @@ Current `app/(app)` entries found:
 
 ## Parity audit artifacts
 
+- Dashboard: `docs/migration/PARITY_AUDIT_DASHBOARD.md`
 - Registration: `docs/migration/PARITY_AUDIT_REGISTRATION.md`
+- Summary: `docs/migration/PARITY_AUDIT_SUMMARY.md`
+- Integration: `docs/migration/PARITY_AUDIT_INTEGRATION.md`
+- Spesification: `docs/migration/PARITY_AUDIT_SPESIFICATION.md`
 
 ## How to Use This Checklist
 
