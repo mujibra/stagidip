@@ -68,6 +68,7 @@ For each module in checklist:
 
 - After planning, execute module work using `NEXT_EXECUTION_PROCESS.md`.
 - Treat that document as the operational runbook for weekly execution and QA closeout.
+- For the current cycle, use `WEEK1_EXECUTION_KICKOFF.md` as the weekly action plan.
 
 ## Suggested Delivery Order
 
@@ -82,7 +83,7 @@ For each module in checklist:
 - Legacy config path:
 - Next route path:
 - Owner:
-- Status: not-started / in-progress / blocked / done
+- Status: not-started / in-progress / blocked / qa-review / done
 - Missing features:
 - Risks/dependencies:
 - Target PR:

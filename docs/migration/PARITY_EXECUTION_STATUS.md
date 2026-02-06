@@ -53,3 +53,18 @@ A module is done when:
 - Follow `NEXT_EXECUTION_PROCESS.md` for the per-module 7-step execution workflow.
 - Use the weekly cadence and status values there to keep reporting consistent.
 
+## Execution Tracker
+
+- Operational progress is tracked in `PARITY_EXECUTION_TRACKER.md`.
+- Update tracker status whenever a module moves between `not-started`, `in-progress`, `blocked`, `qa-review`, and `done`.
+
+
+## Active Cycle
+
+- Week 1 has started for Dashboard and Purchase Order.
+- Detailed execution tasks are tracked in `WEEK1_EXECUTION_KICKOFF.md`.
+
+## Frontend Improvements
+
+- UI/UX follow-ups are tracked in `FRONTEND_IMPROVEMENTS_NEXT.md`.
+- Update the list when parity audits surface frontend gaps.

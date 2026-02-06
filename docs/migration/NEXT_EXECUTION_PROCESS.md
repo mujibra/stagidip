@@ -68,6 +68,11 @@ A module is closed only when:
 - QA sign-off is recorded,
 - status in execution tracker is set to `done`.
 
+## Tracker of Record
+
+- Use `PARITY_EXECUTION_TRACKER.md` as the single source of truth for per-module status.
+- Update it at least once per module touch and at weekly closeout.
+
 ## Weekly Cadence (Recommended)
 
 - **Mon**: scope lock + baseline (2 modules max)
