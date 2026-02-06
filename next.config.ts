@@ -14,6 +14,27 @@ const nextConfig: NextConfig = {
       "framer-motion",
     ],
   },
+
+  async redirects() {
+    return [
+      { source: "/porcaheOrder", destination: "/purchase-order", permanent: true },
+      { source: "/statusDelivery", destination: "/status-delivery", permanent: true },
+      { source: "/warehouseTransfer", destination: "/warehouse-transfer", permanent: true },
+      { source: "/stagging/:path*", destination: "/staging/:path*", permanent: true },
+      { source: "/viewNewMachine", destination: "/staging/new-machine", permanent: true },
+      { source: "/viewOldMachine", destination: "/staging/old-machine", permanent: true },
+      { source: "/summary/deliveryRequest", destination: "/summary/delivery-request", permanent: true },
+      { source: "/summary/newMachine", destination: "/summary/new-machine", permanent: true },
+      { source: "/summary/oldMachine", destination: "/summary/old-machine", permanent: true },
+      { source: "/summary/warehouseTransper", destination: "/summary/warehouse-transfer", permanent: true },
+      { source: "/summary/preStaging", destination: "/summary/pre-staging", permanent: true },
+      { source: "/summary/durationStagingSummary", destination: "/summary/duration-staging", permanent: true },
+      { source: "/summary/durationReportSummary", destination: "/summary/duration-report", permanent: true },
+      { source: "/summary/developmentSummary", destination: "/summary/development", permanent: true },
+      { source: "/summary/statusDelivery", destination: "/summary/status-delivery", permanent: true },
+      { source: "/summary/implementationTable", destination: "/summary/implementation", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {
