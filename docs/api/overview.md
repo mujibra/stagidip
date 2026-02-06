@@ -36,3 +36,18 @@ If behavior differs from docs:
 
 1. Route handler under `app/api/**/route.ts` is authoritative.
 2. Regenerate/update docs in `docs/api/` to keep QA references current.
+
+## Example payload enrichment
+
+Placeholder request examples in `openapi.yaml` can be auto-filled with inferred values from:
+
+- Dynamic route params in API paths (e.g. `[idPo]`, `[idMesin]`)
+- Prisma model fields in `prisma/schema.prisma`
+
+Run:
+
+```bash
+npm run docs:infer-examples -- --write
+```
+
+This updates `docs/api/openapi.yaml` by replacing `exampleField/exampleValue` placeholders with concrete example keys and values.
