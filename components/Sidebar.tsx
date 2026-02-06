@@ -73,15 +73,15 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
   {
     section: "PRE STAGING",
     collapsible: true,
-    items: [{ href: toHref("stagging/checklistStagging"), label: "Pre Staging Checklist", icon: <FontAwesomeIcon icon={faListCheck} /> }],
+    items: [{ href: toHref("pre-staging/checklist"), label: "Pre Staging Checklist", icon: <FontAwesomeIcon icon={faListCheck} /> }],
   },
   {
     section: "STAGING",
     collapsible: true,
     items: [
       { href: toHref("viewOldMachine"), label: "Staging Old Machine", disabled: true, icon: <FontAwesomeIcon icon={faSquareCheck} /> },
-      { href: toHref("viewNewMachine"), label: "Staging New Machine", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
-      { href: toHref("stagging/inspeksiTestings"), label: "Pre Loading Inspection", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
+      { href: toHref("staging/new-machine"), label: "Staging New Machine", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
+      { href: toHref("staging/inspection-testing"), label: "Pre Loading Inspection", icon: <FontAwesomeIcon icon={faCheckSquare} /> },
     ],
   },
   {
@@ -93,7 +93,7 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
     collapsible: true,
     items: [
       { href: toHref("warehouse-transfer"), label: "WAREHOUSE TRANSFER", icon: <FontAwesomeIcon icon={faArrowRight} /> },
-      { href: toHref("summary/deliveryRequest"), label: "Delivery Request", icon: <FontAwesomeIcon icon={faStickyNote} /> },
+      { href: toHref("summary/delivery-request"), label: "Delivery Request", icon: <FontAwesomeIcon icon={faStickyNote} /> },
     ],
   },
   {
@@ -102,17 +102,17 @@ export const NAV_SUPER_ADMIN: NavGroup[] = [
     items: [
       { href: toHref("summary/machine"), label: "Summary Machine", icon: <FontAwesomeIcon icon={faBook} /> },
       { href: toHref("summary/accessories"), label: "Summary Accessories", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/newMachine"), label: "Summary New Machine", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/oldMachine"), label: "Summary Old Machine", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/warehouseTransper"), label: "Summary Warehouse Transper", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/new-machine"), label: "Summary New Machine", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/old-machine"), label: "Summary Old Machine", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/warehouse-transfer"), label: "Summary Warehouse Transfer", icon: <FontAwesomeIcon icon={faBook} /> },
       { href: toHref("summary/warehouse"), label: "Summary Warehouse", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/preStaging"), label: "Summary Pre Staging", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/durationStagingSummary"), label: "Duration Staging Summary", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/durationReportSummary"), label: "Duration Report Summary", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/developmentSummary"), label: "Development Summary", icon: <FontAwesomeIcon icon={faRocket} /> },
-      { href: toHref("summary/statusDelivery"), label: "Summary Status Delivery", icon: <FontAwesomeIcon icon={faTruck} /> },
+      { href: toHref("summary/pre-staging"), label: "Summary Pre Staging", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/duration-staging"), label: "Duration Staging Summary", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/duration-report"), label: "Duration Report Summary", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/development"), label: "Development Summary", icon: <FontAwesomeIcon icon={faRocket} /> },
+      { href: toHref("summary/status-delivery"), label: "Summary Status Delivery", icon: <FontAwesomeIcon icon={faTruck} /> },
       { href: toHref("summary/ups"), label: "Summary UPS", icon: <FontAwesomeIcon icon={faBook} /> },
-      { href: toHref("summary/implementationTable"), label: "Implementation Table", icon: <FontAwesomeIcon icon={faBook} /> },
+      { href: toHref("summary/implementation"), label: "Implementation Table", icon: <FontAwesomeIcon icon={faBook} /> },
     ],
   },
   {

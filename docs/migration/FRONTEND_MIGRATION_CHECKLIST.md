@@ -17,13 +17,13 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 | Legacy React module | Legacy config file | Next.js route candidate | Status | Notes |
 |---|---|---|---|---|
 | Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Route exists; tab widgets migrated incrementally, full parity still pending. |
-| Purchase Order | `porchase-order/porchaseOderConfig.js` | `/porcaheOrder` | ⚠️ | Route exists but has naming typo (`porcaheOrder`), should be normalized. |
+| Purchase Order | `porchase-order/porchaseOderConfig.js` | `/purchase-order` | ✅ | Canonical route and redirect from `/porcaheOrder` are in place. |
 | Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Route exists; needs detailed feature parity check. |
 | Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration` | ⚠️ | Route exists; verify all views/actions ported. |
 | Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Route exists; verify data flow parity. |
 | Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Route exists; validate all nested pages/forms. |
-| Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer`, `/warehouseTransfer` | ⚠️ | Duplicate route forms exist; consolidate to one canonical path. |
-| Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery`, `/statusDelivery` | ⚠️ | Duplicate route forms exist; consolidate to one canonical path. |
+| Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ✅ | Canonical nav path is set; redirect from `/warehouseTransfer` is in place. |
+| Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery` | ✅ | Canonical nav path is set; redirect from `/statusDelivery` is in place. |
 | Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging` | ⚠️ | Route exists; verify checklist flows and approvals. |
 | Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/viewOldMachine` | ⚠️ | Route likely mapped; verify filters/detail actions. |
 | Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/viewNewMachine` | ⚠️ | Route likely mapped; verify parity and naming. |
@@ -31,6 +31,10 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 | Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/stagging` or `/staging` | ⚠️ | Needs explicit page mapping + naming cleanup. |
 
 ## High-Priority Cleanup (Do Next)
+
+### Progress update
+
+- ✅ Canonicalized navigation and redirects for: Purchase Order, Status Delivery, Warehouse Transfer, and key summary/staging aliases.
 
 1. **Normalize route names and remove duplicates**
    - Fix typo path: `porcaheOrder` → `purchase-order` (or agreed canonical slug).
