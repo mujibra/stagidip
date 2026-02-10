@@ -253,7 +253,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -374,7 +374,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -1043,14 +1043,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1108,14 +1108,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1233,14 +1233,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1301,21 +1301,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: idDivisi
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idDivisi"
+          description: "Path parameter: idDivisi. QA ID reference: `mst_divisi.id`"
       responses:
         200:
           description: Success
@@ -1376,14 +1376,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1435,14 +1435,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1503,21 +1503,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: idDivisi
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idDivisi"
+          description: "Path parameter: idDivisi. QA ID reference: `mst_divisi.id`"
       responses:
         200:
           description: Success
@@ -1578,14 +1578,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1644,14 +1644,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1757,14 +1757,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1815,14 +1815,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -1883,21 +1883,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: idClassif
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idClassif"
+          description: "Path parameter: idClassif. QA ID reference: `mst_classification.id`"
       responses:
         200:
           description: Success
@@ -1949,21 +1949,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: idClassif
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idClassif"
+          description: "Path parameter: idClassif. QA ID reference: `mst_classification.id`"
       responses:
         200:
           description: Success
@@ -2015,14 +2015,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -2074,14 +2074,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -2133,7 +2133,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -2197,7 +2197,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -2249,14 +2249,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: idDivisi
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idDivisi"
+          description: "Path parameter: idDivisi. QA ID reference: `mst_divisi.id`"
       responses:
         200:
           description: Success
@@ -2421,7 +2421,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idDeliveryReq"
+          description: "Path parameter: idDeliveryReq. QA ID reference: `delivery_request.id`"
       responses:
         200:
           description: Success
@@ -2484,7 +2484,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idDeliveryReq"
+          description: "Path parameter: idDeliveryReq. QA ID reference: `delivery_request.id`"
       responses:
         200:
           description: Success
@@ -2561,7 +2561,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: approved_by
           in: path
@@ -2626,7 +2626,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: approved_by
           in: path
@@ -2917,7 +2917,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: id_userLogin"
+          description: "Path parameter: id_userLogin. QA ID reference: `users.id`"
       responses:
         200:
           description: Success
@@ -3112,7 +3112,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
         -
           name: partDesc
           in: path
@@ -3171,14 +3171,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -3282,7 +3282,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: snMesin
           in: path
@@ -3296,7 +3296,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: id_customer"
+          description: "Path parameter: id_customer. QA ID reference: `mst_customer.id`"
         -
           name: warehouse
           in: path
@@ -3362,7 +3362,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: snMesin
           in: path
@@ -3435,14 +3435,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPomaster"
+          description: "Path parameter: idPomaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idBatch
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idBatch"
+          description: "Path parameter: idBatch. QA ID reference: `bacth_po.id`"
       responses:
         200:
           description: Success
@@ -3493,14 +3493,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPomaster"
+          description: "Path parameter: idPomaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idBatch
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idBatch"
+          description: "Path parameter: idBatch. QA ID reference: `bacth_po.id`"
       responses:
         200:
           description: Success
@@ -3641,7 +3641,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idType"
+          description: "Path parameter: idType. QA ID reference: `mst_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -3692,7 +3692,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idStatusPo"
+          description: "Path parameter: idStatusPo. QA ID reference: `mst_status_po.id`"
       responses:
         200:
           description: Success
@@ -3743,7 +3743,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
       responses:
         200:
           description: Success
@@ -3794,7 +3794,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -4104,7 +4104,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -4162,7 +4162,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -4604,14 +4604,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idBatch
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idBatch"
+          description: "Path parameter: idBatch. QA ID reference: `bacth_po.id`"
       responses:
         200:
           description: Success
@@ -4662,7 +4662,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -4714,14 +4714,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: idWarehouse
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idWarehouse"
+          description: "Path parameter: idWarehouse. QA ID reference: `mst_gudang.id`"
         -
           name: type
           in: path
@@ -4824,21 +4824,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: idWarehouse
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idWarehouse"
+          description: "Path parameter: idWarehouse. QA ID reference: `mst_gudang.id`"
         -
           name: idModel
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idModel"
+          description: "Path parameter: idModel. QA ID reference: `models.id`"
         -
           name: type
           in: path
@@ -4954,21 +4954,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: idModel
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idModel"
+          description: "Path parameter: idModel. QA ID reference: `models.id`"
         -
           name: idPoMaster
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
       responses:
         200:
           description: Success
@@ -5158,7 +5158,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -5223,7 +5223,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -5274,14 +5274,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idBatch
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idBatch"
+          description: "Path parameter: idBatch. QA ID reference: `bacth_po.id`"
       responses:
         200:
           description: Success
@@ -5332,7 +5332,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: type
           in: path
@@ -5390,28 +5390,28 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idWarehouse"
+          description: "Path parameter: idWarehouse. QA ID reference: `mst_gudang.id`"
         -
           name: idCustomer
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: idModel
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idModel"
+          description: "Path parameter: idModel. QA ID reference: `models.id`"
         -
           name: idStyle
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idStyle"
+          description: "Path parameter: idStyle. QA ID reference: `mst_style.id`"
         -
           name: statusMesin
           in: path
@@ -5490,7 +5490,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idStatusPo"
+          description: "Path parameter: idStatusPo. QA ID reference: `mst_status_po.id`"
       responses:
         200:
           description: Success
@@ -5595,14 +5595,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idCustomer
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: dateFrom
           in: path
@@ -5667,21 +5667,21 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
         -
           name: idCustomer
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idCustomer"
+          description: "Path parameter: idCustomer. QA ID reference: `mst_customer.id`"
         -
           name: idGudang
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idGudang"
+          description: "Path parameter: idGudang. QA ID reference: `mst_gudang.id`"
         -
           name: dateFrom
           in: path
@@ -5844,14 +5844,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -5902,14 +5902,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -5977,14 +5977,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -6043,14 +6043,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -7228,7 +7228,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -7292,7 +7292,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: modelId"
+          description: "Path parameter: modelId. QA ID reference: `models.id`"
       responses:
         200:
           description: Success
@@ -7343,7 +7343,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
@@ -7394,7 +7394,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idType"
+          description: "Path parameter: idType. QA ID reference: `mst_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -7823,7 +7823,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idParent"
+          description: "Path parameter: idParent. QA ID reference: `mst_parent_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -7883,7 +7883,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idParent"
+          description: "Path parameter: idParent. QA ID reference: `mst_parent_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -8407,7 +8407,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
       responses:
         200:
           description: Success
@@ -8467,7 +8467,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
       responses:
         200:
           description: Success
@@ -8518,7 +8518,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPoMaster"
+          description: "Path parameter: idPoMaster. QA ID reference: `mst_po.no_po_master`"
       responses:
         200:
           description: Success
@@ -8813,7 +8813,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idParent"
+          description: "Path parameter: idParent. QA ID reference: `mst_parent_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -10012,7 +10012,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idType"
+          description: "Path parameter: idType. QA ID reference: `mst_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -10072,7 +10072,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idType"
+          description: "Path parameter: idType. QA ID reference: `mst_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -10133,7 +10133,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idParent"
+          description: "Path parameter: idParent. QA ID reference: `mst_parent_type_spesifikasi_msn.id`"
       responses:
         200:
           description: Success
@@ -11447,7 +11447,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: id_user_login"
+          description: "Path parameter: id_user_login. QA ID reference: `users.id`"
       responses:
         200:
           description: Success
@@ -11974,7 +11974,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -12034,7 +12034,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -12095,7 +12095,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: rowNum
           in: path
@@ -12152,7 +12152,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: rowNum
           in: path
@@ -12210,7 +12210,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: rowNum
           in: path
@@ -12267,7 +12267,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: rowNum
           in: path
@@ -12325,7 +12325,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -12376,7 +12376,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -12436,7 +12436,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -12496,7 +12496,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
       responses:
         200:
           description: Success
@@ -14377,7 +14377,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idHeader"
+          description: "Path parameter: idHeader. QA ID reference: `transaksi_spesifikasi_mesin.id`"
       responses:
         200:
           description: Success
@@ -14431,7 +14431,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idHeader"
+          description: "Path parameter: idHeader. QA ID reference: `transaksi_spesifikasi_mesin.id`"
       responses:
         200:
           description: Success
@@ -14495,7 +14495,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idHeader"
+          description: "Path parameter: idHeader. QA ID reference: `transaksi_spesifikasi_mesin.id`"
       responses:
         200:
           description: Success
@@ -14873,7 +14873,7 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idStatusPo"
+          description: "Path parameter: idStatusPo. QA ID reference: `mst_status_po.id`"
       responses:
         200:
           description: Success
@@ -14937,14 +14937,14 @@ paths:
           required: true
           schema:
             type: string
-          description: "Path parameter: idPo"
+          description: "Path parameter: idPo. QA ID reference: `mst_po.id`"
         -
           name: idMesin
           in: path
           required: true
           schema:
             type: string
-          description: "Path parameter: idMesin"
+          description: "Path parameter: idMesin. QA ID reference: `mst_mesin.id`"
       responses:
         200:
           description: Success
