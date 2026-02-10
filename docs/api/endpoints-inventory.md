@@ -10,6 +10,33 @@ Generated from `docs/api/openapi.yaml` (route handlers under `app/api/**/route.t
 - **Body: JSON** => endpoint has a request body example in OpenAPI.
 - **Request JSON Example** is taken from endpoint requestBody example in `docs/api/openapi.yaml`.
 
+## QA Parameter-to-Database ID Hints
+
+Use this quick reference when QA needs to resolve ID-type API params before testing an endpoint.
+
+| API Param | DB reference for lookup |
+|---|---|
+| `idMesin` | `mst_mesin.id` |
+| `idPo` | `mst_po.id` |
+| `idPoMaster`, `idPomaster` | `mst_po.no_po_master` |
+| `idDivisi` | `mst_divisi.id` |
+| `idClassif` | `mst_classification.id` |
+| `idBatch` | `bacth_po.id` |
+| `idDeliveryReq` | `delivery_request.id` |
+| `idCustomer`, `id_customer` | `mst_customer.id` |
+| `idGudang`, `idWarehouse` | `mst_gudang.id` |
+| `idStatusPo` | `mst_status_po.id` |
+| `idStyle` | `mst_style.id` |
+| `idModel`, `modelId` | `models.id` |
+| `idType` | `mst_type_spesifikasi_msn.id` |
+| `idParent` | `mst_parent_type_spesifikasi_msn.id` |
+| `idHeader` | `transaksi_spesifikasi_mesin.id` |
+| `id_userLogin`, `id_user_login` | `users.id` |
+
+> Notes:
+> - Some params are business values (for example: `type`, `warehouse`, `snMesin`, `dateFrom`) and are **not** direct FK/PK IDs.
+> - For resource-specific `id`, refer to the route `Source` file listed in each endpoint row.
+
 ## `addNewDivisi`
 
 | Methods | Path | Path Params | Query Params | Body | Request JSON Example | Source |
