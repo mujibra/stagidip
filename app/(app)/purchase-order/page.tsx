@@ -231,6 +231,8 @@ export default function PurchaseOrderPage() {
         loading={loading}
         emptyText="No purchase orders found."
         sortable
+        rowKey="id"
+        containerClassName="max-h-[640px]"
         columns={[
           {
             key: "no",
@@ -256,6 +258,7 @@ export default function PurchaseOrderPage() {
             key: "status_po",
             label: "Status",
             sortable: true,
+            sortValue: (row) => (row.status_po ?? "").trim().toLowerCase(),
             render: (row) => {
               const status = (row.status_po ?? "").trim();
               if (!status) {
