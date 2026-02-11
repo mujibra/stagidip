@@ -41,9 +41,9 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection. | _this PR_ | _TBD_ | `in-progress` |
-| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution. | _this PR_ | _TBD_ | `in-progress` |
-| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration. | _this PR_ | _TBD_ | `in-progress` |
+| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
+| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
+| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
 | Staging | Build staging execution hub | Replaced generic staging table with module hub linking new-machine, old-machine, inspection, and pre-staging flows. | _this PR_ | _TBD_ | `in-progress` |
 
 ## Status Legend
