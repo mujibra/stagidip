@@ -128,6 +128,7 @@ export default function CrudPage({
 
     return 25;
   });
+  const [dataTableRenderKey, setDataTableRenderKey] = useState(0);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -217,6 +218,18 @@ export default function CrudPage({
     link.download = `${exportFileName ?? title.toLowerCase().replaceAll(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleResetTablePrefs = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(pageSizeStorageKey);
+      window.localStorage.removeItem(sortStorageKey);
+    }
+
+    setPageSize(25);
+    setPage(1);
+    setDataTableRenderKey((value) => value + 1);
+    notify("success", "Table preferences reset.");
   };
 
   const buildBody = (payload: Record<string, string>, mode: "json" | "form") => {
@@ -438,6 +451,14 @@ export default function CrudPage({
 
           <button
             type="button"
+            onClick={handleResetTablePrefs}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Reset Table Prefs
+          </button>
+
+          <button
+            type="button"
             onClick={loadItems}
             className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
           >
@@ -451,6 +472,7 @@ export default function CrudPage({
       </div>
 
       <DataTable
+        key={dataTableRenderKey}
         data={pagedItems}
         loading={loading}
         emptyText={emptyText}
