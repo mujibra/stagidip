@@ -14,9 +14,9 @@ Status values must follow `NEXT_EXECUTION_PROCESS.md`:
 | Registration | `/registration` | `PARITY_AUDIT_REGISTRATION.md` | _TBD_ | _TBD_ | `in-progress` | Batch 2 kickoff: registration hub + section-level parity walkthrough | Legacy edge cases under validation | _this PR_ |
 | Status Delivery | `/status-delivery` | `PARITY_AUDIT_STATUS_DELIVERY.md` | _TBD_ | _TBD_ | `qa-review` | PR B logistics parity baseline captured: canonical CRUD wiring, shared list/search/pagination behavior, error feedback path | Role-based visibility + timezone edge-case QA scenarios | PR B |
 | Warehouse Transfer | `/warehouse-transfer` | `PARITY_AUDIT_WAREHOUSE_TRANSFER.md` | _TBD_ | _TBD_ | `qa-review` | PR B logistics parity baseline captured: canonical CRUD wiring, SN notes field path, shared error/retry messaging | Stock/approval validation + date/status edge-case QA scenarios | PR B |
-| Summary | `/summary/*` | `PARITY_AUDIT_SUMMARY.md` | _TBD_ | _TBD_ | `in-progress` | Batch 3 kickoff: summary reporting hub + section-level walkthrough | Reporting data coverage | _this PR_ |
-| Integration | `/integration/my-datindo` | `PARITY_AUDIT_INTEGRATION.md` | _TBD_ | _TBD_ | `in-progress` | Batch 3 kickoff: integration hub + my-datindo execution entry | External dependency validation | _this PR_ |
-| Spesification | `/spesification` | `PARITY_AUDIT_SPESIFICATION.md` | _TBD_ | _TBD_ | `in-progress` | Batch 3 CRUD parity on canonical specification page | Legacy rules clarification | _this PR_ |
+| Summary | `/summary/*` | `PARITY_AUDIT_SUMMARY.md` | _TBD_ | _TBD_ | `qa-review` | PR C reporting baseline captured: summary hub navigation + executable machine summary table parity baseline | Legacy column/aggregation parity across all summary sub-pages | PR C |
+| Integration | `/integration/my-datindo` | `PARITY_AUDIT_INTEGRATION.md` | _TBD_ | _TBD_ | `qa-review` | PR C support baseline captured: canonical redirect + my-datindo list/export/state handling baseline | Integration-specific mutation flow parity + permission matrix | PR C |
+| Spesification | `/spesification` | `PARITY_AUDIT_SPESIFICATION.md` | _TBD_ | _TBD_ | `qa-review` | PR C checklist-closure baseline captured: CRUD/list/search parity baseline and delete restriction validation path | Legacy layout/role parity + id/paging edge cases | PR C |
 | Staging | `/staging/*`, `/pre-staging/*` | `PARITY_AUDIT_STAGING.md` | _TBD_ | _TBD_ | `in-progress` | Batch 3 kickoff: staging hub for new/old/inspection + pre-staging entry | Approval-flow edge cases | _this PR_ |
 
 ## First Execution Cycle (Suggested)
@@ -29,6 +29,9 @@ Execution playbook: `WEEK1_EXECUTION_KICKOFF.md`.
 2. Purchase Order
 3. Status Delivery
 4. Warehouse Transfer
+5. Summary
+6. Integration
+7. Spesification
 
 ### Week 1 Exit Criteria
 

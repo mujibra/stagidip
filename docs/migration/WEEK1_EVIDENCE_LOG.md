@@ -39,3 +39,19 @@ Use this log to capture concrete evidence during the Week 1 execution cycle.
 
 - PR A handoff notes: `docs/migration/WEEK1_QA_NOTES_PR_A.md`.
 - PR B handoff notes: `docs/migration/WEEK1_QA_NOTES_PR_B.md`.
+
+
+## Batch 3 Evidence (PR C)
+
+| Date | Module | Area | Evidence | Notes | Linked Audit Item | Owner |
+|---|---|---|---|---|---|---|
+| 2026-02-11 | Summary | Module hub + route coverage | `app/(app)/summary/page.tsx` defines section links for machine/new-old machine/warehouse-transfer/status-delivery/accessories/ups/development/implementation. | PR C baseline evidence confirms executable section hub for reporting walkthrough and QA navigation. | `PARITY_AUDIT_SUMMARY.md` (route-hub navigation baseline) | Frontend |
+| 2026-02-11 | Summary | Executable table baseline | `/summary/machine` uses `CrudPage` with `/api/master-mesin` endpoint and read-only table mode (`allowCreate/Edit/Delete=false`). | Baseline evidence for list/search/pagination and load/error handling path on summary module. | `PARITY_AUDIT_SUMMARY.md` (table/state baseline) | Frontend + QA |
+| 2026-02-11 | Integration | Canonical redirect + list baseline | `app/(app)/integration/page.tsx` redirects to `/integration/my-datindo`; target page uses `CrudPage` with `/api/register-ws-info`. | Baseline parity evidence captured for canonical route behavior and executable data view. | `PARITY_AUDIT_INTEGRATION.md` (redirect + endpoint baseline) | Frontend |
+| 2026-02-11 | Integration | Export/state baseline | My Datindo page enables CSV export (`exportFileName=integration-my-datindo`) and shared notification behavior through `CrudPage`. | QA can capture report evidence and validate error messaging with API variance. | `PARITY_AUDIT_INTEGRATION.md` (export + response handling baseline) | Frontend + QA |
+| 2026-02-11 | Spesification | CRUD + endpoint baseline | `app/(app)/spesification/page.tsx` configures `/api/master-spekmesin` + paging list endpoint with `idKey="id"` and `allowDelete=false`. | Baseline parity evidence confirms create/update path and intentional delete restriction for canonical flow. | `PARITY_AUDIT_SPESIFICATION.md` (CRUD + endpoint baseline) | Frontend |
+| 2026-02-11 | Spesification | Search/pagination + feedback | Shared `CrudPage` provides search, pagination, and success/error notifications for create/update operations. | Edge-case QA can focus on paging/id serialization and role-restriction behavior. | `PARITY_AUDIT_SPESIFICATION.md` (state + pagination baseline) | Frontend + QA |
+
+## QA Notes (Batch 3)
+
+- PR C handoff notes: `docs/migration/WEEK1_QA_NOTES_PR_C.md`.
