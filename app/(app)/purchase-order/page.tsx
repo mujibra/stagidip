@@ -25,11 +25,31 @@ type PurchaseOrderResponse = {
   data?: PurchaseOrderRow[];
 };
 
+type PurchaseOrderFormValues = {
+  no_po: string;
+  tgl_po: string;
+  id_type_mesin: string;
+  model: string;
+  customer: string;
+  jumlah: string;
+  status_po: string;
+};
+
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const STATUS_ALL = "all";
 const STATUS_WITH = "__WITH_STATUS__";
 const STATUS_WITHOUT = "__WITHOUT_STATUS__";
+
+const EMPTY_FORM: PurchaseOrderFormValues = {
+  no_po: "",
+  tgl_po: "",
+  id_type_mesin: "",
+  model: "",
+  customer: "",
+  jumlah: "",
+  status_po: "",
+};
 
 function resolveStatusFilter(value: string | null) {
   if (!value) return STATUS_ALL;
@@ -74,6 +94,18 @@ function escapeCsvValue(value: unknown) {
   return text;
 }
 
+function toStringValue(value: number | string | null | undefined) {
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
+function parseNumericField(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 export default function PurchaseOrderPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -97,6 +129,11 @@ export default function PurchaseOrderPage() {
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [formValues, setFormValues] = useState<PurchaseOrderFormValues>(EMPTY_FORM);
+  const [formSubmitting, setFormSubmitting] = useState(false);
 
   useEffect(() => {
     const nextQuery = searchParams.get("q") ?? "";
@@ -279,6 +316,94 @@ export default function PurchaseOrderPage() {
     setActionMessage({ type: "success", text: "CSV exported." });
   };
 
+  const openCreateModal = () => {
+    setSelectedRowId(null);
+    setFormValues(EMPTY_FORM);
+    setModalMode("create");
+  };
+
+  const openEditModal = (row: PurchaseOrderRow) => {
+    setSelectedRowId(row.id);
+    setFormValues({
+      no_po: toStringValue(row.no_po),
+      tgl_po: toStringValue(row.tgl_po),
+      id_type_mesin: toStringValue(row.id_type_mesin),
+      model: toStringValue(row.model),
+      customer: toStringValue(row.customer),
+      jumlah: toStringValue(row.jumlah),
+      status_po: toStringValue(row.status_po),
+    });
+    setModalMode("edit");
+  };
+
+  const closeModal = () => {
+    setModalMode(null);
+    setSelectedRowId(null);
+    setFormValues(EMPTY_FORM);
+  };
+
+  const handleFormChange = (field: keyof PurchaseOrderFormValues, value: string) => {
+    setFormValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const submitForm = async () => {
+    const requiredError =
+      !parseNumericField(formValues.id_type_mesin) ||
+      !parseNumericField(formValues.model) ||
+      !parseNumericField(formValues.jumlah);
+
+    if (requiredError) {
+      setActionMessage({ type: "error", text: "Type Mesin, Model, and Jumlah are required numeric values." });
+      return;
+    }
+
+    setFormSubmitting(true);
+
+    const payload = {
+      no_po: formValues.no_po.trim() || undefined,
+      tgl_po: formValues.tgl_po.trim() || undefined,
+      id_type_mesin: parseNumericField(formValues.id_type_mesin),
+      model: parseNumericField(formValues.model),
+      customer: parseNumericField(formValues.customer),
+      jumlah: parseNumericField(formValues.jumlah),
+      status_po: formValues.status_po.trim() || undefined,
+    };
+
+    try {
+      const response = await fetch(
+        modalMode === "edit" && selectedRowId
+          ? `/api/purchaseOrder/${selectedRowId}`
+          : "/api/purchaseOrder",
+        {
+          method: modalMode === "edit" ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = (await response.json()) as { success?: boolean; message?: string };
+
+      if (!response.ok || !result.success) {
+        setActionMessage({
+          type: "error",
+          text: result.message ?? `Failed to ${modalMode === "edit" ? "update" : "create"} purchase order.`,
+        });
+        return;
+      }
+
+      setActionMessage({
+        type: "success",
+        text: modalMode === "edit" ? "Purchase order updated." : "Purchase order created.",
+      });
+      closeModal();
+      await loadPurchaseOrders();
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to submit purchase order form." });
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     if (!actionMessage) return;
     const timer = window.setTimeout(() => setActionMessage(null), 2200);
@@ -289,7 +414,7 @@ export default function PurchaseOrderPage() {
     <div>
       <PageHeader
         title="Purchase Order"
-        subtitle="Review purchase order records and monitor status readiness."
+        subtitle="Review purchase order records, apply filters, and run create/edit parity checks."
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
@@ -387,6 +512,14 @@ export default function PurchaseOrderPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-500"
+          >
+            Add PO
+          </button>
+
           <button
             type="button"
             onClick={() => void copyCurrentViewLink()}
@@ -497,6 +630,20 @@ export default function PurchaseOrderPage() {
               );
             },
           },
+          {
+            key: "actions",
+            label: "Actions",
+            sortable: false,
+            render: (row) => (
+              <button
+                type="button"
+                onClick={() => openEditModal(row)}
+                className="rounded-md border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+              >
+                Edit
+              </button>
+            ),
+          },
         ]}
       />
 
@@ -536,6 +683,103 @@ export default function PurchaseOrderPage() {
           </button>
         </div>
       </div>
+
+      {modalMode ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-xl rounded-xl bg-white p-5 shadow-xl dark:bg-zinc-950">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                {modalMode === "create" ? "Create Purchase Order" : "Edit Purchase Order"}
+              </h2>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-200"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-xs text-zinc-500">
+                PO Number
+                <input
+                  value={formValues.no_po}
+                  onChange={(event) => handleFormChange("no_po", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500">
+                PO Date
+                <input
+                  value={formValues.tgl_po}
+                  onChange={(event) => handleFormChange("tgl_po", event.target.value)}
+                  placeholder="YYYY-MM-DD"
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500">
+                Type Mesin *
+                <input
+                  value={formValues.id_type_mesin}
+                  onChange={(event) => handleFormChange("id_type_mesin", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500">
+                Model *
+                <input
+                  value={formValues.model}
+                  onChange={(event) => handleFormChange("model", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500">
+                Customer
+                <input
+                  value={formValues.customer}
+                  onChange={(event) => handleFormChange("customer", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500">
+                Jumlah *
+                <input
+                  value={formValues.jumlah}
+                  onChange={(event) => handleFormChange("jumlah", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+              <label className="space-y-1 text-xs text-zinc-500 sm:col-span-2">
+                Status
+                <input
+                  value={formValues.status_po}
+                  onChange={(event) => handleFormChange("status_po", event.target.value)}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void submitForm()}
+                disabled={formSubmitting}
+                className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white disabled:opacity-50"
+              >
+                {formSubmitting ? "Saving..." : modalMode === "create" ? "Create" : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
