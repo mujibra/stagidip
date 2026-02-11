@@ -239,6 +239,16 @@ export default function PurchaseOrderPage() {
     updateUrlState({ q: "", status: STATUS_ALL, page: 1, pageSize: DEFAULT_PAGE_SIZE });
   };
 
+  const copyCurrentViewLink = async () => {
+    const currentUrl = `${window.location.origin}${pathname}${window.location.search}`;
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      window.alert("View link copied.");
+    } catch {
+      window.alert("Failed to copy link.");
+    }
+  };
+
   const downloadCurrentViewCsv = () => {
     const headers = ["PO Number", "PO Date", "Type Mesin", "Model", "Customer", "Jumlah", "Status"];
     const lines = [headers.join(",")];
@@ -369,6 +379,14 @@ export default function PurchaseOrderPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void copyCurrentViewLink()}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          >
+            Copy Link
+          </button>
+
           <button
             type="button"
             onClick={downloadCurrentViewCsv}

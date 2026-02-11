@@ -111,12 +111,22 @@ export default function CrudPage({
   allowExportCsv = true,
   exportFileName,
 }: CrudPageProps) {
+  const pageSizeStorageKey = `crud:${title}:page-size`;
   const [items, setItems] = useState<CrudRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 250);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(25);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(() => {
+    if (typeof window === "undefined") return 25;
+
+    const stored = Number(window.localStorage.getItem(pageSizeStorageKey));
+    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+      return stored as (typeof PAGE_SIZE_OPTIONS)[number];
+    }
+
+    return 25;
+  });
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -174,6 +184,11 @@ export default function CrudPage({
   useEffect(() => {
     setPage(1);
   }, [debouncedQuery, pageSize, items.length]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(pageSizeStorageKey, String(pageSize));
+  }, [pageSize, pageSizeStorageKey]);
 
   const getRowId = useCallback((row: CrudRow) => {
     const id = row[idKey];
