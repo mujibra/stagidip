@@ -171,6 +171,27 @@ export default function CrudPage({
     return row.id;
   }, [idKey]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const activePage = Math.min(page, totalPages);
+
+  const pagedItems = useMemo(() => {
+    const start = (activePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [activePage, filtered, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, pageSize, items.length]);
+
+  const getRowId = useCallback((row: CrudRow) => {
+    const id = row[idKey];
+    if (typeof id === "string" || typeof id === "number") {
+      return id;
+    }
+
+    return row.id;
+  }, [idKey]);
+
   const buildBody = (payload: Record<string, string>, mode: "json" | "form") => {
     if (mode === "form") {
       const formData = new FormData();
