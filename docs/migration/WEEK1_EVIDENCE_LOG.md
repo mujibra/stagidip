@@ -12,16 +12,20 @@ Use this log to capture concrete evidence during the Week 1 execution cycle.
 
 | Date | Area | Evidence | Notes | Linked Audit Item | Owner |
 |---|---|---|---|---|---|
-| _TBD_ | Tab order | _TBD_ | _TBD_ | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ |
-| _TBD_ | KPI values | _TBD_ | _TBD_ | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ |
-| _TBD_ | Filters | _TBD_ | _TBD_ | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ |
-| _TBD_ | States | _TBD_ | _TBD_ | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ |
+| 2026-02-11 | Tab order + default tab | `components/dashboard/DashboardTabs.tsx` defines canonical tab order (`Project`, `Purchase Order`, `Customer`, `Implementation`) and defaults to `project` when `tab` query is invalid/missing. | URL-state parity baseline captured for P0 navigation behavior. | `PARITY_AUDIT_DASHBOARD.md` (tab labels/order + default tab) | Frontend |
+| 2026-02-11 | KPI formatting | `components/dashboard/tabs/ProjectTab.tsx` formats numeric KPI values with `Intl.NumberFormat("id-ID")`. | Formatting parity baseline captured; final value-by-value legacy business validation tracked in QA notes. | `PARITY_AUDIT_DASHBOARD.md` (KPI value/format) | Frontend + QA |
+| 2026-02-11 | Filters | `ProjectTab` composes machine/customer API requests from `year` + `month` state and exposes manual refresh (`reloadKey`) behavior. | Engineering parity evidence captured for filter plumbing; legacy default-range expectation remains a QA assertion. | `PARITY_AUDIT_DASHBOARD.md` (filter behavior) | Frontend |
+| 2026-02-11 | States | `ProjectTab` uses shared `DataState` for loading/error/empty/success handling across summary and per-customer sections. | P0 state-handling evidence captured for Project tab; remaining tabs continue in follow-up PRs. | `PARITY_AUDIT_DASHBOARD.md` (loading/error/empty states) | Frontend |
 
 ## Purchase Order Evidence
 
 | Date | Area | Evidence | Notes | Linked Audit Item | Owner |
 |---|---|---|---|---|---|
-| _TBD_ | Table columns | _TBD_ | _TBD_ | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ |
-| _TBD_ | Filters | _TBD_ | _TBD_ | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ |
-| _TBD_ | CRUD actions | _TBD_ | _TBD_ | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ |
-| _TBD_ | States | _TBD_ | _TBD_ | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ |
+| 2026-02-11 | Table columns/order | `app/(app)/purchase-order/page.tsx` renders `PO Number` as first column and includes `Status` column in main table + CSV export headers. | P0 table baseline captured against canonical implementation. | `PARITY_AUDIT_PURCHASE_ORDER.md` (table columns/order) | Frontend |
+| 2026-02-11 | Filters/search/pagination | PO page keeps `q`, `status`, `page`, and `pageSize` in URL state and normalizes defaults from query params. | Parity evidence captured for reproducible list-state behavior and sharable links. | `PARITY_AUDIT_PURCHASE_ORDER.md` (pagination/filter/search) | Frontend + QA |
+| 2026-02-11 | CRUD actions | PO page includes create/edit modal flow; create uses POST `/api/purchaseOrder` and edit uses PUT `/api/purchaseOrder/id/:id`. | Core CRUD parity evidence captured for P0 action flow. | `PARITY_AUDIT_PURCHASE_ORDER.md` (create/edit parity + endpoint usage) | Frontend |
+| 2026-02-11 | States + feedback | PO page shows load failures with retry, action success/error toast banner, and empty-state handling for filtered results. | QA-ready behavior evidence captured for core operator workflow. | `PARITY_AUDIT_PURCHASE_ORDER.md` (state handling) | Frontend + QA |
+
+## QA Notes
+
+- Consolidated QA handoff notes for this scope: `docs/migration/WEEK1_QA_NOTES_PR_A.md`.
