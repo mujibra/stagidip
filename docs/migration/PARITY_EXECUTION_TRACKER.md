@@ -9,8 +9,8 @@ Status values must follow `NEXT_EXECUTION_PROCESS.md`:
 
 | Module | Canonical Route | Audit File | Owner | Reviewer | Status | Current Focus | Blockers | Target PR |
 |---|---|---|---|---|---|---|---|---|
-| Dashboard | `/dashboard` | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ | _TBD_ | `in-progress` | Week 1 parity execution: URL tab state + ProjectTab data-state normalization | None | _TBD_ |
-| Purchase Order | `/purchase-order` | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ | _TBD_ | `in-progress` | PO list parity execution: create/edit modal flow + list QA refinements | None | _this PR_ |
+| Dashboard | `/dashboard` | `PARITY_AUDIT_DASHBOARD.md` | _TBD_ | _TBD_ | `qa-review` | PR A P0 parity evidence captured (tab/default behavior, Project-tab state handling, KPI formatting baseline) | KPI value-by-value business sign-off dataset | PR A |
+| Purchase Order | `/purchase-order` | `PARITY_AUDIT_PURCHASE_ORDER.md` | _TBD_ | _TBD_ | `qa-review` | PR A P0 parity evidence captured (table baseline, URL filters, create/edit flow, retry/error messaging) | Role-matrix QA run for restricted actions | PR A |
 | Registration | `/registration` | `PARITY_AUDIT_REGISTRATION.md` | _TBD_ | _TBD_ | `in-progress` | Batch 2 kickoff: registration hub + section-level parity walkthrough | Legacy edge cases under validation | _this PR_ |
 | Status Delivery | `/status-delivery` | `PARITY_AUDIT_STATUS_DELIVERY.md` | _TBD_ | _TBD_ | `in-progress` | Batch 2 CRUD parity: enable create/edit/delete flows on canonical page | API response variance review | _this PR_ |
 | Warehouse Transfer | `/warehouse-transfer` | `PARITY_AUDIT_WAREHOUSE_TRANSFER.md` | _TBD_ | _TBD_ | `in-progress` | Batch 2 CRUD parity: canonical list + create/update/delete execution | API response variance review | _this PR_ |

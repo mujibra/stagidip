@@ -61,7 +61,7 @@ A module is done when:
 
 ## Active Cycle
 
-- Week 1 has started for Dashboard and Purchase Order.
+- Week 1 PR A scope is now in `qa-review` for Dashboard + Purchase Order (see `PARITY_EXECUTION_TRACKER.md`).
 - Detailed execution tasks are tracked in `WEEK1_EXECUTION_KICKOFF.md`.
 
 ## Frontend Improvements
@@ -72,5 +72,5 @@ A module is done when:
 
 ## Evidence Log
 
-- Week 1 evidence is captured in `WEEK1_EVIDENCE_LOG.md`.
+- Week 1 evidence is captured in `WEEK1_EVIDENCE_LOG.md` and QA handoff notes are in `WEEK1_QA_NOTES_PR_A.md`.
 - Keep entries aligned with parity audit tasks.
