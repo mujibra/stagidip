@@ -22,7 +22,7 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Table | Align columns and ordering | Compare to legacy `PoParrent` table | _TBD_ | _TBD_ | `not-started` |
+| Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; continue field-level parity vs legacy `PoParrent`. | _this PR_ | _TBD_ | `in-progress` |
 | Filters | Ensure filter behavior parity | Validate query params and defaults | _TBD_ | _TBD_ | `not-started` |
 | Actions | Align create/edit/export flows | List missing actions if any | _TBD_ | _TBD_ | `not-started` |
 | States | Normalize loading/empty/error UI | Capture expected UI states | _TBD_ | _TBD_ | `not-started` |
