@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
@@ -134,6 +134,7 @@ export default function CrudPage({
   const [openEdit, setOpenEdit] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<CrudRow | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setForm(buildPayload(fields, {}));
@@ -191,6 +192,28 @@ export default function CrudPage({
     if (typeof window === "undefined") return;
     window.localStorage.setItem(pageSizeStorageKey, String(pageSize));
   }, [pageSize, pageSizeStorageKey]);
+
+  useEffect(() => {
+    const onSlashFocusSearch = (event: KeyboardEvent) => {
+      if (event.key !== "/") return;
+
+      const target = event.target as HTMLElement | null;
+      const tagName = (target?.tagName ?? "").toLowerCase();
+      const isTypingTarget =
+        tagName === "input" ||
+        tagName === "textarea" ||
+        tagName === "select" ||
+        Boolean(target?.isContentEditable);
+
+      if (isTypingTarget) return;
+
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+
+    window.addEventListener("keydown", onSlashFocusSearch);
+    return () => window.removeEventListener("keydown", onSlashFocusSearch);
+  }, []);
 
   const getRowId = useCallback((row: CrudRow) => {
     const id = row[idKey];
@@ -407,6 +430,7 @@ export default function CrudPage({
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <div className="relative w-full sm:max-w-xs">
             <input
+              ref={searchInputRef}
               type="search"
               placeholder="Search..."
               value={query}
