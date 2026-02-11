@@ -372,7 +372,17 @@ export default function CrudPage({
         </button>
       </div>
 
-      <DataTable data={pagedItems} loading={loading} emptyText={emptyText} columns={columns} sortable={sortable} />
+      <DataTable
+        data={pagedItems}
+        loading={loading}
+        emptyText={emptyText}
+        columns={columns}
+        sortable={sortable}
+        rowKey={(row, index) => {
+          const resolved = getRowId(row);
+          return typeof resolved === "string" || typeof resolved === "number" ? resolved : index;
+        }}
+      />
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="text-zinc-500">

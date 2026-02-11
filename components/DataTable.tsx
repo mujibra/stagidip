@@ -14,6 +14,8 @@ type Column<T> = {
   sortValue?: (row: T) => string | number | null | undefined;
 };
 
+type RowKeyGetter<T> = keyof T | ((row: T, index: number) => string | number);
+
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (value instanceof Date) return value.toLocaleDateString();
@@ -66,12 +68,16 @@ export default function DataTable<T extends Record<string, unknown>>({
   loading,
   emptyText = "No data",
   sortable = false,
+  rowKey,
+  containerClassName,
 }: {
   data: T[];
   columns: Column<T>[];
   loading?: boolean;
   emptyText?: string;
   sortable?: boolean;
+  rowKey?: RowKeyGetter<T>;
+  containerClassName?: string;
 }) {
   const [sortState, setSortState] = useState<{ key: string; direction: SortDirection } | null>(null);
 
@@ -108,10 +114,34 @@ export default function DataTable<T extends Record<string, unknown>>({
     });
   };
 
+  const resolveRowKey = (row: T, index: number) => {
+    if (typeof rowKey === "function") {
+      return rowKey(row, index);
+    }
+
+    if (rowKey) {
+      const keyValue = row[rowKey];
+      if (typeof keyValue === "string" || typeof keyValue === "number") {
+        return keyValue;
+      }
+    }
+
+    if (typeof row.id === "string" || typeof row.id === "number") {
+      return row.id;
+    }
+
+    return index;
+  };
+
   return (
-    <div className="overflow-x-auto h-[800px] rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      className={[
+        "overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950",
+        containerClassName ?? "max-h-[800px]",
+      ].join(" ")}
+    >
       <table className="w-full text-sm">
-        <thead className="bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
+        <thead className="sticky top-0 z-10 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-400">
           <tr>
             {columns.map((column) => {
               const key = String(column.key);
@@ -158,7 +188,7 @@ export default function DataTable<T extends Record<string, unknown>>({
           ) : (
             displayedData.map((row, index) => (
               <tr
-                key={typeof row.id === "string" || typeof row.id === "number" ? row.id : index}
+                key={resolveRowKey(row, index)}
                 className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20"
               >
                 {columns.map((column) => (
