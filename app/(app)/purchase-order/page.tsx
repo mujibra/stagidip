@@ -26,6 +26,15 @@ type PurchaseOrderResponse = {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_PAGE_SIZE = 25;
+const STATUS_ALL = "all";
+const STATUS_WITH = "__WITH_STATUS__";
+const STATUS_WITHOUT = "__WITHOUT_STATUS__";
+
+function resolveStatusFilter(value: string | null) {
+  if (!value) return STATUS_ALL;
+  if (value === STATUS_ALL || value === STATUS_WITH || value === STATUS_WITHOUT) return value;
+  return value;
+}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -61,14 +70,14 @@ export default function PurchaseOrderPage() {
   const searchParams = useSearchParams();
 
   const initialQuery = searchParams.get("q") ?? "";
-  const initialStatus = searchParams.get("status") ?? "all";
+  const initialStatus = resolveStatusFilter(searchParams.get("status"));
   const initialPage = Number(searchParams.get("page") ?? "1");
   const initialPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
 
   const [rows, setRows] = useState<PurchaseOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(initialQuery);
-  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(
     PAGE_SIZE_OPTIONS.includes(initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
       ? (initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
@@ -76,6 +85,22 @@ export default function PurchaseOrderPage() {
   );
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const nextQuery = searchParams.get("q") ?? "";
+    const nextStatus = resolveStatusFilter(searchParams.get("status"));
+    const nextPage = Number(searchParams.get("page") ?? "1");
+    const nextPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
+
+    setQuery(nextQuery);
+    setStatusFilter(nextStatus);
+    setPage(Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1);
+    setPageSize(
+      PAGE_SIZE_OPTIONS.includes(nextPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
+        ? (nextPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
+        : DEFAULT_PAGE_SIZE
+    );
+  }, [searchParams]);
 
   const updateUrlState = (next: {
     q?: string;
@@ -93,7 +118,7 @@ export default function PurchaseOrderPage() {
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
     else params.delete("q");
 
-    if (nextStatus !== "all") params.set("status", nextStatus);
+    if (nextStatus !== STATUS_ALL) params.set("status", nextStatus);
     else params.delete("status");
 
     if (nextPage > 1) params.set("page", String(nextPage));
@@ -157,7 +182,11 @@ export default function PurchaseOrderPage() {
 
     return rows.filter((row) => {
       const status = (row.status_po ?? "").trim();
-      if (statusFilter !== "all" && status !== statusFilter) return false;
+      if (statusFilter === STATUS_WITH && !status) return false;
+      if (statusFilter === STATUS_WITHOUT && status) return false;
+      if (statusFilter !== STATUS_ALL && statusFilter !== STATUS_WITH && statusFilter !== STATUS_WITHOUT && status !== statusFilter) {
+        return false;
+      }
 
       if (!keyword) return true;
 
@@ -193,10 +222,10 @@ export default function PurchaseOrderPage() {
 
   const clearFilters = () => {
     setQuery("");
-    setStatusFilter("all");
+    setStatusFilter(STATUS_ALL);
     setPage(1);
     setPageSize(DEFAULT_PAGE_SIZE);
-    updateUrlState({ q: "", status: "all", page: 1, pageSize: DEFAULT_PAGE_SIZE });
+    updateUrlState({ q: "", status: STATUS_ALL, page: 1, pageSize: DEFAULT_PAGE_SIZE });
   };
 
   return (
@@ -210,9 +239,9 @@ export default function PurchaseOrderPage() {
         <button
           type="button"
           onClick={() => {
-            setStatusFilter("all");
+            setStatusFilter(STATUS_ALL);
             setPage(1);
-            updateUrlState({ status: "all", page: 1 });
+            updateUrlState({ status: STATUS_ALL, page: 1 });
           }}
           className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
         >
@@ -223,10 +252,9 @@ export default function PurchaseOrderPage() {
         <button
           type="button"
           onClick={() => {
-            const firstStatus = statusOptions[0] ?? "all";
-            setStatusFilter(firstStatus);
+            setStatusFilter(STATUS_WITH);
             setPage(1);
-            updateUrlState({ status: firstStatus, page: 1 });
+            updateUrlState({ status: STATUS_WITH, page: 1 });
           }}
           className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
         >
@@ -237,10 +265,9 @@ export default function PurchaseOrderPage() {
         <button
           type="button"
           onClick={() => {
-            setStatusFilter("all");
-            setQuery("");
+            setStatusFilter(STATUS_WITHOUT);
             setPage(1);
-            updateUrlState({ q: "", status: "all", page: 1 });
+            updateUrlState({ status: STATUS_WITHOUT, page: 1 });
           }}
           className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
         >
@@ -274,7 +301,9 @@ export default function PurchaseOrderPage() {
             }}
             className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           >
-            <option value="all">All statuses</option>
+            <option value={STATUS_ALL}>All statuses</option>
+            <option value={STATUS_WITH}>With status</option>
+            <option value={STATUS_WITHOUT}>Without status</option>
             {statusOptions.map((status) => (
               <option key={status} value={status}>
                 {status}
