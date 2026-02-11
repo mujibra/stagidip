@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
@@ -24,6 +25,7 @@ type PurchaseOrderResponse = {
 };
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
+const DEFAULT_PAGE_SIZE = 25;
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -54,13 +56,55 @@ function statusBadgeClass(status: string) {
 }
 
 export default function PurchaseOrderPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialQuery = searchParams.get("q") ?? "";
+  const initialStatus = searchParams.get("status") ?? "all";
+  const initialPage = Number(searchParams.get("page") ?? "1");
+  const initialPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
+
   const [rows, setRows] = useState<PurchaseOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(25);
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState(initialQuery);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(
+    PAGE_SIZE_OPTIONS.includes(initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
+      ? (initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
+      : DEFAULT_PAGE_SIZE
+  );
+  const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [error, setError] = useState<string | null>(null);
+
+  const updateUrlState = (next: {
+    q?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    const nextQuery = next.q ?? query;
+    const nextStatus = next.status ?? statusFilter;
+    const nextPage = next.page ?? page;
+    const nextPageSize = next.pageSize ?? pageSize;
+
+    if (nextQuery.trim()) params.set("q", nextQuery.trim());
+    else params.delete("q");
+
+    if (nextStatus !== "all") params.set("status", nextStatus);
+    else params.delete("status");
+
+    if (nextPage > 1) params.set("page", String(nextPage));
+    else params.delete("page");
+
+    if (nextPageSize !== DEFAULT_PAGE_SIZE) params.set("pageSize", String(nextPageSize));
+    else params.delete("pageSize");
+
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+  };
 
   const loadPurchaseOrders = async () => {
     setLoading(true);
@@ -77,7 +121,6 @@ export default function PurchaseOrderPage() {
       }
 
       setRows(Array.isArray(result.data) ? result.data : []);
-      setPage(1);
     } catch {
       setRows([]);
       setError("Failed to load purchase orders.");
@@ -143,8 +186,18 @@ export default function PurchaseOrderPage() {
   }, [filteredRows, activePage, pageSize]);
 
   useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setStatusFilter("all");
     setPage(1);
-  }, [query, statusFilter, pageSize]);
+    setPageSize(DEFAULT_PAGE_SIZE);
+    updateUrlState({ q: "", status: "all", page: 1, pageSize: DEFAULT_PAGE_SIZE });
+  };
 
   return (
     <div>
@@ -154,18 +207,46 @@ export default function PurchaseOrderPage() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter("all");
+            setPage(1);
+            updateUrlState({ status: "all", page: 1 });
+          }}
+          className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
+        >
           <div className="text-xs text-zinc-500">Total PO</div>
           <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{summary.total}</div>
-        </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            const firstStatus = statusOptions[0] ?? "all";
+            setStatusFilter(firstStatus);
+            setPage(1);
+            updateUrlState({ status: firstStatus, page: 1 });
+          }}
+          className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
+        >
           <div className="text-xs text-zinc-500">With Status</div>
           <div className="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{summary.withStatus}</div>
-        </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter("all");
+            setQuery("");
+            setPage(1);
+            updateUrlState({ q: "", status: "all", page: 1 });
+          }}
+          className="rounded-xl border border-zinc-200 bg-white p-3 text-left dark:border-zinc-800 dark:bg-zinc-950"
+        >
           <div className="text-xs text-zinc-500">Without Status</div>
           <div className="mt-1 text-2xl font-semibold text-amber-600 dark:text-amber-400">{summary.withoutStatus}</div>
-        </div>
+        </button>
       </div>
 
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-950">
@@ -174,13 +255,23 @@ export default function PurchaseOrderPage() {
             type="search"
             placeholder="Search PO / date / model / customer..."
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setQuery(value);
+              setPage(1);
+              updateUrlState({ q: value, page: 1 });
+            }}
             className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:w-80 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           />
 
           <select
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setStatusFilter(value);
+              setPage(1);
+              updateUrlState({ status: value, page: 1 });
+            }}
             className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           >
             <option value="all">All statuses</option>
@@ -193,7 +284,12 @@ export default function PurchaseOrderPage() {
 
           <select
             value={pageSize}
-            onChange={(event) => setPageSize(Number(event.target.value) as (typeof PAGE_SIZE_OPTIONS)[number])}
+            onChange={(event) => {
+              const value = Number(event.target.value) as (typeof PAGE_SIZE_OPTIONS)[number];
+              setPageSize(value);
+              setPage(1);
+              updateUrlState({ pageSize: value, page: 1 });
+            }}
             className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           >
             {PAGE_SIZE_OPTIONS.map((option) => (
@@ -204,13 +300,23 @@ export default function PurchaseOrderPage() {
           </select>
         </div>
 
-        <button
-          type="button"
-          onClick={() => void loadPurchaseOrders()}
-          className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
-        >
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          >
+            Reset
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void loadPurchaseOrders()}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error ? (
@@ -290,7 +396,11 @@ export default function PurchaseOrderPage() {
           <button
             type="button"
             disabled={activePage <= 1}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            onClick={() => {
+              const nextPage = Math.max(1, activePage - 1);
+              setPage(nextPage);
+              updateUrlState({ page: nextPage });
+            }}
             className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200"
           >
             Prev
@@ -301,7 +411,11 @@ export default function PurchaseOrderPage() {
           <button
             type="button"
             disabled={activePage >= totalPages}
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            onClick={() => {
+              const nextPage = Math.min(totalPages, activePage + 1);
+              setPage(nextPage);
+              updateUrlState({ page: nextPage });
+            }}
             className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200"
           >
             Next
