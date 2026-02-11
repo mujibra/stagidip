@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
@@ -128,11 +128,13 @@ export default function CrudPage({
 
     return 25;
   });
+  const [dataTableRenderKey, setDataTableRenderKey] = useState(0);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<CrudRow | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setForm(buildPayload(fields, {}));
@@ -191,6 +193,28 @@ export default function CrudPage({
     window.localStorage.setItem(pageSizeStorageKey, String(pageSize));
   }, [pageSize, pageSizeStorageKey]);
 
+  useEffect(() => {
+    const onSlashFocusSearch = (event: KeyboardEvent) => {
+      if (event.key !== "/") return;
+
+      const target = event.target as HTMLElement | null;
+      const tagName = (target?.tagName ?? "").toLowerCase();
+      const isTypingTarget =
+        tagName === "input" ||
+        tagName === "textarea" ||
+        tagName === "select" ||
+        Boolean(target?.isContentEditable);
+
+      if (isTypingTarget) return;
+
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+
+    window.addEventListener("keydown", onSlashFocusSearch);
+    return () => window.removeEventListener("keydown", onSlashFocusSearch);
+  }, []);
+
   const getRowId = useCallback((row: CrudRow) => {
     const id = row[idKey];
     if (typeof id === "string" || typeof id === "number") {
@@ -217,6 +241,18 @@ export default function CrudPage({
     link.download = `${exportFileName ?? title.toLowerCase().replaceAll(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleResetTablePrefs = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(pageSizeStorageKey);
+      window.localStorage.removeItem(sortStorageKey);
+    }
+
+    setPageSize(25);
+    setPage(1);
+    setDataTableRenderKey((value) => value + 1);
+    notify("success", "Table preferences reset.");
   };
 
   const buildBody = (payload: Record<string, string>, mode: "json" | "form") => {
@@ -394,6 +430,7 @@ export default function CrudPage({
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <div className="relative w-full sm:max-w-xs">
             <input
+              ref={searchInputRef}
               type="search"
               placeholder="Search..."
               value={query}
@@ -438,6 +475,14 @@ export default function CrudPage({
 
           <button
             type="button"
+            onClick={handleResetTablePrefs}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Reset Table Prefs
+          </button>
+
+          <button
+            type="button"
             onClick={loadItems}
             className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
           >
@@ -451,6 +496,7 @@ export default function CrudPage({
       </div>
 
       <DataTable
+        key={dataTableRenderKey}
         data={pagedItems}
         loading={loading}
         emptyText={emptyText}

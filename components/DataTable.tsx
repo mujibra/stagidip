@@ -177,13 +177,32 @@ export default function DataTable<T extends Record<string, unknown>>({
             {columns.map((column) => {
               const key = String(column.key);
               const isActiveSort = sortState?.key === key;
+              const ariaSort = !sortable || !column.sortable
+                ? "none"
+                : !isActiveSort
+                  ? "none"
+                  : sortState?.direction === "asc"
+                    ? "ascending"
+                    : "descending";
 
               return (
-                <th key={key} className={`px-3 py-3 ${column.className ?? ""}`}>
+                <th key={key} scope="col" aria-sort={ariaSort} className={`px-3 py-3 ${column.className ?? ""}`}>
                   <button
                     type="button"
                     onClick={() => handleSort(column)}
                     disabled={!sortable || !column.sortable}
+                    aria-label={
+                      sortable && column.sortable
+                        ? `Sort by ${column.label}`
+                        : column.label
+                    }
+                    title={
+                      sortable && column.sortable
+                        ? isActiveSort
+                          ? `Sorted ${sortState?.direction}. Click to toggle.`
+                          : `Sort by ${column.label}`
+                        : undefined
+                    }
                     className={[
                       "inline-flex items-center gap-1",
                       sortable && column.sortable
@@ -195,6 +214,13 @@ export default function DataTable<T extends Record<string, unknown>>({
                     {sortable && column.sortable ? (
                       <span className="text-[10px] leading-none">
                         {isActiveSort ? (sortState?.direction === "asc" ? "▲" : "▼") : "↕"}
+                      </span>
+                    ) : null}
+                    {sortable && column.sortable ? (
+                      <span className="sr-only">
+                        {isActiveSort
+                          ? `Sorted ${sortState?.direction === "asc" ? "ascending" : "descending"}`
+                          : "Not sorted"}
                       </span>
                     ) : null}
                   </button>
