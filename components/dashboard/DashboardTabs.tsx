@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
@@ -11,6 +12,10 @@ import ImplementationTab from "../dashboard/tabs/ImplementationTab";
 type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
 export default function DashboardTabs() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const tabs = useMemo(
         () =>
             [
@@ -22,7 +27,22 @@ export default function DashboardTabs() {
         []
     );
 
-    const [active, setActive] = useState<TabKey>("project");
+    const active = useMemo<TabKey>(() => {
+        const requestedTab = searchParams.get("tab");
+        const validKeys = new Set<TabKey>(["project", "purchaseOrder", "customer", "implementation"]);
+
+        if (requestedTab && validKeys.has(requestedTab as TabKey)) {
+            return requestedTab as TabKey;
+        }
+
+        return "project";
+    }, [searchParams]);
+
+    const handleTabChange = (tab: TabKey) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("tab", tab);
+        router.replace(`${pathname}?${params.toString()}`);
+    };
 
     return (
         <div className="w-full">
@@ -35,7 +55,7 @@ export default function DashboardTabs() {
                             <button
                                 key={t.key}
                                 type="button"
-                                onClick={() => setActive(t.key)}
+                                onClick={() => handleTabChange(t.key)}
                                 className={[
                                     "relative rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
                                     "transition-colors",
