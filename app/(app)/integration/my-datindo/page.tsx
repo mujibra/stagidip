@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <CrudPage
       title="My Datindo Integration"
-      subtitle="Manage My Datindo integration settings."
+      subtitle="Batch 3 integration checks: review registration, serial, ticket, and installation sync data."
       endpoint="/api/register-ws-info"
       fields={[
         { key: "ws_id", label: "WS ID" },
@@ -17,6 +17,7 @@ export default function Page() {
       allowCreate={false}
       allowEdit={false}
       allowDelete={false}
+      exportFileName="integration-my-datindo"
     />
   );
 }
