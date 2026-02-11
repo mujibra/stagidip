@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
+import { useDebouncedValue } from "@/lib/client/useDebouncedValue";
 
 type PurchaseOrderRow = {
   id: number;
@@ -77,6 +78,7 @@ export default function PurchaseOrderPage() {
   const [rows, setRows] = useState<PurchaseOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(initialQuery);
+  const debouncedQuery = useDebouncedValue(query, 250);
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(
     PAGE_SIZE_OPTIONS.includes(initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
@@ -178,7 +180,7 @@ export default function PurchaseOrderPage() {
   }, [rows]);
 
   const filteredRows = useMemo(() => {
-    const keyword = query.trim().toLowerCase();
+    const keyword = debouncedQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
       const status = (row.status_po ?? "").trim();
@@ -204,7 +206,7 @@ export default function PurchaseOrderPage() {
 
       return haystack.includes(keyword);
     });
-  }, [rows, query, statusFilter]);
+  }, [debouncedQuery, rows, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const activePage = Math.min(page, totalPages);

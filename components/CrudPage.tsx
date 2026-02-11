@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
+import { useDebouncedValue } from "@/lib/client/useDebouncedValue";
 
 type CrudField = {
   key: string;
@@ -100,6 +101,7 @@ export default function CrudPage({
   const [items, setItems] = useState<CrudRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 250);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(25);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -141,12 +143,33 @@ export default function CrudPage({
   }, [loadItems]);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return items;
-    const lower = query.trim().toLowerCase();
+    if (!debouncedQuery.trim()) return items;
+    const lower = debouncedQuery.trim().toLowerCase();
     return items.filter((row) =>
       fields.some((field) => String(row[field.key] ?? "").toLowerCase().includes(lower))
     );
-  }, [items, query, fields]);
+  }, [debouncedQuery, fields, items]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const activePage = Math.min(page, totalPages);
+
+  const pagedItems = useMemo(() => {
+    const start = (activePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [activePage, filtered, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, pageSize, items.length]);
+
+  const getRowId = useCallback((row: CrudRow) => {
+    const id = row[idKey];
+    if (typeof id === "string" || typeof id === "number") {
+      return id;
+    }
+
+    return row.id;
+  }, [idKey]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const activePage = Math.min(page, totalPages);
