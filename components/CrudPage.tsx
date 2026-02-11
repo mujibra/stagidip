@@ -28,6 +28,7 @@ type CrudPageProps = {
   allowDelete?: boolean;
   dataKey?: string;
   idKey?: string;
+  sortable?: boolean;
 };
 
 type ApiResponse<T> = {
@@ -94,6 +95,7 @@ export default function CrudPage({
   allowDelete = true,
   dataKey,
   idKey = "id",
+  sortable = true,
 }: CrudPageProps) {
   const [items, setItems] = useState<CrudRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,6 +271,7 @@ export default function CrudPage({
       ...fields.map((field) => ({
         key: field.key,
         label: field.label,
+        sortable: true,
       })),
     ];
 
@@ -369,7 +372,7 @@ export default function CrudPage({
         </button>
       </div>
 
-      <DataTable data={pagedItems} loading={loading} emptyText={emptyText} columns={columns} />
+      <DataTable data={pagedItems} loading={loading} emptyText={emptyText} columns={columns} sortable={sortable} />
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="text-zinc-500">

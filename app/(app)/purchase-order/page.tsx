@@ -230,27 +230,32 @@ export default function PurchaseOrderPage() {
         data={pagedRows}
         loading={loading}
         emptyText="No purchase orders found."
+        sortable
         columns={[
           {
             key: "no",
             label: "No",
             render: (_row, index) => <span>{(activePage - 1) * pageSize + index + 1}</span>,
             className: "w-16 text-center",
+            sortable: false,
           },
-          { key: "no_po", label: "PO Number", className: "min-w-40" },
+          { key: "no_po", label: "PO Number", className: "min-w-40", sortable: true },
           {
             key: "tgl_po",
             label: "PO Date",
             className: "min-w-28",
             render: (row) => formatDate(row.tgl_po),
+            sortable: true,
+            sortValue: (row) => row.tgl_po ?? "",
           },
-          { key: "id_type_mesin", label: "Type Mesin" },
-          { key: "model", label: "Model" },
-          { key: "customer", label: "Customer" },
-          { key: "jumlah", label: "Jumlah" },
+          { key: "id_type_mesin", label: "Type Mesin", sortable: true },
+          { key: "model", label: "Model", sortable: true },
+          { key: "customer", label: "Customer", sortable: true },
+          { key: "jumlah", label: "Jumlah", sortable: true },
           {
             key: "status_po",
             label: "Status",
+            sortable: true,
             render: (row) => {
               const status = (row.status_po ?? "").trim();
               if (!status) {
