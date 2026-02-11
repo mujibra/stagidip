@@ -71,6 +71,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   rowKey,
   containerClassName,
   sortStorageKey,
+  loadingRows = 6,
 }: {
   data: T[];
   columns: Column<T>[];
@@ -80,6 +81,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   rowKey?: RowKeyGetter<T>;
   containerClassName?: string;
   sortStorageKey?: string;
+  loadingRows?: number;
 }) {
   const [sortState, setSortState] = useState<{ key: string; direction: SortDirection } | null>(() => {
     if (!sortStorageKey || typeof window === "undefined") return null;
@@ -203,11 +205,15 @@ export default function DataTable<T extends Record<string, unknown>>({
         </thead>
         <tbody>
           {loading ? (
-            <tr>
-              <td colSpan={columns.length} className="px-3 py-8 text-center text-zinc-500">
-                Loading...
-              </td>
-            </tr>
+            Array.from({ length: Math.max(1, loadingRows) }).map((_, rowIndex) => (
+              <tr key={`loading-${rowIndex}`} className="border-t border-zinc-100 dark:border-zinc-900">
+                {columns.map((column) => (
+                  <td key={`loading-${rowIndex}-${String(column.key)}`} className={`px-3 py-3 ${column.className ?? ""}`}>
+                    <div className="h-4 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                  </td>
+                ))}
+              </tr>
+            ))
           ) : displayedData.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-3 py-8 text-center text-zinc-500">
