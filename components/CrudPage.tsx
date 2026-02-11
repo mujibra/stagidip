@@ -112,6 +112,7 @@ export default function CrudPage({
   exportFileName,
 }: CrudPageProps) {
   const pageSizeStorageKey = `crud:${title}:page-size`;
+  const sortStorageKey = `crud:${title}:sort`;
   const [items, setItems] = useState<CrudRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -439,6 +440,7 @@ export default function CrudPage({
         emptyText={emptyText}
         columns={columns}
         sortable={sortable}
+        sortStorageKey={sortStorageKey}
         rowKey={(row, index) => {
           const resolved = getRowId(row);
           return typeof resolved === "string" || typeof resolved === "number" ? resolved : index;

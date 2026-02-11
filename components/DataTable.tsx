@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 
 type SortDirection = "asc" | "desc";
@@ -70,6 +70,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   sortable = false,
   rowKey,
   containerClassName,
+  sortStorageKey,
 }: {
   data: T[];
   columns: Column<T>[];
@@ -78,8 +79,25 @@ export default function DataTable<T extends Record<string, unknown>>({
   sortable?: boolean;
   rowKey?: RowKeyGetter<T>;
   containerClassName?: string;
+  sortStorageKey?: string;
 }) {
-  const [sortState, setSortState] = useState<{ key: string; direction: SortDirection } | null>(null);
+  const [sortState, setSortState] = useState<{ key: string; direction: SortDirection } | null>(() => {
+    if (!sortStorageKey || typeof window === "undefined") return null;
+
+    try {
+      const raw = window.localStorage.getItem(sortStorageKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { key?: string; direction?: SortDirection };
+
+      if ((parsed.direction === "asc" || parsed.direction === "desc") && typeof parsed.key === "string") {
+        return { key: parsed.key, direction: parsed.direction };
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  });
 
   const displayedData = useMemo(() => {
     if (!sortable || !sortState) return data;
@@ -113,6 +131,17 @@ export default function DataTable<T extends Record<string, unknown>>({
       return null;
     });
   };
+
+  useEffect(() => {
+    if (!sortStorageKey || typeof window === "undefined") return;
+
+    if (!sortState) {
+      window.localStorage.removeItem(sortStorageKey);
+      return;
+    }
+
+    window.localStorage.setItem(sortStorageKey, JSON.stringify(sortState));
+  }, [sortState, sortStorageKey]);
 
   const resolveRowKey = (row: T, index: number) => {
     if (typeof rowKey === "function") {

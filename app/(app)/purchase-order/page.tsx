@@ -96,6 +96,7 @@ export default function PurchaseOrderPage() {
   );
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [error, setError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     const nextQuery = searchParams.get("q") ?? "";
@@ -243,9 +244,9 @@ export default function PurchaseOrderPage() {
     const currentUrl = `${window.location.origin}${pathname}${window.location.search}`;
     try {
       await navigator.clipboard.writeText(currentUrl);
-      window.alert("View link copied.");
+      setActionMessage({ type: "success", text: "View link copied." });
     } catch {
-      window.alert("Failed to copy link.");
+      setActionMessage({ type: "error", text: "Failed to copy link." });
     }
   };
 
@@ -275,7 +276,14 @@ export default function PurchaseOrderPage() {
     link.download = `purchase-order-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    setActionMessage({ type: "success", text: "CSV exported." });
   };
+
+  useEffect(() => {
+    if (!actionMessage) return;
+    const timer = window.setTimeout(() => setActionMessage(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [actionMessage]);
 
   return (
     <div>
@@ -413,6 +421,17 @@ export default function PurchaseOrderPage() {
         </div>
       </div>
 
+      {actionMessage ? (
+        <div
+          className={[
+            "mb-4 rounded-lg px-4 py-2 text-sm",
+            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700",
+          ].join(" ")}
+        >
+          {actionMessage.text}
+        </div>
+      ) : null}
+
       {error ? (
         <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
           <div>{error}</div>
@@ -431,6 +450,7 @@ export default function PurchaseOrderPage() {
         loading={loading}
         emptyText="No purchase orders found."
         sortable
+        sortStorageKey="purchase-order:sort"
         rowKey="id"
         containerClassName="max-h-[640px]"
         columns={[
