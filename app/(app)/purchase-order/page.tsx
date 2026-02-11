@@ -65,6 +65,15 @@ function statusBadgeClass(status: string) {
   return "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300";
 }
 
+function escapeCsvValue(value: unknown) {
+  const text = String(value ?? "");
+  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+
+  return text;
+}
+
 export default function PurchaseOrderPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -230,6 +239,34 @@ export default function PurchaseOrderPage() {
     updateUrlState({ q: "", status: STATUS_ALL, page: 1, pageSize: DEFAULT_PAGE_SIZE });
   };
 
+  const downloadCurrentViewCsv = () => {
+    const headers = ["PO Number", "PO Date", "Type Mesin", "Model", "Customer", "Jumlah", "Status"];
+    const lines = [headers.join(",")];
+
+    for (const row of filteredRows) {
+      lines.push(
+        [
+          escapeCsvValue(row.no_po),
+          escapeCsvValue(formatDate(row.tgl_po)),
+          escapeCsvValue(row.id_type_mesin),
+          escapeCsvValue(row.model),
+          escapeCsvValue(row.customer),
+          escapeCsvValue(row.jumlah),
+          escapeCsvValue((row.status_po ?? "").trim() || "-"),
+        ].join(",")
+      );
+    }
+
+    const csvText = lines.join("\n");
+    const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `purchase-order-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <PageHeader
@@ -332,6 +369,14 @@ export default function PurchaseOrderPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={downloadCurrentViewCsv}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          >
+            Export CSV
+          </button>
+
           <button
             type="button"
             onClick={clearFilters}

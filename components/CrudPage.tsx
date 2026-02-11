@@ -30,6 +30,8 @@ type CrudPageProps = {
   dataKey?: string;
   idKey?: string;
   sortable?: boolean;
+  allowExportCsv?: boolean;
+  exportFileName?: string;
 };
 
 type ApiResponse<T> = {
@@ -49,6 +51,15 @@ function buildPayload(fields: CrudField[], values: Record<string, string>) {
     acc[field.key] = values[field.key] ?? "";
     return acc;
   }, {});
+}
+
+function escapeCsvValue(value: unknown) {
+  const text = String(value ?? "");
+  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+
+  return text;
 }
 
 function Modal({
@@ -97,6 +108,8 @@ export default function CrudPage({
   dataKey,
   idKey = "id",
   sortable = true,
+  allowExportCsv = true,
+  exportFileName,
 }: CrudPageProps) {
   const [items, setItems] = useState<CrudRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,26 +184,24 @@ export default function CrudPage({
     return row.id;
   }, [idKey]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const activePage = Math.min(page, totalPages);
+  const handleExportCsv = () => {
+    const headers = fields.map((field) => field.label);
+    const lines = [headers.map((header) => escapeCsvValue(header)).join(",")];
 
-  const pagedItems = useMemo(() => {
-    const start = (activePage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [activePage, filtered, pageSize]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [query, pageSize, items.length]);
-
-  const getRowId = useCallback((row: CrudRow) => {
-    const id = row[idKey];
-    if (typeof id === "string" || typeof id === "number") {
-      return id;
+    for (const row of filtered) {
+      const values = fields.map((field) => escapeCsvValue(row[field.key]));
+      lines.push(values.join(","));
     }
 
-    return row.id;
-  }, [idKey]);
+    const csvText = lines.join("\n");
+    const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${exportFileName ?? title.toLowerCase().replaceAll(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const buildBody = (payload: Record<string, string>, mode: "json" | "form") => {
     if (mode === "form") {
@@ -386,13 +397,25 @@ export default function CrudPage({
           </select>
         </div>
 
-        <button
-          type="button"
-          onClick={loadItems}
-          className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
-        >
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {allowExportCsv ? (
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+            >
+              Export CSV
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={loadItems}
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <DataTable
