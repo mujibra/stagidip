@@ -392,13 +392,25 @@ export default function CrudPage({
 
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <input
-            type="search"
-            placeholder="Search..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:max-w-xs"
-          />
+          <div className="relative w-full sm:max-w-xs">
+            <input
+              type="search"
+              placeholder="Search..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 pr-8 text-sm text-zinc-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            />
+            {query.trim() ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
 
           <select
             value={pageSize}
@@ -432,6 +444,10 @@ export default function CrudPage({
             Refresh
           </button>
         </div>
+      </div>
+
+      <div className="mb-3 text-xs text-zinc-500">
+        Showing {pagedItems.length} of {filtered.length} filtered rows ({items.length} total)
       </div>
 
       <DataTable
