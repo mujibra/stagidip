@@ -27,6 +27,15 @@ This list captures frontend parity/quality improvements identified during execut
 | Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; continue validating against legacy edge-cases. | _this PR_ | _TBD_ | `in-progress` |
 | States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; continue parity checks against legacy empty-state copy and edge cases. | _this PR_ | _TBD_ | `in-progress` |
 
+
+## Batch 2 Modules (Registration + Logistics)
+
+| Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
+|---|---|---|---|---|---|
+| Registration | Build executable module hub | Replaced generic registration table with a section hub linking registration master pages for parity walkthrough and QA execution. | _this PR_ | _TBD_ | `in-progress` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`. | _this PR_ | _TBD_ | `in-progress` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks. | _this PR_ | _TBD_ | `in-progress` |
+
 ## Status Legend
 
 - `not-started`
