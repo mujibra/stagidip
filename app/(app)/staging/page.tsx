@@ -19,9 +19,9 @@ const stagingSections = [
     description: "Run inspection/testing parity checks for approval-heavy workflow states.",
   },
   {
-    href: "/pre-staging",
+    href: "/pre-staging/checklist",
     label: "Pre-Staging",
-    description: "Jump to pre-staging module for checklist and readiness parity checks.",
+    description: "Jump to canonical pre-staging checklist flow for readiness and approval parity checks.",
   },
 ];
 

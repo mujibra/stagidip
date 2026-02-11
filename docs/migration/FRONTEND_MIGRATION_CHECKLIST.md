@@ -19,16 +19,16 @@ This checklist maps legacy `react-frontend` app modules to routes that exist in 
 |---|---|---|---|---|
 | Dashboard | `dashboard/dashboardConfig.js` | `/dashboard` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_DASHBOARD.md`. |
 | Purchase Order | `porchase-order/porchaseOderConfig.js` | `/purchase-order` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_PURCHASE_ORDER.md`. |
-| Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SUMMARY.md`. |
-| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration/my-datindo` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_INTEGRATION.md`; `/integration` redirects to canonical child. |
-| Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_SPESIFICATION.md`. |
+| Summary | `summary/SummaryConfig.js` | `/summary` | ⚠️ | Parity audit in progress with PR C baseline evidence (`qa-review`): `docs/migration/PARITY_AUDIT_SUMMARY.md`. |
+| Integration | `mydatindo-integration/mydatindoIntegrationConfig.js` | `/integration/my-datindo` | ⚠️ | Parity audit in progress with PR C baseline evidence (`qa-review`): `docs/migration/PARITY_AUDIT_INTEGRATION.md`; `/integration` redirects to canonical child. |
+| Spesification | `spesification/SpesificationConfig.js` | `/spesification` | ⚠️ | Parity audit in progress with PR C baseline evidence (`qa-review`): `docs/migration/PARITY_AUDIT_SPESIFICATION.md`. |
 | Registration | `registration/RegistrationConfig.js` | `/registration` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_REGISTRATION.md`. |
 | Warehouse Transfer | `warehouse-transfer/WarehouseTransferConfig.js` | `/warehouse-transfer` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_WAREHOUSE_TRANSFER.md`. |
 | Status Delivery | `status-delivery/statusDeliveryAppConfig.js` | `/status-delivery` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STATUS_DELIVERY.md`. |
-| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging/checklist` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Pre Staging Checklist | `preStaging/CheklistStagingConfig.js` | `/pre-staging/checklist` | ⚠️ | Parity audit in progress with PR D baseline evidence (`qa-review`): `docs/migration/PARITY_AUDIT_STAGING.md`. |
 | Stagging Old Machine | `stagging/oldMachine/oldMachineAppConfig.js` | `/staging/old-machine` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
 | Stagging New Machine | `stagging/newMachine/NewMachineAppConfig.js` | `/staging/new-machine` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
-| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
+| Stagging View Staging | `stagging/viewStagging/ViewStagingConfig.js` | `/staging` | ⚠️ | Parity audit in progress with PR D baseline evidence (`qa-review`): `docs/migration/PARITY_AUDIT_STAGING.md`. |
 | Stagging Inspeksi | `stagging/inspeksiTesting/InspeksiConfig.js` | `/staging/inspection-testing` | ⚠️ | Parity audit in progress: `docs/migration/PARITY_AUDIT_STAGING.md`. |
 
 ## High-Priority Cleanup (Do Next)
