@@ -7,6 +7,7 @@ Legacy source:
 
 Next.js targets:
 - `app/(app)/warehouse-transfer/page.tsx`
+- `components/CrudPage.tsx`
 
 ## Route Presence Matrix
 
@@ -17,16 +18,23 @@ Next.js targets:
 
 ## Functional Parity Tasks
 
-- [ ] Verify transfer creation/edit flow parity.
-- [ ] Verify list/table parity and filtering behavior.
+- [x] Verify transfer creation/edit/delete flow baseline on canonical page.
+- [x] Verify list/table baseline and search/pagination behavior via shared `CrudPage`.
+- [x] Verify JSON SN notes field wiring baseline for CRUD payload.
 - [ ] Verify stock/warehouse validation behavior.
 - [ ] Verify role-based controls and approval visibility.
 
 ## API Parity Tasks
 
-- [ ] Confirm endpoint + payload parity with legacy flow.
-- [ ] Confirm response schema compatibility and null handling.
+- [x] Confirm endpoint + payload baseline parity (`/api/warehouse-transfer` list + CRUD).
+- [x] Confirm response schema compatibility and null handling baseline (`success/message/data` notifications).
 - [ ] Confirm transfer date/status behavior parity.
+
+## PR B Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (Logistics Evidence section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_B.md`.
+- Execution status: `qa-review` for Warehouse Transfer in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 

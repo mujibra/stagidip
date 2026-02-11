@@ -26,7 +26,7 @@ Parity audit artifacts currently available:
 
 1. Dashboard (highest visibility)
 2. Purchase Order + Registration (core operational flows)
-3. Status Delivery + Warehouse Transfer (logistics flows)
+3. Status Delivery + Warehouse Transfer (logistics flows) — PR B active
 4. Summary + Integration + Spesification (supporting/reporting flows)
 5. Staging/Pre-Staging deep checks (approval-heavy flows)
 
@@ -61,7 +61,8 @@ A module is done when:
 
 ## Active Cycle
 
-- Week 1 PR A scope is now in `qa-review` for Dashboard + Purchase Order (see `PARITY_EXECUTION_TRACKER.md`).
+- Week 1 PR A scope is in `qa-review` for Dashboard + Purchase Order (see `PARITY_EXECUTION_TRACKER.md`).
+- Week 1 PR B scope is in `qa-review` for Status Delivery + Warehouse Transfer (logistics baseline evidence prepared).
 - Detailed execution tasks are tracked in `WEEK1_EXECUTION_KICKOFF.md`.
 
 ## Frontend Improvements
@@ -72,5 +73,5 @@ A module is done when:
 
 ## Evidence Log
 
-- Week 1 evidence is captured in `WEEK1_EVIDENCE_LOG.md` and QA handoff notes are in `WEEK1_QA_NOTES_PR_A.md`.
+- Week 1 evidence is captured in `WEEK1_EVIDENCE_LOG.md`; QA handoff packets are in `WEEK1_QA_NOTES_PR_A.md` and `WEEK1_QA_NOTES_PR_B.md`.
 - Keep entries aligned with parity audit tasks.

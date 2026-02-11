@@ -33,8 +33,8 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Registration | Build executable module hub | Replaced generic registration table with a section hub linking registration master pages for parity walkthrough and QA execution. | _this PR_ | _TBD_ | `in-progress` |
-| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`. | _this PR_ | _TBD_ | `in-progress` |
-| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks. | _this PR_ | _TBD_ | `in-progress` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 
 
 ## Batch 3 Modules (Summary + Integration + Spesification + Staging)
