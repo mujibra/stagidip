@@ -13,19 +13,28 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Tabs | Verify labels/order match legacy | Compare legacy tab order and labels | _TBD_ | _TBD_ | `not-started` |
+| Tabs | Verify labels/order match legacy | Dashboard tabs are now URL-driven and kept in canonical order (`Project`, `Purchase Order`, `Customer`, `Implementation`); continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
 | Filters | Align year/month filter defaults | Confirm default ranges | _TBD_ | _TBD_ | `not-started` |
 | KPIs | Ensure KPI formatting matches legacy | Check number formatting, units | _TBD_ | _TBD_ | `not-started` |
-| States | Normalize loading/empty/error UI | Capture expected UI states | _TBD_ | _TBD_ | `not-started` |
+| States | Normalize loading/empty/error UI | `Project` tab now uses shared `DataState` for summary, machine-status, and per-customer table states. Continue applying same pattern for remaining tabs. | _this PR_ | _TBD_ | `in-progress` |
 
 ## Purchase Order (Week 1 focus)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Table | Align columns and ordering | Compare to legacy `PoParrent` table | _TBD_ | _TBD_ | `not-started` |
+| Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; continue field-level parity vs legacy `PoParrent`. | _this PR_ | _TBD_ | `in-progress` |
 | Filters | Ensure filter behavior parity | Validate query params and defaults | _TBD_ | _TBD_ | `not-started` |
-| Actions | Align create/edit/export flows | List missing actions if any | _TBD_ | _TBD_ | `not-started` |
-| States | Normalize loading/empty/error UI | Capture expected UI states | _TBD_ | _TBD_ | `not-started` |
+| Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; continue validating against legacy edge-cases. | _this PR_ | _TBD_ | `in-progress` |
+| States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; continue parity checks against legacy empty-state copy and edge cases. | _this PR_ | _TBD_ | `in-progress` |
+
+
+## Batch 2 Modules (Registration + Logistics)
+
+| Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
+|---|---|---|---|---|---|
+| Registration | Build executable module hub | Replaced generic registration table with a section hub linking registration master pages for parity walkthrough and QA execution. | _this PR_ | _TBD_ | `in-progress` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`. | _this PR_ | _TBD_ | `in-progress` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks. | _this PR_ | _TBD_ | `in-progress` |
 
 ## Status Legend
 

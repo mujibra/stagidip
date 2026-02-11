@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import DataState from "@/components/dashboard/DataState";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -13,7 +15,7 @@ type MachineStatusResponse = {
 type ProjectStatusCustomer = {
     id: number;
     bank_desc: string;
-    jumlah: number; // installed
+    jumlah: number;
     total_mesin: number;
     persentase: number;
 };
@@ -37,63 +39,82 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 export default function ProjectTab() {
     const now = new Date();
     const [year, setYear] = useState<number>(now.getFullYear());
     const [month, setMonth] = useState<number>(now.getMonth() + 1);
+    const [reloadKey, setReloadKey] = useState(0);
 
-    const machineUrl = useMemo(
-        () => `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`,
-        [year, month]
-    );
-
-    const projectUrl = useMemo(
-        () => `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`,
-        [year, month]
-    );
+    const machineUrl = useMemo(() => `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`, [year, month]);
+    const projectUrl = useMemo(() => `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`, [year, month]);
 
     const [machineStatus, setMachineStatus] = useState<Loadable<MachineStatusResponse>>({ state: "idle" });
     const [projectStatus, setProjectStatus] = useState<Loadable<ProjectStatusResponse>>({ state: "idle" });
 
-    async function load() {
-        setMachineStatus({ state: "loading" });
-        setProjectStatus({ state: "loading" });
+    const load = useCallback(() => {
+        setReloadKey((current) => current + 1);
+    }, []);
 
-        try {
-            const [ms, ps] = await Promise.all([
+    useEffect(() => {
+        let cancelled = false;
+
+        async function fetchData() {
+            setMachineStatus({ state: "loading" });
+            setProjectStatus({ state: "loading" });
+
+            const [machineResult, projectResult] = await Promise.allSettled([
                 fetchJson<MachineStatusResponse>(machineUrl),
                 fetchJson<ProjectStatusResponse>(projectUrl),
             ]);
 
-            setMachineStatus({ state: "success", data: ms });
-            setProjectStatus({ state: "success", data: ps });
-        } catch (e) {
-            const msg = e instanceof Error ? e.message : "Unknown error";
-            setMachineStatus({ state: "error", message: msg });
-            setProjectStatus({ state: "error", message: msg });
-        }
-    }
+            if (cancelled) return;
 
-    // auto-load on first render + when filters change (but without the “sync derived state” trap)
-    useMemo(() => {
-        void load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [machineUrl, projectUrl]);
+            if (machineResult.status === "fulfilled") {
+                setMachineStatus({ state: "success", data: machineResult.value });
+            } else {
+                const msg = machineResult.reason instanceof Error ? machineResult.reason.message : "Failed to load machine status";
+                setMachineStatus({ state: "error", message: msg });
+            }
+
+            if (projectResult.status === "fulfilled") {
+                setProjectStatus({ state: "success", data: projectResult.value });
+            } else {
+                const msg = projectResult.reason instanceof Error ? projectResult.reason.message : "Failed to load project status";
+                setProjectStatus({ state: "error", message: msg });
+            }
+        }
+
+        void fetchData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [machineUrl, projectUrl, reloadKey]);
 
     const totals = useMemo(() => {
         if (projectStatus.state !== "success") return null;
 
         const rows = projectStatus.data.datas_per_customer;
-        const totalMesin = rows.reduce((acc, r) => acc + r.total_mesin, 0);
-        const installed = rows.reduce((acc, r) => acc + r.jumlah, 0);
+        const totalMesin = rows.reduce((acc, row) => acc + row.total_mesin, 0);
+        const installed = rows.reduce((acc, row) => acc + row.jumlah, 0);
         const pct = totalMesin ? (installed * 100) / totalMesin : 0;
 
         return { totalMesin, installed, pct };
     }, [projectStatus]);
 
+    const summaryState = useMemo<"idle" | "loading" | "error" | "success">(() => {
+        if (projectStatus.state === "error") return "error";
+        if (projectStatus.state === "loading") return "loading";
+        if (projectStatus.state === "idle") return "idle";
+        return "success";
+    }, [projectStatus.state]);
+
     return (
         <div className="space-y-4">
-            {/* Filter bar */}
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Project Filters</div>
 
@@ -105,10 +126,10 @@ export default function ProjectTab() {
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 6 }).map((_, i) => {
-                            const y = now.getFullYear() - i;
+                            const optionYear = now.getFullYear() - i;
                             return (
-                                <option key={y} value={y}>
-                                    {y}
+                                <option key={optionYear} value={optionYear}>
+                                    {optionYear}
                                 </option>
                             );
                         })}
@@ -121,10 +142,10 @@ export default function ProjectTab() {
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 12 }).map((_, i) => {
-                            const m = i + 1;
+                            const optionMonth = i + 1;
                             return (
-                                <option key={m} value={m}>
-                                    {pad2(m)}
+                                <option key={optionMonth} value={optionMonth}>
+                                    {pad2(optionMonth)}
                                 </option>
                             );
                         })}
@@ -132,7 +153,7 @@ export default function ProjectTab() {
 
                     <button
                         type="button"
-                        onClick={() => void load()}
+                        onClick={load}
                         className="ml-2 h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
                         Refresh
@@ -140,59 +161,57 @@ export default function ProjectTab() {
                 </div>
             </div>
 
-            {/* Summary */}
-            <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Total Mesin</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totals ? totals.totalMesin.toLocaleString() : "—"}
-                    </div>
+            <DataState
+                state={summaryState}
+                errorMessage={projectStatus.state === "error" ? projectStatus.message : undefined}
+                onRetry={load}
+            >
+                <div className="grid gap-3 md:grid-cols-3">
+                    <SummaryCard label="Total Mesin" value={totals ? formatNumber(totals.totalMesin) : "—"} />
+                    <SummaryCard label="Installed" value={totals ? formatNumber(totals.installed) : "—"} />
+                    <SummaryCard label="Installed %" value={totals ? `${totals.pct.toFixed(2)}%` : "—"} />
                 </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Installed</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totals ? totals.installed.toLocaleString() : "—"}
-                    </div>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="text-xs text-zinc-500">Installed %</div>
-                    <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totals ? `${totals.pct.toFixed(1)}%` : "—"}
-                    </div>
-                </div>
-            </div>
+            </DataState>
 
-            {/* Machine status data (raw table for correctness first) */}
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Machine Status (Daily)</div>
-                    {/* <div className="text-xs text-zinc-500">{machineUrl}</div> */}
                 </div>
 
                 <div className="mt-3">
-                    {machineStatus.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {machineStatus.state === "error" && <div className="text-sm text-red-500">{machineStatus.message}</div>}
-                    {machineStatus.state === "success" && (
+                    <DataState
+                        state={machineStatus.state}
+                        errorMessage={machineStatus.state === "error" ? machineStatus.message : undefined}
+                        onRetry={load}
+                        empty={
+                            machineStatus.state === "success" &&
+                            machineStatus.data.data_range.new_machine.length === 0 &&
+                            machineStatus.data.data_range.old_machine.length === 0
+                        }
+                        emptyMessage="No machine status data found for selected period."
+                    >
                         <div className="grid gap-3 md:grid-cols-2">
-                            <StatusTable title="New Machine" rows={machineStatus.data.data_range.new_machine} />
-                            <StatusTable title="Old Machine" rows={machineStatus.data.data_range.old_machine} />
+                            <StatusTable title="New Machine" rows={machineStatus.state === "success" ? machineStatus.data.data_range.new_machine : []} />
+                            <StatusTable title="Old Machine" rows={machineStatus.state === "success" ? machineStatus.data.data_range.old_machine : []} />
                         </div>
-                    )}
+                    </DataState>
                 </div>
             </div>
 
-            {/* Project status table */}
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Project Status (Per Customer)</div>
-                    {/* <div className="text-xs text-zinc-500">{projectUrl}</div> */}
                 </div>
 
                 <div className="mt-3">
-                    {projectStatus.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {projectStatus.state === "error" && <div className="text-sm text-red-500">{projectStatus.message}</div>}
-                    {projectStatus.state === "success" && (
-                        <div className="overflow-auto h-96 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                    <DataState
+                        state={projectStatus.state}
+                        errorMessage={projectStatus.state === "error" ? projectStatus.message : undefined}
+                        onRetry={load}
+                        empty={projectStatus.state === "success" && projectStatus.data.datas_per_customer.length === 0}
+                        emptyMessage="No project status data found for selected period."
+                    >
+                        <div className="h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[720px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                                     <tr>
@@ -203,31 +222,33 @@ export default function ProjectTab() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {projectStatus.data.datas_per_customer.map((r) => (
-                                        <tr key={r.id} className="border-t border-zinc-200 dark:border-zinc-800">
-                                            <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{r.jumlah.toLocaleString()}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{r.total_mesin.toLocaleString()}</td>
+                                    {projectStatus.state === "success" && projectStatus.data.datas_per_customer.map((row) => (
+                                        <tr key={row.id} className="border-t border-zinc-200 dark:border-zinc-800">
+                                            <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank_desc}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.jumlah)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total_mesin)}</td>
                                             <td className="px-3 py-2">
                                                 <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
-                                                    {r.persentase.toFixed(1)}%
+                                                    {row.persentase.toFixed(1)}%
                                                 </span>
                                             </td>
                                         </tr>
                                     ))}
-                                    {projectStatus.data.datas_per_customer.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={4}>
-                                                No data
-                                            </td>
-                                        </tr>
-                                    )}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    </DataState>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="text-xs text-zinc-500">{label}</div>
+            <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{value}</div>
         </div>
     );
 }
@@ -247,19 +268,12 @@ function StatusTable({ title, rows }: { title: string; rows: MachineStatusPoint[
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map((r) => (
-                            <tr key={r.tanggal} className="border-t border-zinc-200 dark:border-zinc-800">
-                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{r.tanggal}</td>
-                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{Number(r.jumlah).toLocaleString()}</td>
+                        {rows.map((row) => (
+                            <tr key={row.tanggal} className="border-t border-zinc-200 dark:border-zinc-800">
+                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.tanggal}</td>
+                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(Number(row.jumlah))}</td>
                             </tr>
                         ))}
-                        {rows.length === 0 && (
-                            <tr>
-                                <td className="px-3 py-6 text-sm text-zinc-500" colSpan={2}>
-                                    No data
-                                </td>
-                            </tr>
-                        )}
                     </tbody>
                 </table>
             </div>
