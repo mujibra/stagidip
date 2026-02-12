@@ -7,6 +7,7 @@ Legacy source:
 
 Next.js targets:
 - `app/(app)/status-delivery/page.tsx`
+- `components/CrudPage.tsx`
 
 ## Route Presence Matrix
 
@@ -17,16 +18,23 @@ Next.js targets:
 
 ## Functional Parity Tasks
 
-- [ ] Verify table/list parity (columns, row actions, ordering).
-- [ ] Verify status transitions and detail interactions.
-- [ ] Verify filter/search and pagination behavior.
+- [x] Verify table/list parity baseline (CRUD table rendering + row actions on canonical page).
+- [x] Verify status-delivery create/edit/delete interaction baseline.
+- [x] Verify filter/search and pagination baseline behavior via shared `CrudPage`.
 - [ ] Verify role-based visibility.
+- [ ] Verify delivery-status transition edge-case behavior against legacy UAT scenarios.
 
 ## API Parity Tasks
 
-- [ ] Confirm endpoint mapping and params parity.
-- [ ] Confirm response compatibility and error handling parity.
+- [x] Confirm endpoint mapping and params baseline parity (`/api/statusDelivery`, `/api/statusDelivery/id/:id`).
+- [x] Confirm response compatibility and error handling baseline (`success/message/data` and UI notifications).
 - [ ] Confirm date formatting + timezone behavior parity.
+
+## PR B Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (Logistics Evidence section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_B.md`.
+- Execution status: `qa-review` for Status Delivery in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 

@@ -7,6 +7,8 @@ Legacy source:
 
 Next.js targets:
 - `app/(app)/summary/*`
+- `app/(app)/summary/page.tsx`
+- `components/CrudPage.tsx`
 
 ## Route Presence Matrix
 
@@ -34,17 +36,26 @@ Status legend:
 
 ## Functional Parity Tasks
 
+- [x] Verify route-hub navigation baseline for major summary sections.
+- [x] Verify baseline list/table rendering behavior on at least one executable summary page (`/summary/machine`).
+- [x] Verify baseline search/pagination and load/error notification handling via shared `CrudPage`.
 - [ ] Verify table columns, ordering, and formatting parity in each summary page.
-- [ ] Verify filters/date-range behavior and default values.
-- [ ] Verify API error/loading/empty states are consistent.
-- [ ] Verify export/report actions (if present in legacy pages).
+- [ ] Verify filters/date-range behavior and default values across all summary reports.
+- [ ] Verify export/report actions where present in legacy pages.
 - [ ] Verify role-based access and visibility rules.
 
 ## API Parity Tasks
 
+- [x] Confirm baseline endpoint contract handling (`success`, `data|datas`) for executable summary CRUD-backed pages.
 - [ ] Confirm each page endpoint contract (`success`, `data`, `totalDatas`, paging params where applicable).
 - [ ] Confirm date serialization and timezone handling.
 - [ ] Confirm summary aggregations match legacy values for same period.
+
+## PR C Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (Batch 3 Evidence / PR C section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_C.md`.
+- Execution status: `qa-review` for Summary in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 

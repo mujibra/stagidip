@@ -7,6 +7,7 @@ Legacy source:
 
 Next.js targets:
 - `app/(app)/integration/*`
+- `components/CrudPage.tsx`
 
 Canonical behavior:
 - `/integration` redirects to `/integration/my-datindo`.
@@ -21,21 +22,30 @@ Status legend:
 | Feature | Legacy route intent | Next.js route | Status | Notes |
 |---|---|---|---|---|
 | My Datindo Integration landing | `apps/myDatindoIntergration` | `/integration/my-datindo` | ✅ | Canonical route exists |
-| Integration module entry | n/a (legacy app shell route) | `/integration` | ✅ | Route exists and now redirects to canonical child |
+| Integration module entry | n/a (legacy app shell route) | `/integration` | ✅ | Route exists and redirects to canonical child |
 
 ## Functional Parity Tasks
 
-- [ ] Verify page-level data loading behavior matches legacy flow.
-- [ ] Verify form/input behavior and validation messages.
-- [ ] Verify submit/sync actions against backend endpoints.
+- [x] Verify canonical redirect behavior from `/integration` to `/integration/my-datindo`.
+- [x] Verify baseline table rendering and search/pagination behavior on My Datindo page.
+- [x] Verify baseline export action availability (CSV) for QA evidence capture.
+- [ ] Verify page-level data loading behavior matches legacy flow in detail.
+- [ ] Verify submit/sync actions parity against backend endpoints (if legacy supports additional mutation actions).
 - [ ] Verify role/permission visibility.
-- [ ] Verify error/loading/empty states against migration standards.
+- [ ] Verify error/loading/empty states against migration standards with role scenarios.
 
 ## API Parity Tasks
 
-- [ ] Confirm endpoint mapping from legacy page implementation.
-- [ ] Confirm request payloads and response schemas are compatible.
-- [ ] Confirm retry/error handling behavior parity.
+- [x] Confirm baseline endpoint mapping for My Datindo page (`/api/register-ws-info`).
+- [x] Confirm baseline response compatibility handling (`success`, `data|datas`) via shared `CrudPage`.
+- [ ] Confirm request payloads and response schemas are fully compatible with legacy integration flows.
+- [ ] Confirm retry/error handling behavior parity for integration-specific failures.
+
+## PR C Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (Batch 3 Evidence / PR C section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_C.md`.
+- Execution status: `qa-review` for Integration in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 

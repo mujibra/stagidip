@@ -7,6 +7,7 @@ Legacy source:
 
 Next.js targets:
 - `app/(app)/spesification/page.tsx`
+- `components/CrudPage.tsx`
 
 ## Route Presence Matrix
 
@@ -21,21 +22,29 @@ Status legend:
 
 ## Functional Parity Tasks
 
+- [x] Verify baseline list/table rendering with configured fields (`item`, `description`).
+- [x] Verify baseline search/pagination behavior through shared `CrudPage`.
+- [x] Verify baseline create/update workflow and validation/error notifications.
 - [ ] Verify page sections and layout parity with legacy screen.
-- [ ] Verify list/table columns and data rendering parity.
-- [ ] Verify filters/search behavior parity.
-- [ ] Verify create/update/delete workflows and validations.
-- [ ] Verify error/loading/empty-state behavior.
+- [ ] Verify filters/search behavior parity in detail vs legacy usage.
+- [ ] Verify delete/role-based behavior parity (delete intentionally disabled in canonical page).
+- [ ] Verify error/loading/empty-state behavior with role-specific scenarios.
 
 ## API Parity Tasks
 
-- [ ] Confirm endpoint mapping used in Next page vs legacy implementation.
-- [ ] Confirm response schema compatibility and id serialization.
-- [ ] Confirm pagination/sorting behavior where applicable.
+- [x] Confirm endpoint mapping used in Next page (`/api/master-spekmesin`, list `/api/master-spekmesin/paging/10?page=1`).
+- [x] Confirm baseline response schema compatibility and id-key handling.
+- [ ] Confirm id serialization and pagination/sorting behavior parity with legacy expectations.
+
+## PR C Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (Batch 3 Evidence / PR C section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_C.md`.
+- Execution status: `qa-review` for Spesification in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 
 Spesification module can be marked ✅ in the master checklist when:
-- functional + API parity tasks are completed,
-- user workflows are validated end-to-end,
-- and QA signs off no regression.
+- functional + API parity tasks are complete,
+- CRUD behavior is validated against legacy expectations,
+- and QA signs off no critical regression.

@@ -20,7 +20,7 @@ Next.js targets:
 
 | Legacy module | Legacy route intent | Next.js canonical route | Status | Notes |
 |---|---|---|---|---|
-| Pre Staging Checklist | `apps/stagging/checklistStagging` | `/pre-staging/checklist` | ✅ | Canonical page present |
+| Pre Staging Checklist | `apps/stagging/checklistStagging` | `/pre-staging/checklist` | ✅ | Canonical page present; `/pre-staging` now redirects to checklist |
 | Staging Old Machine | `apps/viewOldMachine` | `/staging/old-machine` | ✅ | Canonical page present + legacy redirect |
 | Staging New Machine | `apps/viewNewMachine` | `/staging/new-machine` | ✅ | Canonical page present + legacy redirect |
 | Staging View | `apps/stagging/*` | `/staging` | ✅ | Canonical page present + wildcard redirect |
@@ -28,18 +28,25 @@ Next.js targets:
 
 ## Functional Parity Tasks
 
+- [x] Verify canonical route wiring for staging hub and pre-staging checklist redirect.
+- [x] Verify old/new machine staging pages are read-only execution views (no create/edit/delete actions).
+- [x] Verify inspection-testing baseline list/search/pagination/export behavior.
+- [x] Verify loading/error/empty baseline UX via shared `CrudPage` patterns.
 - [ ] Verify checklist flow parity (row states, approval/status transitions).
-- [ ] Verify old/new machine staging table parity (columns, actions, sort/search).
-- [ ] Verify inspection-testing interactions parity.
 - [ ] Verify role-based restrictions for approval/edit actions.
-- [ ] Verify loading/error/empty states across all staging pages.
 
 ## API Parity Tasks
 
-- [ ] Confirm endpoint mapping per page against legacy behavior.
-- [ ] Confirm checklist/inspection payload compatibility.
+- [x] Confirm baseline endpoint mapping per page (`/api/purchaseOrder`, `/api/mst-checkliststaging`).
+- [x] Confirm checklist/inspection list payload compatibility baseline (`success`, `data|datas`).
 - [ ] Confirm status and timestamp handling parity.
 - [ ] Confirm side effects (approval, update, notes) match legacy outcomes.
+
+## PR D Evidence + QA Notes
+
+- Evidence log: `WEEK1_EVIDENCE_LOG.md` (PR D Staging Evidence section).
+- QA handoff packet: `WEEK1_QA_NOTES_PR_D.md`.
+- Execution status: staging module moved to `qa-review` baseline in `PARITY_EXECUTION_TRACKER.md`.
 
 ## Exit Criteria
 

@@ -33,18 +33,18 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Registration | Build executable module hub | Replaced generic registration table with a section hub linking registration master pages for parity walkthrough and QA execution. | _this PR_ | _TBD_ | `in-progress` |
-| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`. | _this PR_ | _TBD_ | `in-progress` |
-| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks. | _this PR_ | _TBD_ | `in-progress` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 
 
 ## Batch 3 Modules (Summary + Integration + Spesification + Staging)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection. | _this PR_ | _TBD_ | `in-progress` |
-| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution. | _this PR_ | _TBD_ | `in-progress` |
-| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration. | _this PR_ | _TBD_ | `in-progress` |
-| Staging | Build staging execution hub | Replaced generic staging table with module hub linking new-machine, old-machine, inspection, and pre-staging flows. | _this PR_ | _TBD_ | `in-progress` |
+| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
+| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
+| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
+| Staging | Build staging execution hub | Staging hub now targets canonical `/pre-staging/checklist`; staging new/old pages hardened as read-only baseline and inspection page aligned for QA evidence/export capture. | PR D | _TBD_ | `qa-review` |
 
 ## Status Legend
 
