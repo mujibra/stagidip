@@ -55,3 +55,16 @@ Use this log to capture concrete evidence during the Week 1 execution cycle.
 ## QA Notes (Batch 3)
 
 - PR C handoff notes: `docs/migration/WEEK1_QA_NOTES_PR_C.md`.
+
+
+## PR D Staging Evidence
+
+| Date | Module | Area | Evidence | Notes | Linked Audit Item | Owner |
+|---|---|---|---|---|---|---|
+| 2026-02-11 | Pre-Staging | Canonical routing | `app/(app)/pre-staging/page.tsx` now redirects to `/pre-staging/checklist`; staging hub link also targets canonical checklist path. | Removes duplicate entry surface and locks one canonical pre-staging workflow for QA. | `PARITY_AUDIT_STAGING.md` (canonical route wiring) | Frontend |
+| 2026-02-11 | Staging New/Old | Approval-safe read-only baseline | `staging/new-machine` and `staging/old-machine` pages now disable create/edit/delete and provide explicit empty-state/export context. | Aligns execution baseline with approval-heavy review behavior before mutation scenarios are finalized. | `PARITY_AUDIT_STAGING.md` (read-only execution views) | Frontend + QA |
+| 2026-02-11 | Staging Inspection | Inspection naming + export baseline | Inspection page retitled to `Staging Inspection Testing` with focused subtitle, empty-state copy, and explicit export file naming. | Clarifies QA flow intent and supports evidence capture for inspection dataset reviews. | `PARITY_AUDIT_STAGING.md` (inspection baseline behavior) | Frontend |
+
+## QA Notes (PR D)
+
+- PR D handoff notes: `docs/migration/WEEK1_QA_NOTES_PR_D.md`.

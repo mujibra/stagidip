@@ -17,7 +17,7 @@ Status values must follow `NEXT_EXECUTION_PROCESS.md`:
 | Summary | `/summary/*` | `PARITY_AUDIT_SUMMARY.md` | _TBD_ | _TBD_ | `qa-review` | PR C reporting baseline captured: summary hub navigation + executable machine summary table parity baseline | Legacy column/aggregation parity across all summary sub-pages | PR C |
 | Integration | `/integration/my-datindo` | `PARITY_AUDIT_INTEGRATION.md` | _TBD_ | _TBD_ | `qa-review` | PR C support baseline captured: canonical redirect + my-datindo list/export/state handling baseline | Integration-specific mutation flow parity + permission matrix | PR C |
 | Spesification | `/spesification` | `PARITY_AUDIT_SPESIFICATION.md` | _TBD_ | _TBD_ | `qa-review` | PR C checklist-closure baseline captured: CRUD/list/search parity baseline and delete restriction validation path | Legacy layout/role parity + id/paging edge cases | PR C |
-| Staging | `/staging/*`, `/pre-staging/*` | `PARITY_AUDIT_STAGING.md` | _TBD_ | _TBD_ | `in-progress` | Batch 3 kickoff: staging hub for new/old/inspection + pre-staging entry | Approval-flow edge cases | _this PR_ |
+| Staging | `/staging/*`, `/pre-staging/*` | `PARITY_AUDIT_STAGING.md` | _TBD_ | _TBD_ | `qa-review` | PR D baseline captured: canonical pre-staging redirect, read-only new/old execution views, inspection evidence/export prep | Approval side-effects + role-matrix deep UAT | PR D |
 
 ## First Execution Cycle (Suggested)
 
@@ -32,6 +32,7 @@ Execution playbook: `WEEK1_EXECUTION_KICKOFF.md`.
 5. Summary
 6. Integration
 7. Spesification
+8. Staging/Pre-Staging
 
 ### Week 1 Exit Criteria
 
