@@ -32,7 +32,7 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling (invalid role/status cleanup), active filter badges, clear-filters controls, plus `Copy view link` and `Export filtered CSV` actions on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `in-progress` |
+| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling with delayed role sanitization until role options load, active filter badges, clear-filters controls, quick `/` search focus, and utility actions (`Copy view link`, `Export filtered CSV`, `Refresh data`) on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `in-progress` |
 | Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 | Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 
