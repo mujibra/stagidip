@@ -11,6 +11,13 @@ import ImplementationTab from "../dashboard/tabs/ImplementationTab";
 
 type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
+const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implementation"];
+
+function getActiveTab(rawTab: string | null): TabKey {
+    if (!rawTab) return "project";
+    return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
+}
+
 export default function DashboardTabs() {
     const router = useRouter();
     const pathname = usePathname();
@@ -27,26 +34,23 @@ export default function DashboardTabs() {
         []
     );
 
-    const active = useMemo<TabKey>(() => {
-        const requestedTab = searchParams.get("tab");
-        const validKeys = new Set<TabKey>(["project", "purchaseOrder", "customer", "implementation"]);
-
-        if (requestedTab && validKeys.has(requestedTab as TabKey)) {
-            return requestedTab as TabKey;
-        }
-
-        return "project";
-    }, [searchParams]);
+    const active = useMemo<TabKey>(() => getActiveTab(searchParams.get("tab")), [searchParams]);
 
     const handleTabChange = (tab: TabKey) => {
         const params = new URLSearchParams(searchParams.toString());
-        params.set("tab", tab);
-        router.replace(`${pathname}?${params.toString()}`);
+
+        if (tab === "project") {
+            params.delete("tab");
+        } else {
+            params.set("tab", tab);
+        }
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
     };
 
     return (
         <div className="w-full">
-            {/* Tab bar */}
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
                 <div className="flex gap-1 overflow-x-auto py-2">
                     {tabs.map((t) => {
@@ -56,6 +60,7 @@ export default function DashboardTabs() {
                                 key={t.key}
                                 type="button"
                                 onClick={() => handleTabChange(t.key)}
+                                aria-pressed={isActive}
                                 className={[
                                     "relative rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
                                     "transition-colors",
@@ -78,7 +83,6 @@ export default function DashboardTabs() {
                 </div>
             </div>
 
-            {/* Tab content */}
             <div className="pt-4">
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.div
