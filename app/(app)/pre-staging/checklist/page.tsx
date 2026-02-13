@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <CrudPage
       title="Pre-Staging Checklist"
-      subtitle="Review and update checklist items."
+      subtitle="Review checklist readiness prior to staging and approval handoff."
       endpoint="/api/mst-checkliststaging"
       fields={[
         { key: "test_desc", label: "Test Description" },
@@ -15,6 +15,8 @@ export default function Page() {
       allowCreate={false}
       allowEdit={false}
       allowDelete={false}
+      emptyText="No pre-staging checklist records available."
+      exportFileName="pre-staging-checklist"
     />
   );
 }

@@ -13,7 +13,7 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Tabs | Verify labels/order match legacy | Dashboard tabs are now URL-driven and kept in canonical order (`Project`, `Purchase Order`, `Customer`, `Implementation`); continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
+| Tabs | Verify labels/order match legacy | Dashboard tabs are URL-driven and now keep `project` as canonical default by removing redundant `?tab=project`, while preserving non-default tab deep links. Continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
 | Filters | Align year/month filter defaults | Confirm default ranges | _TBD_ | _TBD_ | `not-started` |
 | KPIs | Ensure KPI formatting matches legacy | Check number formatting, units | _TBD_ | _TBD_ | `not-started` |
 | States | Normalize loading/empty/error UI | `Project` tab now uses shared `DataState` for summary, machine-status, and per-customer table states. Continue applying same pattern for remaining tabs. | _this PR_ | _TBD_ | `in-progress` |
@@ -23,7 +23,7 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; continue field-level parity vs legacy `PoParrent`. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Ensure filter behavior parity | Validate query params and defaults | _TBD_ | _TBD_ | `not-started` |
+| Filters | Ensure filter behavior parity | Purchase Order page now canonicalizes query params (`q`, `status`, `page`, `pageSize`) by trimming/normalizing invalid values and removing default noise in URL state. Continue legacy parity checks for option behavior. | _this PR_ | _TBD_ | `in-progress` |
 | Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; continue validating against legacy edge-cases. | _this PR_ | _TBD_ | `in-progress` |
 | States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; continue parity checks against legacy empty-state copy and edge cases. | _this PR_ | _TBD_ | `in-progress` |
 

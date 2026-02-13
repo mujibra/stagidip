@@ -189,7 +189,8 @@ export default function Sidebar() {
     return openMap;
   }, [pathname]);
 
-  const [open, setOpen] = useState<Record<string, boolean>>(() => defaultOpen);
+  const [openOverrides, setOpenOverrides] = useState<Record<string, boolean>>({});
+  const openState = { ...defaultOpen, ...openOverrides };
 
   return (
     <motion.aside
@@ -227,7 +228,7 @@ export default function Sidebar() {
         </div>
 
         <div className="pointer-events-none relative mt-2">
-          <div className="absolute -inset-3 rounded-xl bg-linier-to-r from-indigo-500/10 via-sky-500/10 to-emerald-500/10 blur-xl" />
+          <div className="absolute -inset-3 rounded-xl bg-linear-to-r from-indigo-500/10 via-sky-500/10 to-emerald-500/10 blur-xl" />
         </div>
       </div>
 
@@ -235,7 +236,7 @@ export default function Sidebar() {
       <nav className="px-2 pb-2">
         {NAV.map((group) => {
           const isCollapsible = !!group.collapsible;
-          const groupOpen = isCollapsible ? !!open[group.section] : true;
+          const groupOpen = isCollapsible ? !!openState[group.section] : true;
 
           return (
             <div key={group.section} className="mb-3">
@@ -243,7 +244,7 @@ export default function Sidebar() {
                 type="button"
                 onClick={() => {
                   if (!isCollapsible) return;
-                  setOpen((prev) => ({ ...prev, [group.section]: !prev[group.section] }));
+                  setOpenOverrides((prev) => ({ ...prev, [group.section]: !groupOpen }));
                 }}
                 className={[
                   "flex w-full items-center rounded-md px-2 py-1",
@@ -307,7 +308,7 @@ export default function Sidebar() {
                                   animate={{ opacity: 1, x: 0 }}
                                   exit={{ opacity: 0, x: -6 }}
                                   transition={{ duration: 0.16 }}
-                                  className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-linier-to-b from-indigo-500 via-sky-500 to-emerald-500"
+                                  className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-linear-to-b from-indigo-500 via-sky-500 to-emerald-500"
                                 />
                               )}
                             </AnimatePresence>
@@ -317,7 +318,7 @@ export default function Sidebar() {
                                 className={[
                                   "inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm",
                                   active && !disabled
-                                    ? "bg-linier-to-br from-indigo-500/25 via-sky-500/25 to-emerald-500/25 text-indigo-600 dark:text-emerald-300"
+                                    ? "bg-linear-to-br from-indigo-500/25 via-sky-500/25 to-emerald-500/25 text-indigo-600 dark:text-emerald-300"
                                     : "bg-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400",
                                 ].join(" ")}
                               >
