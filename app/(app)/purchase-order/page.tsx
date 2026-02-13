@@ -106,27 +106,61 @@ function parseNumericField(value: string) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+
+function resolvePage(value: string | null) {
+  const parsed = Number(value ?? "1");
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.floor(parsed);
+}
+
+function resolvePageSize(value: string | null) {
+  const parsed = Number(value ?? String(DEFAULT_PAGE_SIZE));
+  if (PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])) {
+    return parsed as (typeof PAGE_SIZE_OPTIONS)[number];
+  }
+  return DEFAULT_PAGE_SIZE;
+}
+
+function buildCanonicalQueryString(params: URLSearchParams, next: {
+  q: string;
+  status: string;
+  page: number;
+  pageSize: number;
+}) {
+  const nextParams = new URLSearchParams(params.toString());
+
+  if (next.q) nextParams.set("q", next.q);
+  else nextParams.delete("q");
+
+  if (next.status !== STATUS_ALL) nextParams.set("status", next.status);
+  else nextParams.delete("status");
+
+  if (next.page > 1) nextParams.set("page", String(next.page));
+  else nextParams.delete("page");
+
+  if (next.pageSize !== DEFAULT_PAGE_SIZE) nextParams.set("pageSize", String(next.pageSize));
+  else nextParams.delete("pageSize");
+
+  return nextParams.toString();
+}
+
 export default function PurchaseOrderPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const initialQuery = searchParams.get("q") ?? "";
+  const initialQuery = (searchParams.get("q") ?? "").trim();
   const initialStatus = resolveStatusFilter(searchParams.get("status"));
-  const initialPage = Number(searchParams.get("page") ?? "1");
-  const initialPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
+  const initialPage = resolvePage(searchParams.get("page"));
+  const initialPageSize = resolvePageSize(searchParams.get("pageSize"));
 
   const [rows, setRows] = useState<PurchaseOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query, 250);
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(
-    PAGE_SIZE_OPTIONS.includes(initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
-      ? (initialPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
-      : DEFAULT_PAGE_SIZE
-  );
-  const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(initialPageSize);
+  const [page, setPage] = useState(initialPage);
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -136,20 +170,32 @@ export default function PurchaseOrderPage() {
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   useEffect(() => {
-    const nextQuery = searchParams.get("q") ?? "";
+    const nextQuery = (searchParams.get("q") ?? "").trim();
     const nextStatus = resolveStatusFilter(searchParams.get("status"));
-    const nextPage = Number(searchParams.get("page") ?? "1");
-    const nextPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
+    const nextPage = resolvePage(searchParams.get("page"));
+    const nextPageSize = resolvePageSize(searchParams.get("pageSize"));
 
     setQuery(nextQuery);
     setStatusFilter(nextStatus);
-    setPage(Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1);
-    setPageSize(
-      PAGE_SIZE_OPTIONS.includes(nextPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
-        ? (nextPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
-        : DEFAULT_PAGE_SIZE
-    );
+    setPage(nextPage);
+    setPageSize(nextPageSize);
   }, [searchParams]);
+
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const canonicalQuery = buildCanonicalQueryString(params, {
+      q: (searchParams.get("q") ?? "").trim(),
+      status: resolveStatusFilter(searchParams.get("status")),
+      page: resolvePage(searchParams.get("page")),
+      pageSize: resolvePageSize(searchParams.get("pageSize")),
+    });
+
+    const currentQuery = searchParams.toString();
+    if (canonicalQuery === currentQuery) return;
+
+    router.replace(canonicalQuery ? `${pathname}?${canonicalQuery}` : pathname);
+  }, [pathname, router, searchParams]);
 
   const updateUrlState = (next: {
     q?: string;
@@ -159,24 +205,17 @@ export default function PurchaseOrderPage() {
   }) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    const nextQuery = next.q ?? query;
-    const nextStatus = next.status ?? statusFilter;
-    const nextPage = next.page ?? page;
-    const nextPageSize = next.pageSize ?? pageSize;
+    const nextQuery = (next.q ?? query).trim();
+    const nextStatus = resolveStatusFilter(next.status ?? statusFilter);
+    const nextPage = Math.max(1, Math.floor(next.page ?? page));
+    const nextPageSize = resolvePageSize(String(next.pageSize ?? pageSize));
 
-    if (nextQuery.trim()) params.set("q", nextQuery.trim());
-    else params.delete("q");
-
-    if (nextStatus !== STATUS_ALL) params.set("status", nextStatus);
-    else params.delete("status");
-
-    if (nextPage > 1) params.set("page", String(nextPage));
-    else params.delete("page");
-
-    if (nextPageSize !== DEFAULT_PAGE_SIZE) params.set("pageSize", String(nextPageSize));
-    else params.delete("pageSize");
-
-    const queryString = params.toString();
+    const queryString = buildCanonicalQueryString(params, {
+      q: nextQuery,
+      status: nextStatus,
+      page: nextPage,
+      pageSize: nextPageSize,
+    });
     router.replace(queryString ? `${pathname}?${queryString}` : pathname);
   };
 
