@@ -26,9 +26,9 @@ Parity audit artifacts currently available:
 
 1. Dashboard (highest visibility)
 2. Purchase Order + Registration (core operational flows)
-3. Status Delivery + Warehouse Transfer (logistics flows) — PR B active
-4. Summary + Integration + Spesification (supporting/reporting flows) — PR C active
-5. Staging/Pre-Staging deep checks (approval-heavy flows) — PR D active
+3. Status Delivery + Warehouse Transfer (logistics flows) — Batch B
+4. Summary + Integration + Spesification (supporting/reporting flows) — Batch C
+5. Staging/Pre-Staging deep checks (approval-heavy flows) — Batch D
 
 ## Quality Gate to close migration
 
@@ -48,9 +48,21 @@ A module is done when:
 
 - Run `npm run migration:check-routes` to verify legacy alias pages still redirect to canonical routes.
 
+
+## Batch-First Progression Model
+
+To avoid fragmented progress tracking PR-by-PR, execution now follows a **batch progression model**:
+
+1. Plan and execute module work in named batches (A/B/C/...).
+2. Track primary status movement at batch level in `PARITY_EXECUTION_TRACKER.md`.
+3. Use per-module rows to show detailed checklist completion inside each batch.
+4. Carry unresolved blockers to the next batch explicitly (owner + reason required).
+
+This keeps delivery momentum visible even when individual PRs are split or rebased.
+
 ## Next Process
 
-- Follow `NEXT_EXECUTION_PROCESS.md` for the per-module 7-step execution workflow.
+- Follow `NEXT_EXECUTION_PROCESS.md` for the batch-oriented 7-step execution workflow.
 - Use the weekly cadence and status values there to keep reporting consistent.
 
 ## Execution Tracker
@@ -61,10 +73,11 @@ A module is done when:
 
 ## Active Cycle
 
-- Week 1 PR A scope is in `qa-review` for Dashboard + Purchase Order (see `PARITY_EXECUTION_TRACKER.md`).
-- Week 1 PR B scope is in `qa-review` for Status Delivery + Warehouse Transfer (logistics baseline evidence prepared).
-- Week 1 PR C scope is in `qa-review` for Summary + Integration + Spesification (reporting/support baseline evidence prepared).
-- Week 1 PR D scope is in `qa-review` baseline for Staging/Pre-Staging (approval-heavy deep scenarios queued for UAT sign-off).
+- Batch A is in `qa-review` for Dashboard + Purchase Order (see `PARITY_EXECUTION_TRACKER.md`).
+- Batch B is in `qa-review` for Status Delivery + Warehouse Transfer (logistics baseline evidence prepared).
+- Batch C is in `qa-review` for Summary + Integration + Spesification (reporting/support baseline evidence prepared).
+- Batch D is in `qa-review` baseline for Staging/Pre-Staging (approval-heavy deep scenarios queued for UAT sign-off).
+- Batch E is reserved for carryover blockers to keep closure progress batch-by-batch instead of PR-by-PR.
 - Detailed execution tasks are tracked in `WEEK1_EXECUTION_KICKOFF.md`.
 
 ## Frontend Improvements
