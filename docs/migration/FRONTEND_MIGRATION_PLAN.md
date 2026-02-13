@@ -70,12 +70,13 @@ For each module in checklist:
 - Treat that document as the operational runbook for weekly execution and QA closeout.
 - For the current cycle, use `WEEK1_EXECUTION_KICKOFF.md` as the weekly action plan.
 
-## Suggested Delivery Order
+## Suggested Delivery Order (Batch-Based)
 
-1. Route canonicalization PR
-2. Dashboard parity + hardening PR
-3. Registration + staging module parity PRs
-4. Summary/integration cleanup PR
+1. Batch A: Route canonicalization + Dashboard + Purchase Order stabilization
+2. Batch B: Registration + logistics modules (Status Delivery, Warehouse Transfer)
+3. Batch C: Summary + Integration + Spesification cleanup
+4. Batch D: Staging/Pre-Staging deep parity and approval flows
+5. Batch E: carryover blockers and final closure
 
 ## Tracking Template (copy per module)
 
@@ -86,4 +87,4 @@ For each module in checklist:
 - Status: not-started / in-progress / blocked / qa-review / done
 - Missing features:
 - Risks/dependencies:
-- Target PR:
+- Target Batch:
