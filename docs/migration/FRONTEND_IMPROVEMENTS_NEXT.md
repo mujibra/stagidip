@@ -23,7 +23,7 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; continue field-level parity vs legacy `PoParrent`. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Ensure filter behavior parity | Validate query params and defaults | _TBD_ | _TBD_ | `not-started` |
+| Filters | Ensure filter behavior parity | Purchase Order page now canonicalizes query params (`q`, `status`, `page`, `pageSize`) by trimming/normalizing invalid values and removing default noise in URL state. Continue legacy parity checks for option behavior. | _this PR_ | _TBD_ | `in-progress` |
 | Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; continue validating against legacy edge-cases. | _this PR_ | _TBD_ | `in-progress` |
 | States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; continue parity checks against legacy empty-state copy and edge cases. | _this PR_ | _TBD_ | `in-progress` |
 
