@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
@@ -54,12 +54,15 @@ function resolveStatusFilter(value: string | null) {
   return VALID_STATUS.includes(upper as (typeof VALID_STATUS)[number]) ? upper : STATUS_ALL;
 }
 
+function escapeCsvValue(value: unknown) {
+  const text = String(value ?? "");
+  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+  return text;
+}
 
-function buildCanonicalQueryString(params: URLSearchParams, next: {
-  q: string;
-  role: string;
-  status: string;
-}) {
+function buildCanonicalQueryString(params: URLSearchParams, next: { q: string; role: string; status: string }) {
   const nextParams = new URLSearchParams(params.toString());
 
   if (next.q) nextParams.set("q", next.q);
@@ -74,19 +77,12 @@ function buildCanonicalQueryString(params: URLSearchParams, next: {
   return nextParams.toString();
 }
 
-
-function escapeCsvValue(value: unknown) {
-  const text = String(value ?? "");
-  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
-    return `"${text.replaceAll('"', '""')}"`;
-  }
-  return text;
-}
-
 export default function UserManagementPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,6 +93,21 @@ export default function UserManagementPage() {
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const debouncedQuery = useDebouncedValue(query, 250);
+
+  const roleOptions = useMemo(() => {
+    const roles = new Set<string>();
+    for (const row of rows) {
+      const role = (row.roles ?? "").trim();
+      if (role) roles.add(role);
+    }
+    return Array.from(roles).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  const getSafeRole = useCallback((candidateRole: string) => {
+    if (candidateRole === ROLE_ALL) return ROLE_ALL;
+    if (loading) return candidateRole;
+    return roleOptions.includes(candidateRole) ? candidateRole : ROLE_ALL;
+  }, [loading, roleOptions]);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -125,46 +136,55 @@ export default function UserManagementPage() {
     void loadUsers();
   }, [loadUsers]);
 
-  const roleOptions = useMemo(() => {
-    const roles = new Set<string>();
-    for (const row of rows) {
-      const role = (row.roles ?? "").trim();
-      if (role) roles.add(role);
-    }
-    return Array.from(roles).sort((a, b) => a.localeCompare(b));
-  }, [rows]);
+  useEffect(() => {
+    const onSlashFocusSearch = (event: KeyboardEvent) => {
+      if (event.key !== "/") return;
+
+      const target = event.target as HTMLElement | null;
+      const tagName = (target?.tagName ?? "").toLowerCase();
+      const isTypingTarget =
+        tagName === "input" ||
+        tagName === "textarea" ||
+        tagName === "select" ||
+        Boolean(target?.isContentEditable);
+
+      if (isTypingTarget) return;
+
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+
+    window.addEventListener("keydown", onSlashFocusSearch);
+    return () => window.removeEventListener("keydown", onSlashFocusSearch);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    const rawRole = searchParams.get("role") ?? ROLE_ALL;
-    const safeRole = rawRole === ROLE_ALL || roleOptions.includes(rawRole) ? rawRole : ROLE_ALL;
     const canonicalQuery = buildCanonicalQueryString(params, {
       q: (searchParams.get("q") ?? "").trim(),
-      role: safeRole,
+      role: getSafeRole(searchParams.get("role") ?? ROLE_ALL),
       status: resolveStatusFilter(searchParams.get("status")),
     });
 
     if (canonicalQuery === searchParams.toString()) return;
     router.replace(canonicalQuery ? `${pathname}?${canonicalQuery}` : pathname);
-  }, [pathname, roleOptions, router, searchParams]);
+  }, [getSafeRole, pathname, router, searchParams]);
 
   useEffect(() => {
     const nextQuery = (searchParams.get("q") ?? "").trim();
-    const rawRole = searchParams.get("role") ?? ROLE_ALL;
-    const nextRole = rawRole === ROLE_ALL || roleOptions.includes(rawRole) ? rawRole : ROLE_ALL;
+    const nextRole = getSafeRole(searchParams.get("role") ?? ROLE_ALL);
     const nextStatus = resolveStatusFilter(searchParams.get("status"));
 
     setQuery(nextQuery);
     setRoleFilter(nextRole);
     setStatusFilter(nextStatus);
-  }, [roleOptions, searchParams]);
+  }, [getSafeRole, searchParams]);
 
   const updateUrlState = useCallback((next: { q?: string; role?: string; status?: string }) => {
     const params = new URLSearchParams(searchParams.toString());
 
     const nextQuery = (next.q ?? query).trim();
-    const candidateRole = next.role ?? roleFilter;
-    const nextRole = candidateRole === ROLE_ALL || roleOptions.includes(candidateRole) ? candidateRole : ROLE_ALL;
+    const nextRole = getSafeRole(next.role ?? roleFilter);
     const nextStatus = resolveStatusFilter(next.status ?? statusFilter);
 
     const qs = buildCanonicalQueryString(params, {
@@ -172,8 +192,9 @@ export default function UserManagementPage() {
       role: nextRole,
       status: nextStatus,
     });
+
     router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }, [pathname, query, roleFilter, roleOptions, router, searchParams, statusFilter]);
+  }, [getSafeRole, pathname, query, roleFilter, router, searchParams, statusFilter]);
 
   const filteredRows = useMemo(() => {
     const keyword = debouncedQuery.trim().toLowerCase();
@@ -271,6 +292,7 @@ export default function UserManagementPage() {
         <label className="space-y-1 text-xs text-zinc-500 lg:col-span-2">
           Search
           <input
+            ref={searchInputRef}
             value={query}
             onChange={(event) => {
               const nextQuery = event.target.value;
@@ -280,6 +302,7 @@ export default function UserManagementPage() {
             placeholder="Search name, email, role, customer, warehouse"
             className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           />
+          <div className="text-[11px] text-zinc-400">Tip: press / to focus search.</div>
         </label>
 
         <label className="space-y-1 text-xs text-zinc-500">
@@ -368,6 +391,13 @@ export default function UserManagementPage() {
           className="rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
         >
           Export filtered CSV
+        </button>
+        <button
+          type="button"
+          onClick={() => void loadUsers()}
+          className="rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          Refresh data
         </button>
       </div>
 
