@@ -74,6 +74,15 @@ function buildCanonicalQueryString(params: URLSearchParams, next: {
   return nextParams.toString();
 }
 
+
+function escapeCsvValue(value: unknown) {
+  const text = String(value ?? "");
+  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+  return text;
+}
+
 export default function UserManagementPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -85,6 +94,7 @@ export default function UserManagementPage() {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [roleFilter, setRoleFilter] = useState<string>(searchParams.get("role") ?? ROLE_ALL);
   const [statusFilter, setStatusFilter] = useState<string>(resolveStatusFilter(searchParams.get("status")));
+  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const debouncedQuery = useDebouncedValue(query, 250);
 
@@ -200,6 +210,50 @@ export default function UserManagementPage() {
     };
   }, [rows]);
 
+  const copyCurrentViewLink = async () => {
+    const currentUrl = `${window.location.origin}${pathname}${window.location.search}`;
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setActionMessage({ type: "success", text: "Filtered view link copied." });
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to copy view link." });
+    }
+  };
+
+  const exportFilteredCsv = () => {
+    const headers = ["Name", "Email", "Role", "Status", "Customer", "Warehouse"];
+    const lines = [headers.join(",")];
+
+    for (const row of filteredRows) {
+      lines.push(
+        [
+          escapeCsvValue(row.name),
+          escapeCsvValue(row.email),
+          escapeCsvValue(row.roles),
+          escapeCsvValue(statusLabel(row.status)),
+          escapeCsvValue(row.customer?.customer_desc ?? ""),
+          escapeCsvValue(row.gudang?.gudang ?? ""),
+        ].join(",")
+      );
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `registration-user-management-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    setActionMessage({ type: "success", text: "Filtered CSV exported." });
+  };
+
+  useEffect(() => {
+    if (!actionMessage) return;
+    const timer = window.setTimeout(() => setActionMessage(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [actionMessage]);
+
   return (
     <div>
       <PageHeader
@@ -299,6 +353,34 @@ export default function UserManagementPage() {
           Clear filters
         </button>
       </div>
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={copyCurrentViewLink}
+          className="rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          Copy view link
+        </button>
+        <button
+          type="button"
+          onClick={exportFilteredCsv}
+          className="rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          Export filtered CSV
+        </button>
+      </div>
+
+      {actionMessage ? (
+        <div className={[
+          "mb-3 rounded-md px-3 py-2 text-xs font-medium",
+          actionMessage.type === "success"
+            ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300"
+            : "border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300",
+        ].join(" ")}>
+          {actionMessage.text}
+        </div>
+      ) : null}
 
       {error ? (
         <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-300">
