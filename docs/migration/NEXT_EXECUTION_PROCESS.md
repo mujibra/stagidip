@@ -4,7 +4,7 @@ This process starts after route canonicalization and audit document creation.
 
 ## Objective
 
-Move each parity module from `not-started` to `done` with objective evidence (functional checks, API checks, route checks, and QA sign-off).
+Move parity modules in **batches** from `not-started` to `done` with objective evidence (functional checks, API checks, route checks, and QA sign-off).
 
 ## Entry Criteria
 
@@ -14,19 +14,20 @@ Before starting module execution:
 - Module audit file exists in `docs/migration/PARITY_AUDIT_*.md`.
 - Module owner and reviewer are assigned.
 
-## 7-Step Execution Workflow (Per Module)
+## 7-Step Execution Workflow (Per Batch)
 
-### 1) Scope lock
+### 1) Batch scope lock
 
-- Confirm the module route and legacy source reference.
-- Freeze target acceptance scope for this cycle (no net-new features).
-- Record scope and owner in the module audit file.
+- Define a batch ID (for example: `Batch A`, `Batch B`).
+- Select 2-4 modules with adjacent business context (for example dashboard + purchase-order).
+- Freeze target acceptance scope for this batch (no net-new features).
+- Record batch scope and owners in tracker + relevant module audit files.
 
 ### 2) Baseline verification
 
-- Validate current UI behavior on canonical route.
-- Validate legacy alias still redirects correctly (if alias exists).
-- Capture baseline issues in the module audit checklist.
+- Validate current UI behavior on canonical route for each in-scope module.
+- Validate legacy alias redirects for in-scope modules (if aliases exist).
+- Capture baseline issues in each module audit checklist.
 
 ### 3) Functional parity execution
 
@@ -51,7 +52,7 @@ Before starting module execution:
 - Run project lint/build checks relevant to touched files.
 - Confirm no new references to legacy non-canonical paths.
 
-### 6) QA handoff and sign-off
+### 6) QA handoff and batch sign-off
 
 - Provide QA with:
   - route under test
@@ -59,26 +60,28 @@ Before starting module execution:
   - known limitations
 - QA records outcome: pass / fail / needs-fix.
 
-### 7) Module closeout
+### 7) Batch closeout
 
-A module is closed only when:
+A batch is closed when:
 
-- all checklist items are complete,
-- unresolved blockers are zero (or explicitly accepted),
-- QA sign-off is recorded,
-- status in execution tracker is set to `done`.
+- all in-scope module checklists are complete (or carry explicit accepted exceptions),
+- unresolved blockers are triaged to next batch with owners,
+- QA sign-off is recorded per module,
+- batch progress row is updated in `PARITY_EXECUTION_TRACKER.md`.
+
+A module is marked `done` only after its own checklist + QA are complete.
 
 ## Tracker of Record
 
-- Use `PARITY_EXECUTION_TRACKER.md` as the single source of truth for per-module status.
-- Update it at least once per module touch and at weekly closeout.
+- Use `PARITY_EXECUTION_TRACKER.md` as the single source of truth for both batch progression and per-module status.
+- Update it at least once per batch touch and at weekly closeout.
 
 ## Weekly Cadence (Recommended)
 
-- **Mon**: scope lock + baseline (2 modules max)
-- **Tue-Wed**: parity + API execution
-- **Thu**: regression + QA handoff
-- **Fri**: closeout and tracker update
+- **Mon**: lock batch scope + baseline across all in-scope modules
+- **Tue-Wed**: parity + API execution by module, tracked under one active batch
+- **Thu**: regression + QA handoff for the batch
+- **Fri**: batch closeout + tracker updates + carryovers to next batch
 
 ## Status Values
 
