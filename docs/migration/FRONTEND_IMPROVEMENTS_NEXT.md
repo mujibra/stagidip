@@ -14,7 +14,7 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Tabs | Verify labels/order match legacy | Dashboard tabs are URL-driven and now keep `project` as canonical default by removing redundant `?tab=project`, while preserving non-default tab deep links. Continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Align year/month filter defaults | Confirm default ranges | _TBD_ | _TBD_ | `not-started` |
+| Filters | Align year/month filter defaults | Project tab now supports URL-driven `year`/`month` filters with canonical defaults (current period omits query params) while preserving deep links for non-default periods. Continue baseline validation vs legacy defaults/ranges. | _this PR_ | _TBD_ | `in-progress` |
 | KPIs | Ensure KPI formatting matches legacy | Check number formatting, units | _TBD_ | _TBD_ | `not-started` |
 | States | Normalize loading/empty/error UI | `Project` tab now uses shared `DataState` for summary, machine-status, and per-customer table states. Continue applying same pattern for remaining tabs. | _this PR_ | _TBD_ | `in-progress` |
 
@@ -32,7 +32,7 @@ This list captures frontend parity/quality improvements identified during execut
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Registration | Build executable module hub | Replaced generic registration table with a section hub linking registration master pages for parity walkthrough and QA execution. | _this PR_ | _TBD_ | `in-progress` |
+| Registration | Build executable module hub | Registration now includes a focused User Management execution page with role/status badges, searchable/filterable listing, and customer/warehouse context for Batch E parity walkthrough. Continue role-matrix validation. | _this PR_ | _TBD_ | `in-progress` |
 | Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 | Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
 

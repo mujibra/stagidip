@@ -43,14 +43,14 @@ This kickoff converts planning documents into executable daily actions for the f
 ### Day 5 — Closeout
 
 - Move modules to `qa-review` or `done`.
-- Record blockers and follow-up tasks with owners and target PR.
+- Record blockers and follow-up tasks with owners and target batch.
 - Update tracker and execution status documents.
 
 ## Frontend improvements
 
 - Track confirmed UI/UX gaps in `FRONTEND_IMPROVEMENTS_NEXT.md`.
 - Execute by priority from `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
-- Link items to parity audit notes and target PRs.
+- Link items to parity audit notes and target batches (and supporting PRs when needed).
 
 ## Evidence Log
 

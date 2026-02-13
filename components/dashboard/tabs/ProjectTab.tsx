@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
 
@@ -43,17 +44,54 @@ function formatNumber(value: number) {
     return new Intl.NumberFormat("id-ID").format(value);
 }
 
+function resolveYear(value: string | null, nowYear: number) {
+    const parsed = Number(value ?? nowYear);
+    if (!Number.isFinite(parsed)) return nowYear;
+    const year = Math.floor(parsed);
+    if (year < nowYear - 5 || year > nowYear) return nowYear;
+    return year;
+}
+
+function resolveMonth(value: string | null, nowMonth: number) {
+    const parsed = Number(value ?? nowMonth);
+    if (!Number.isFinite(parsed)) return nowMonth;
+    const month = Math.floor(parsed);
+    if (month < 1 || month > 12) return nowMonth;
+    return month;
+}
+
 export default function ProjectTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const now = new Date();
-    const [year, setYear] = useState<number>(now.getFullYear());
-    const [month, setMonth] = useState<number>(now.getMonth() + 1);
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth() + 1;
+
+    const year = resolveYear(searchParams.get("year"), nowYear);
+    const month = resolveMonth(searchParams.get("month"), nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
 
-    const machineUrl = useMemo(() => `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`, [year, month]);
-    const projectUrl = useMemo(() => `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`, [year, month]);
+    const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
+    const projectUrl = `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`;
 
     const [machineStatus, setMachineStatus] = useState<Loadable<MachineStatusResponse>>({ state: "idle" });
     const [projectStatus, setProjectStatus] = useState<Loadable<ProjectStatusResponse>>({ state: "idle" });
+
+    const updateDateParams = (next: { year?: number; month?: number }) => {
+        const params = new URLSearchParams(searchParams.toString());
+        const nextYear = next.year ?? year;
+        const nextMonth = next.month ?? month;
+
+        if (nextYear === nowYear) params.delete("year");
+        else params.set("year", String(nextYear));
+
+        if (nextMonth === nowMonth) params.delete("month");
+        else params.set("month", pad2(nextMonth));
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    };
 
     const load = useCallback(() => {
         setReloadKey((current) => current + 1);
@@ -122,7 +160,10 @@ export default function ProjectTab() {
                     <label className="text-xs text-zinc-500">Year</label>
                     <select
                         value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
+                        onChange={(e) => {
+                            const nextYear = Number(e.target.value);
+                            updateDateParams({ year: nextYear });
+                        }}
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 6 }).map((_, i) => {
@@ -138,7 +179,10 @@ export default function ProjectTab() {
                     <label className="ml-2 text-xs text-zinc-500">Month</label>
                     <select
                         value={month}
-                        onChange={(e) => setMonth(Number(e.target.value))}
+                        onChange={(e) => {
+                            const nextMonth = Number(e.target.value);
+                            updateDateParams({ month: nextMonth });
+                        }}
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 12 }).map((_, i) => {
