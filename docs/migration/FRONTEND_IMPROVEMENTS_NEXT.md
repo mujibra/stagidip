@@ -14,9 +14,9 @@ This list captures frontend parity/quality improvements identified during execut
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
 | Tabs | Verify labels/order match legacy | Dashboard tabs are URL-driven and now keep `project` as canonical default by removing redundant `?tab=project`, while preserving non-default tab deep links. Continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Align year/month filter defaults | Project tab now supports URL-driven `year`/`month` filters with canonical defaults (current period omits query params) while preserving deep links for non-default periods. Continue baseline validation vs legacy defaults/ranges. | _this PR_ | _TBD_ | `in-progress` |
+| Filters | Align year/month filter defaults | Dashboard filters now support canonical URL params across tabs: Project keeps `year`/`month` defaults clean, Purchase Order now uses `poYear`, and Implementation paging now uses `implPage` while omitting default values to preserve stable deep links. Continue baseline validation vs legacy defaults/ranges. | _this PR_ | _TBD_ | `in-progress` |
 | KPIs | Ensure KPI formatting matches legacy | Check number formatting, units | _TBD_ | _TBD_ | `not-started` |
-| States | Normalize loading/empty/error UI | `Project` tab now uses shared `DataState` for summary, machine-status, and per-customer table states. Continue applying same pattern for remaining tabs. | _this PR_ | _TBD_ | `in-progress` |
+| States | Normalize loading/empty/error UI | Dashboard tabs now consistently use shared `DataState`: `Project` baseline retained, `Purchase Order` snapshot now has unified retry/error/empty handling, and `Implementation` summary + latest table now share the same loading/error/empty behavior for parity QA. | _this PR_ | _TBD_ | `in-progress` |
 
 ## Purchase Order (Week 1 focus)
 

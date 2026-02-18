@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import DataState from "@/components/dashboard/DataState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -47,10 +49,32 @@ function formatDate(value: string | null) {
 }
 
 export default function ImplementationTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const perPage = 20;
-    const [page, setPage] = useState(1);
+    const pageParam = Number(searchParams.get("implPage") ?? 1);
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
+
+    function retryLoad() {
+        setStatusDelivery({ state: "loading" });
+        setReloadKey((key) => key + 1);
+    }
+
+    function updatePage(nextPage: number) {
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (nextPage <= 1) {
+            params.delete("implPage");
+        } else {
+            params.set("implPage", String(nextPage));
+        }
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }
 
     useEffect(() => {
         let cancelled = false;
@@ -113,35 +137,40 @@ export default function ImplementationTab() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Implementation Summary</div>
                     <div className="text-xs text-zinc-500">Data source: /api/statusDelivery</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-4">
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Total Delivery Records</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                <div className="mt-3">
+                    <DataState
+                        state={statusDelivery.state}
+                        errorMessage={statusDelivery.state === "error" ? statusDelivery.message : undefined}
+                        onRetry={retryLoad}
+                    >
+                        <div className="grid gap-3 md:grid-cols-4">
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Total Delivery Records</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Overdue Arrivals</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Scheduled Departures</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Overdue Arrivals</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Scheduled Departures</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
-                        </div>
-                    </div>
+                    </DataState>
                 </div>
-                {statusDelivery.state === "error" && (
-                    <div className="mt-3 text-sm text-red-500">{statusDelivery.message}</div>
-                )}
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -160,7 +189,7 @@ export default function ImplementationTab() {
                             disabled={page <= 1 || statusDelivery.state === "loading"}
                             onClick={() => {
                                 setStatusDelivery({ state: "loading" });
-                                setPage((p) => Math.max(1, p - 1));
+                                updatePage(Math.max(1, page - 1));
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -171,7 +200,7 @@ export default function ImplementationTab() {
                             disabled={page >= totalPages || statusDelivery.state === "loading"}
                             onClick={() => {
                                 setStatusDelivery({ state: "loading" });
-                                setPage((p) => Math.min(totalPages, p + 1));
+                                updatePage(Math.min(totalPages, page + 1));
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -180,10 +209,7 @@ export default function ImplementationTab() {
                         <button
                             type="button"
                             disabled={statusDelivery.state === "loading"}
-                            onClick={() => {
-                                setStatusDelivery({ state: "loading" });
-                                setReloadKey((k) => k + 1);
-                            }}
+                            onClick={retryLoad}
                             className="h-8 rounded-lg bg-zinc-900 px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
                         >
                             Refresh
@@ -192,11 +218,13 @@ export default function ImplementationTab() {
                 </div>
 
                 <div className="mt-3">
-                    {statusDelivery.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {statusDelivery.state === "error" && (
-                        <div className="text-sm text-red-500">{statusDelivery.message}</div>
-                    )}
-                    {statusDelivery.state === "success" && (
+                    <DataState
+                        state={statusDelivery.state}
+                        errorMessage={statusDelivery.state === "error" ? statusDelivery.message : undefined}
+                        empty={statusDelivery.state === "success" && statusDelivery.data.data.length === 0}
+                        emptyMessage="No delivery records found for this page."
+                        onRetry={retryLoad}
+                    >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[720px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
@@ -209,7 +237,7 @@ export default function ImplementationTab() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {statusDelivery.data.data.map((row) => (
+                                    {statusDelivery.state === "success" && statusDelivery.data.data.map((row) => (
                                         <tr key={row.id} className="border-t border-zinc-200 dark:border-zinc-800">
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">
                                                 {row.id_po}
@@ -228,17 +256,10 @@ export default function ImplementationTab() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {statusDelivery.data.data.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={5}>
-                                                No delivery records found for this page.
-                                            </td>
-                                        </tr>
-                                    )}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    </DataState>
                 </div>
             </div>
         </div>
