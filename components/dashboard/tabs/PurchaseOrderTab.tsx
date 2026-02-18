@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
 
@@ -80,8 +81,14 @@ function toNumber(v: unknown): number {
 
 
 export default function PurchaseOrderTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const now = new Date();
-    const [year, setYear] = useState<number>(now.getFullYear());
+    const nowYear = now.getFullYear();
+    const rawYearParam = searchParams.get("poYear");
+    const yearParam = Number(rawYearParam ?? nowYear);
+    const year = Number.isFinite(yearParam) && yearParam >= nowYear - 5 && yearParam <= nowYear ? yearParam : nowYear;
 
     const warehouseUrl = "/api/getDataMesinPerWarehouse";
     const top3Url = useMemo(() => `/api/getData3TopByCustomer?year=${year}`, [year]);
@@ -100,6 +107,25 @@ export default function PurchaseOrderTab() {
     function retryLoad() {
         setReloadKey((v) => v + 1);
     }
+
+    const updateYear = useCallback((nextYear: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (nextYear === nowYear) {
+            params.delete("poYear");
+        } else {
+            params.set("poYear", String(nextYear));
+        }
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [nowYear, pathname, router, searchParams]);
+
+    useEffect(() => {
+        if (rawYearParam === null) return;
+        if (year === nowYear || rawYearParam !== String(year)) {
+            updateYear(year);
+        }
+    }, [rawYearParam, year, nowYear, updateYear]);
 
     useEffect(() => {
         let cancelled = false;
@@ -177,11 +203,11 @@ export default function PurchaseOrderTab() {
                     <label className="text-xs text-zinc-500">Year</label>
                     <select
                         value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
+                        onChange={(e) => updateYear(Number(e.target.value))}
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 6 }).map((_, i) => {
-                            const y = now.getFullYear() - i;
+                            const y = nowYear - i;
                             return (
                                 <option key={y} value={y}>
                                     {y}
@@ -330,30 +356,36 @@ export default function PurchaseOrderTab() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Purchase Order Snapshot</div>
                     <div className="text-xs text-zinc-500">Data source: /api/purchaseOrder</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Total PO</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.totalOrders.toLocaleString() : "—"}
+                <div className="mt-3">
+                    <DataState
+                        state={purchaseOrders.state}
+                        errorMessage={purchaseOrders.state === "error" ? purchaseOrders.message : undefined}
+                        empty={purchaseOrders.state === "success" && purchaseOrders.data.data.length === 0}
+                        emptyMessage="No purchase orders found."
+                        onRetry={retryLoad}
+                    >
+                        <div className="grid gap-3 md:grid-cols-3">
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Total PO</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? purchaseOrderSummary.totalOrders.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? purchaseOrderSummary.totalMachines.toLocaleString() : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Customers with PO</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? purchaseOrderSummary.uniqueCustomers.toLocaleString() : "—"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.totalMachines.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Customers with PO</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.uniqueCustomers.toLocaleString() : "—"}
-                        </div>
-                    </div>
+                    </DataState>
                 </div>
-
-                {purchaseOrders.state === "error" && (
-                    <div className="mt-3 text-sm text-red-500">{purchaseOrders.message}</div>
-                )}
             </div>
         </div>
     );
