@@ -201,27 +201,33 @@ export default function CustomerTab() {
         };
     }, [customers, purchaseOrders]);
 
-    const topBanks = useMemo(() => {
-        if (mesinPerBulan.state !== "success") return [];
+    const topBankStats = useMemo(() => {
+        if (mesinPerBulan.state !== "success") {
+            return { rows: [] as { bank: string; total: number }[], totalCustomers: 0, totalMesin: 0 };
+        }
+
         const totals = new Map<string, number>();
 
         for (const row of mesinPerBulan.data.data) {
             totals.set(row.bank, (totals.get(row.bank) ?? 0) + toNumber(row.total_mesin));
         }
 
-        return Array.from(totals.entries())
+        const allRows = Array.from(totals.entries())
             .map(([bank, total]) => ({ bank, total }))
             .sort((a, b) => {
                 if (b.total !== a.total) return b.total - a.total;
                 return a.bank.localeCompare(b.bank, "id-ID");
-            })
-            .slice(0, customerLimit);
+            });
+
+        return {
+            rows: allRows.slice(0, customerLimit),
+            totalCustomers: allRows.length,
+            totalMesin: allRows.reduce((acc, row) => acc + row.total, 0),
+        };
     }, [customerLimit, mesinPerBulan]);
 
-    const uniqueTopCustomerCount = useMemo(() => {
-        if (mesinPerBulan.state !== "success") return 0;
-        return new Set(mesinPerBulan.data.data.map((row) => row.bank)).size;
-    }, [mesinPerBulan]);
+    const topBanks = topBankStats.rows;
+    const uniqueTopCustomerCount = topBankStats.totalCustomers;
 
     return (
         <div className="space-y-4">
@@ -294,7 +300,7 @@ export default function CustomerTab() {
                         state={mesinPerBulan.state}
                         errorMessage={mesinPerBulan.state === "error" ? mesinPerBulan.message : undefined}
                         empty={mesinPerBulan.state === "success" && topBanks.length === 0}
-                        emptyMessage="No mesin totals found for the last 6 months."
+                        emptyMessage={`No mesin totals found for the last 6 months (top ${customerLimit}).`}
                         onRetry={handleRetry}
                     >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -304,6 +310,7 @@ export default function CustomerTab() {
                                         <th className="px-3 py-2">Rank</th>
                                         <th className="px-3 py-2">Customer</th>
                                         <th className="px-3 py-2">Total Mesin</th>
+                                        <th className="px-3 py-2">Share</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -316,6 +323,9 @@ export default function CustomerTab() {
                                             </td>
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
                                             <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                                                {topBankStats.totalMesin > 0 ? `${((row.total / topBankStats.totalMesin) * 100).toFixed(1)}%` : "0.0%"}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
