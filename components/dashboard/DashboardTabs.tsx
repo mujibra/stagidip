@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -35,6 +35,19 @@ function getActiveTab(rawTab: string | null): TabKey {
     return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
 }
 
+function buildCanonicalParams(source: URLSearchParams, tab: TabKey) {
+    const params = new URLSearchParams(source.toString());
+    sanitizeParamsForTab(params, tab);
+
+    if (tab === "project") {
+        params.delete("tab");
+    } else {
+        params.set("tab", tab);
+    }
+
+    return params;
+}
+
 export default function DashboardTabs() {
     const router = useRouter();
     const pathname = usePathname();
@@ -53,19 +66,19 @@ export default function DashboardTabs() {
 
     const active = useMemo<TabKey>(() => getActiveTab(searchParams.get("tab")), [searchParams]);
 
-    const handleTabChange = (tab: TabKey) => {
-        const params = new URLSearchParams(searchParams.toString());
-        sanitizeParamsForTab(params, tab);
-
-        if (tab === "project") {
-            params.delete("tab");
-        } else {
-            params.set("tab", tab);
-        }
-
+    const navigateWithTab = useCallback((tab: TabKey) => {
+        const params = buildCanonicalParams(searchParams, tab);
         const qs = params.toString();
         router.replace(qs ? `${pathname}?${qs}` : pathname);
-    };
+    }, [pathname, router, searchParams]);
+
+    useEffect(() => {
+        const current = searchParams.toString();
+        const canonical = buildCanonicalParams(searchParams, active).toString();
+        if (current !== canonical) {
+            router.replace(canonical ? `${pathname}?${canonical}` : pathname);
+        }
+    }, [active, pathname, router, searchParams]);
 
     return (
         <div className="w-full">
@@ -77,7 +90,7 @@ export default function DashboardTabs() {
                             <button
                                 key={t.key}
                                 type="button"
-                                onClick={() => handleTabChange(t.key)}
+                                onClick={() => navigateWithTab(t.key)}
                                 aria-pressed={isActive}
                                 className={[
                                     "relative rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
