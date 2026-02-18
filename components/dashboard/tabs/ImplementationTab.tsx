@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 
@@ -53,7 +53,8 @@ export default function ImplementationTab() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const perPage = 20;
-    const pageParam = Number(searchParams.get("implPage") ?? 1);
+    const rawPageParam = searchParams.get("implPage");
+    const pageParam = Number(rawPageParam ?? 1);
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
@@ -63,7 +64,7 @@ export default function ImplementationTab() {
         setReloadKey((key) => key + 1);
     }
 
-    function updatePage(nextPage: number) {
+    const updatePage = useCallback((nextPage: number) => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (nextPage <= 1) {
@@ -74,7 +75,14 @@ export default function ImplementationTab() {
 
         const qs = params.toString();
         router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }
+    }, [pathname, router, searchParams]);
+
+    useEffect(() => {
+        if (rawPageParam === null) return;
+        if (page <= 1 || rawPageParam !== String(page)) {
+            updatePage(page);
+        }
+    }, [rawPageParam, page, updatePage]);
 
     useEffect(() => {
         let cancelled = false;
@@ -103,9 +111,17 @@ export default function ImplementationTab() {
         return Math.max(1, Math.ceil((statusDelivery.data.totalDatas ?? 0) / perPage));
     }, [statusDelivery]);
 
+    useEffect(() => {
+        if (statusDelivery.state !== "success") return;
+        if (page > totalPages) {
+            updatePage(totalPages);
+        }
+    }, [statusDelivery.state, page, totalPages, updatePage]);
+
     const statusSummary = useMemo(() => {
         if (statusDelivery.state !== "success") return null;
         const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const rows = statusDelivery.data.data;
 
         let upcoming = 0;
@@ -116,8 +132,8 @@ export default function ImplementationTab() {
             const arrival = parseDate(row.tgl_perkiraan_tiba);
             const departure = parseDate(row.tgl_perkiraan_keluar);
             if (arrival) {
-                if (arrival >= today) upcoming += 1;
-                if (arrival < today) overdue += 1;
+                if (arrival >= startOfToday) upcoming += 1;
+                if (arrival < startOfToday) overdue += 1;
             }
             if (departure) scheduledDepartures += 1;
         }

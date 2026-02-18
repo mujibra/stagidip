@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
@@ -86,7 +86,8 @@ export default function PurchaseOrderTab() {
     const searchParams = useSearchParams();
     const now = new Date();
     const nowYear = now.getFullYear();
-    const yearParam = Number(searchParams.get("poYear") ?? nowYear);
+    const rawYearParam = searchParams.get("poYear");
+    const yearParam = Number(rawYearParam ?? nowYear);
     const year = Number.isFinite(yearParam) && yearParam >= nowYear - 5 && yearParam <= nowYear ? yearParam : nowYear;
 
     const warehouseUrl = "/api/getDataMesinPerWarehouse";
@@ -107,7 +108,7 @@ export default function PurchaseOrderTab() {
         setReloadKey((v) => v + 1);
     }
 
-    function updateYear(nextYear: number) {
+    const updateYear = useCallback((nextYear: number) => {
         const params = new URLSearchParams(searchParams.toString());
         if (nextYear === nowYear) {
             params.delete("poYear");
@@ -117,7 +118,14 @@ export default function PurchaseOrderTab() {
 
         const qs = params.toString();
         router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }
+    }, [nowYear, pathname, router, searchParams]);
+
+    useEffect(() => {
+        if (rawYearParam === null) return;
+        if (year === nowYear || rawYearParam !== String(year)) {
+            updateYear(year);
+        }
+    }, [rawYearParam, year, nowYear, updateYear]);
 
     useEffect(() => {
         let cancelled = false;

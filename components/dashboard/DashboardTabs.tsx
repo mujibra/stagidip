@@ -13,6 +13,23 @@ type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
 const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implementation"];
 
+const TAB_SCOPED_PARAMS: Record<TabKey, string[]> = {
+    project: ["year", "month"],
+    purchaseOrder: ["poYear"],
+    customer: [],
+    implementation: ["implPage"],
+};
+
+function sanitizeParamsForTab(params: URLSearchParams, tab: TabKey) {
+    const allowed = new Set(["tab", ...TAB_SCOPED_PARAMS[tab]]);
+
+    for (const key of Array.from(params.keys())) {
+        if (!allowed.has(key)) {
+            params.delete(key);
+        }
+    }
+}
+
 function getActiveTab(rawTab: string | null): TabKey {
     if (!rawTab) return "project";
     return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
@@ -38,6 +55,7 @@ export default function DashboardTabs() {
 
     const handleTabChange = (tab: TabKey) => {
         const params = new URLSearchParams(searchParams.toString());
+        sanitizeParamsForTab(params, tab);
 
         if (tab === "project") {
             params.delete("tab");
