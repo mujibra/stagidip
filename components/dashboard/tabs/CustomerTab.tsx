@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 
 type Loadable<T> =
@@ -44,6 +45,20 @@ type MesinPerBulanResponse = {
     data: MesinPerBulanRow[];
 };
 
+const DEFAULT_CUSTOMER_LIMIT = 8;
+const CUSTOMER_LIMIT_OPTIONS = [5, 8, 10, 15] as const;
+
+function resolveCustomerLimit(raw: string | null) {
+    const parsed = Number(raw ?? DEFAULT_CUSTOMER_LIMIT);
+    if (!Number.isFinite(parsed)) return DEFAULT_CUSTOMER_LIMIT;
+    const next = Math.floor(parsed);
+    return CUSTOMER_LIMIT_OPTIONS.includes(next as (typeof CUSTOMER_LIMIT_OPTIONS)[number]) ? next : DEFAULT_CUSTOMER_LIMIT;
+}
+
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -83,6 +98,11 @@ function getSummaryError(
 }
 
 export default function CustomerTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const rawCustomerLimit = searchParams.get("customerLimit");
+    const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
@@ -145,6 +165,26 @@ export default function CustomerTab() {
 
     const handleRetry = () => setReloadKey((key) => key + 1);
 
+    const updateCustomerLimit = useCallback((nextLimit: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (nextLimit === DEFAULT_CUSTOMER_LIMIT) {
+            params.delete("customerLimit");
+        } else {
+            params.set("customerLimit", String(nextLimit));
+        }
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [pathname, router, searchParams]);
+
+    useEffect(() => {
+        if (rawCustomerLimit === null) return;
+
+        const canonical = customerLimit === DEFAULT_CUSTOMER_LIMIT ? null : String(customerLimit);
+        if (rawCustomerLimit !== canonical) {
+            updateCustomerLimit(customerLimit);
+        }
+    }, [customerLimit, rawCustomerLimit, updateCustomerLimit]);
+
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
 
@@ -172,8 +212,8 @@ export default function CustomerTab() {
         return Array.from(totals.entries())
             .map(([bank, total]) => ({ bank, total }))
             .sort((a, b) => b.total - a.total)
-            .slice(0, 8);
-    }, [mesinPerBulan]);
+            .slice(0, customerLimit);
+    }, [customerLimit, mesinPerBulan]);
 
     return (
         <div className="space-y-4">
@@ -192,19 +232,19 @@ export default function CustomerTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Customers</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                                    {customerSummary ? formatNumber(customerSummary.totalCustomers) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Customers with PO</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                                    {customerSummary ? formatNumber(customerSummary.customersWithPo) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
+                                    {customerSummary ? formatNumber(customerSummary.totalMachines) : "—"}
                                 </div>
                             </div>
                         </div>
@@ -213,9 +253,28 @@ export default function CustomerTab() {
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Top Customers by Mesin (6 months)</div>
-                    <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs text-zinc-500">Show</label>
+                        <select
+                            value={customerLimit}
+                            onChange={(e) => updateCustomerLimit(Number(e.target.value))}
+                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                        >
+                            {CUSTOMER_LIMIT_OPTIONS.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={handleRetry}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Refresh
+                        </button>
+                        <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
+                    </div>
                 </div>
 
                 <div className="mt-3">
@@ -238,7 +297,7 @@ export default function CustomerTab() {
                                     {topBanks.map((row) => (
                                         <tr key={row.bank} className="border-t border-zinc-200 dark:border-zinc-800">
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.total.toLocaleString()}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
