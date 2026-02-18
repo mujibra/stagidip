@@ -53,6 +53,10 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 function toNumber(v: unknown): number {
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
     if (typeof v === "bigint") return Number(v);
@@ -223,7 +227,7 @@ export default function PurchaseOrderTab() {
                 <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                     <div className="text-xs text-zinc-500">Total Mesin (All Warehouses)</div>
                     <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totalWarehouseMachines === null ? "—" : totalWarehouseMachines.toLocaleString()}
+                        {totalWarehouseMachines === null ? "—" : formatNumber(totalWarehouseMachines)}
                     </div>
                 </div>
 
@@ -278,7 +282,7 @@ export default function PurchaseOrderTab() {
                                                 return (
                                                     <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
                                                         <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
-                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
+                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(toNumber(r.jumlah))}</td>
                                                         <td className="px-3 py-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
@@ -338,7 +342,7 @@ export default function PurchaseOrderTab() {
                                                 </td>
                                                 <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
                                                 <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
-                                                    {Number(r.total_mesin_per_customer ?? 0).toLocaleString()}
+                                                    {formatNumber(toNumber(r.total_mesin_per_customer))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -368,19 +372,19 @@ export default function PurchaseOrderTab() {
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Total PO</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.totalOrders.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatNumber(purchaseOrderSummary.totalOrders) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.totalMachines.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatNumber(purchaseOrderSummary.totalMachines) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Customers with PO</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.uniqueCustomers.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatNumber(purchaseOrderSummary.uniqueCustomers) : "—"}
                                 </div>
                             </div>
                         </div>

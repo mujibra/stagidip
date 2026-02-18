@@ -38,6 +38,10 @@ function parseDate(value: string | null): Date | null {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 function formatDate(value: string | null) {
     const parsed = parseDate(value);
     if (!parsed) return "—";
@@ -163,25 +167,25 @@ export default function ImplementationTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Delivery Records</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                                    {statusSummary ? formatNumber(statusSummary.total) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
+                                    {statusSummary ? formatNumber(statusSummary.upcoming) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Overdue Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
+                                    {statusSummary ? formatNumber(statusSummary.overdue) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Scheduled Departures</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
+                                    {statusSummary ? formatNumber(statusSummary.scheduledDepartures) : "—"}
                                 </div>
                             </div>
                         </div>

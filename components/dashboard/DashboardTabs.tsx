@@ -16,7 +16,7 @@ const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implement
 const TAB_SCOPED_PARAMS: Record<TabKey, string[]> = {
     project: ["year", "month"],
     purchaseOrder: ["poYear"],
-    customer: [],
+    customer: ["customerLimit"],
     implementation: ["implPage"],
 };
 
