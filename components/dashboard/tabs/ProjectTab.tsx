@@ -68,8 +68,10 @@ export default function ProjectTab() {
     const nowYear = now.getFullYear();
     const nowMonth = now.getMonth() + 1;
 
-    const year = resolveYear(searchParams.get("year"), nowYear);
-    const month = resolveMonth(searchParams.get("month"), nowMonth);
+    const rawYearParam = searchParams.get("year");
+    const rawMonthParam = searchParams.get("month");
+    const year = resolveYear(rawYearParam, nowYear);
+    const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
 
     const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
@@ -96,6 +98,26 @@ export default function ProjectTab() {
     const load = useCallback(() => {
         setReloadKey((current) => current + 1);
     }, []);
+
+    useEffect(() => {
+        if (rawYearParam === null && rawMonthParam === null) return;
+
+        const canonicalYear = year === nowYear ? null : String(year);
+        const canonicalMonth = month === nowMonth ? null : pad2(month);
+
+        if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
+
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (canonicalYear === null) params.delete("year");
+        else params.set("year", canonicalYear);
+
+        if (canonicalMonth === null) params.delete("month");
+        else params.set("month", canonicalMonth);
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [month, nowMonth, nowYear, pathname, rawMonthParam, rawYearParam, router, searchParams, year]);
 
     useEffect(() => {
         let cancelled = false;
