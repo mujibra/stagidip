@@ -158,6 +158,13 @@ export default function ImplementationTab() {
         }
     }, [statusDelivery.state, page, totalPages, updatePage]);
 
+    useEffect(() => {
+        if (statusDelivery.state !== "success") return;
+        if (page > totalPages) {
+            updatePage(totalPages);
+        }
+    }, [statusDelivery.state, page, totalPages, updatePage]);
+
     const statusSummary = useMemo(() => {
         if (statusDelivery.state !== "success") return null;
         const today = new Date();
