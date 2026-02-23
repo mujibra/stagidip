@@ -201,19 +201,33 @@ export default function CustomerTab() {
         };
     }, [customers, purchaseOrders]);
 
-    const topBanks = useMemo(() => {
-        if (mesinPerBulan.state !== "success") return [];
+    const topBankStats = useMemo(() => {
+        if (mesinPerBulan.state !== "success") {
+            return { rows: [] as { bank: string; total: number }[], totalCustomers: 0, totalMesin: 0 };
+        }
+
         const totals = new Map<string, number>();
 
         for (const row of mesinPerBulan.data.data) {
             totals.set(row.bank, (totals.get(row.bank) ?? 0) + toNumber(row.total_mesin));
         }
 
-        return Array.from(totals.entries())
+        const allRows = Array.from(totals.entries())
             .map(([bank, total]) => ({ bank, total }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, customerLimit);
+            .sort((a, b) => {
+                if (b.total !== a.total) return b.total - a.total;
+                return a.bank.localeCompare(b.bank, "id-ID");
+            });
+
+        return {
+            rows: allRows.slice(0, customerLimit),
+            totalCustomers: allRows.length,
+            totalMesin: allRows.reduce((acc, row) => acc + row.total, 0),
+        };
     }, [customerLimit, mesinPerBulan]);
+
+    const topBanks = topBankStats.rows;
+    const uniqueTopCustomerCount = topBankStats.totalCustomers;
 
     return (
         <div className="space-y-4">
@@ -277,27 +291,41 @@ export default function CustomerTab() {
                     </div>
                 </div>
 
+                <div className="mt-2 text-xs text-zinc-500">
+                    Showing top {customerLimit} of {formatNumber(uniqueTopCustomerCount)} customers
+                </div>
+
                 <div className="mt-3">
                     <DataState
                         state={mesinPerBulan.state}
                         errorMessage={mesinPerBulan.state === "error" ? mesinPerBulan.message : undefined}
                         empty={mesinPerBulan.state === "success" && topBanks.length === 0}
-                        emptyMessage="No mesin totals found for the last 6 months."
+                        emptyMessage={`No mesin totals found for the last 6 months (top ${customerLimit}).`}
                         onRetry={handleRetry}
                     >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[520px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                                     <tr>
+                                        <th className="px-3 py-2">Rank</th>
                                         <th className="px-3 py-2">Customer</th>
                                         <th className="px-3 py-2">Total Mesin</th>
+                                        <th className="px-3 py-2">Share</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {topBanks.map((row) => (
+                                    {topBanks.map((row, idx) => (
                                         <tr key={row.bank} className="border-t border-zinc-200 dark:border-zinc-800">
+                                            <td className="px-3 py-2">
+                                                <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
+                                                    #{idx + 1}
+                                                </span>
+                                            </td>
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
                                             <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                                                {topBankStats.totalMesin > 0 ? `${((row.total / topBankStats.totalMesin) * 100).toFixed(1)}%` : "0.0%"}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
