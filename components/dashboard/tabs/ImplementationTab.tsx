@@ -26,6 +26,18 @@ type StatusDeliveryResponse = {
     data: StatusDeliveryRow[];
 };
 
+const DEFAULT_IMPL_PAGE_SIZE = 20;
+const IMPLEMENTATION_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
+function resolveImplPageSize(raw: string | null) {
+    const parsed = Number(raw ?? DEFAULT_IMPL_PAGE_SIZE);
+    if (!Number.isFinite(parsed)) return DEFAULT_IMPL_PAGE_SIZE;
+    const value = Math.floor(parsed);
+    return IMPLEMENTATION_PAGE_SIZE_OPTIONS.includes(value as (typeof IMPLEMENTATION_PAGE_SIZE_OPTIONS)[number])
+        ? value
+        : DEFAULT_IMPL_PAGE_SIZE;
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -56,7 +68,8 @@ export default function ImplementationTab() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const perPage = 20;
+    const rawPageSizeParam = searchParams.get("implPageSize");
+    const perPage = resolveImplPageSize(rawPageSizeParam);
     const rawPageParam = searchParams.get("implPage");
     const pageParam = Number(rawPageParam ?? 1);
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
@@ -81,12 +94,35 @@ export default function ImplementationTab() {
         router.replace(qs ? `${pathname}?${qs}` : pathname);
     }, [pathname, router, searchParams]);
 
+    const updatePageSize = useCallback((nextPageSize: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (nextPageSize === DEFAULT_IMPL_PAGE_SIZE) {
+            params.delete("implPageSize");
+        } else {
+            params.set("implPageSize", String(nextPageSize));
+        }
+
+        params.delete("implPage");
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [pathname, router, searchParams]);
+
     useEffect(() => {
         if (rawPageParam === null) return;
         if (page <= 1 || rawPageParam !== String(page)) {
             updatePage(page);
         }
     }, [rawPageParam, page, updatePage]);
+
+    useEffect(() => {
+        if (rawPageSizeParam === null) return;
+        const canonical = perPage === DEFAULT_IMPL_PAGE_SIZE ? null : String(perPage);
+        if (rawPageSizeParam !== canonical) {
+            updatePageSize(perPage);
+        }
+    }, [perPage, rawPageSizeParam, updatePageSize]);
 
     useEffect(() => {
         let cancelled = false;
@@ -113,7 +149,7 @@ export default function ImplementationTab() {
     const totalPages = useMemo(() => {
         if (statusDelivery.state !== "success") return 1;
         return Math.max(1, Math.ceil((statusDelivery.data.totalDatas ?? 0) / perPage));
-    }, [statusDelivery]);
+    }, [perPage, statusDelivery]);
 
     useEffect(() => {
         if (statusDelivery.state !== "success") return;
@@ -200,8 +236,23 @@ export default function ImplementationTab() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                    <div className="text-xs text-zinc-500">
-                        Page {page} of {totalPages}
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span>Page {page} of {totalPages}</span>
+                        <span>•</span>
+                        <label htmlFor="impl-page-size">Rows</label>
+                        <select
+                            id="impl-page-size"
+                            value={perPage}
+                            onChange={(e) => {
+                                setStatusDelivery({ state: "loading" });
+                                updatePageSize(Number(e.target.value));
+                            }}
+                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                        >
+                            {IMPLEMENTATION_PAGE_SIZE_OPTIONS.map((size) => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex items-center gap-2">
                         <button

@@ -17,7 +17,7 @@ const TAB_SCOPED_PARAMS: Record<TabKey, string[]> = {
     project: ["year", "month"],
     purchaseOrder: ["poYear"],
     customer: ["customerLimit"],
-    implementation: ["implPage"],
+    implementation: ["implPage", "implPageSize"],
 };
 
 function sanitizeParamsForTab(params: URLSearchParams, tab: TabKey) {
