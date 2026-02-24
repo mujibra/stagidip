@@ -107,6 +107,7 @@ export default function PurchaseOrderTab() {
         state: "idle",
     });
     const [reloadKey, setReloadKey] = useState(0);
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
     function retryLoad() {
         setReloadKey((v) => v + 1);
@@ -130,6 +131,18 @@ export default function PurchaseOrderTab() {
             updateYear(year);
         }
     }, [rawYearParam, year, nowYear, updateYear]);
+
+    async function handleCopyViewLink() {
+        try {
+            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            await navigator.clipboard.writeText(url);
+            setCopyFeedback("View link copied");
+        } catch {
+            setCopyFeedback("Failed to copy link");
+        }
+
+        window.setTimeout(() => setCopyFeedback(null), 1800);
+    }
 
     useEffect(() => {
         let cancelled = false;
@@ -219,8 +232,26 @@ export default function PurchaseOrderTab() {
                             );
                         })}
                     </select>
+                    <button
+                        type="button"
+                        onClick={() => updateYear(nowYear)}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Reset year
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleCopyViewLink}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Copy view link
+                    </button>
                 </div>
             </div>
+
+            {copyFeedback && (
+                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</div>
+            )}
 
             {/* KPI Row */}
             <div className="grid gap-3 md:grid-cols-3">

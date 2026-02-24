@@ -73,6 +73,7 @@ export default function ProjectTab() {
     const year = resolveYear(rawYearParam, nowYear);
     const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
     const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
     const projectUrl = `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`;
@@ -98,6 +99,38 @@ export default function ProjectTab() {
     const load = useCallback(() => {
         setReloadKey((current) => current + 1);
     }, []);
+
+    async function handleCopyViewLink() {
+        try {
+            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            await navigator.clipboard.writeText(url);
+            setCopyFeedback("View link copied");
+        } catch {
+            setCopyFeedback("Failed to copy link");
+        }
+
+        window.setTimeout(() => setCopyFeedback(null), 1800);
+    }
+
+    useEffect(() => {
+        if (rawYearParam === null && rawMonthParam === null) return;
+
+        const canonicalYear = year === nowYear ? null : String(year);
+        const canonicalMonth = month === nowMonth ? null : pad2(month);
+
+        if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
+
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (canonicalYear === null) params.delete("year");
+        else params.set("year", canonicalYear);
+
+        if (canonicalMonth === null) params.delete("month");
+        else params.set("month", canonicalMonth);
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [month, nowMonth, nowYear, pathname, rawMonthParam, rawYearParam, router, searchParams, year]);
 
     useEffect(() => {
         if (rawYearParam === null && rawMonthParam === null) return;
@@ -219,13 +252,31 @@ export default function ProjectTab() {
 
                     <button
                         type="button"
+                        onClick={() => updateDateParams({ year: nowYear, month: nowMonth })}
+                        className="ml-2 h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Reset period
+                    </button>
+                    <button
+                        type="button"
                         onClick={load}
-                        className="ml-2 h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                        className="h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
                         Refresh
                     </button>
+                    <button
+                        type="button"
+                        onClick={handleCopyViewLink}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Copy view link
+                    </button>
                 </div>
             </div>
+
+            {copyFeedback && (
+                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</div>
+            )}
 
             <DataState
                 state={summaryState}
