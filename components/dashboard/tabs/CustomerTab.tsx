@@ -104,6 +104,7 @@ export default function CustomerTab() {
     const rawCustomerLimit = searchParams.get("customerLimit");
     const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
     const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
@@ -184,6 +185,18 @@ export default function CustomerTab() {
             updateCustomerLimit(customerLimit);
         }
     }, [customerLimit, rawCustomerLimit, updateCustomerLimit]);
+
+    async function handleCopyViewLink() {
+        try {
+            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            await navigator.clipboard.writeText(url);
+            setCopyFeedback("View link copied");
+        } catch {
+            setCopyFeedback("Failed to copy link");
+        }
+
+        window.setTimeout(() => setCopyFeedback(null), 1800);
+    }
 
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
@@ -287,12 +300,20 @@ export default function CustomerTab() {
                         >
                             Refresh
                         </button>
+                        <button
+                            type="button"
+                            onClick={handleCopyViewLink}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Copy view link
+                        </button>
                         <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
                     </div>
                 </div>
 
-                <div className="mt-2 text-xs text-zinc-500">
-                    Showing top {customerLimit} of {formatNumber(uniqueTopCustomerCount)} customers
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                    <span>Showing top {customerLimit} of {formatNumber(uniqueTopCustomerCount)} customers</span>
+                    {copyFeedback && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</span>}
                 </div>
 
                 <div className="mt-3">
