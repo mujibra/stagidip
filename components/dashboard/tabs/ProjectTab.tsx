@@ -133,6 +133,26 @@ export default function ProjectTab() {
     }, [month, nowMonth, nowYear, pathname, rawMonthParam, rawYearParam, router, searchParams, year]);
 
     useEffect(() => {
+        if (rawYearParam === null && rawMonthParam === null) return;
+
+        const canonicalYear = year === nowYear ? null : String(year);
+        const canonicalMonth = month === nowMonth ? null : pad2(month);
+
+        if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
+
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (canonicalYear === null) params.delete("year");
+        else params.set("year", canonicalYear);
+
+        if (canonicalMonth === null) params.delete("month");
+        else params.set("month", canonicalMonth);
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }, [month, nowMonth, nowYear, pathname, rawMonthParam, rawYearParam, router, searchParams, year]);
+
+    useEffect(() => {
         let cancelled = false;
 
         async function fetchData() {
