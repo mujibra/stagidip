@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -8,15 +8,8 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
-
-type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
-
-const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implementation"];
-
-function getActiveTab(rawTab: string | null): TabKey {
-    if (!rawTab) return "project";
-    return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
-}
+import { replaceCanonicalHrefIfChanged } from "@/components/dashboard/queryParams";
+import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
 export default function DashboardTabs() {
     const router = useRouter();
@@ -36,18 +29,15 @@ export default function DashboardTabs() {
 
     const active = useMemo<TabKey>(() => getActiveTab(searchParams.get("tab")), [searchParams]);
 
-    const handleTabChange = (tab: TabKey) => {
-        const params = new URLSearchParams(searchParams.toString());
+    const navigateWithTab = useCallback((tab: TabKey) => {
+        const params = buildCanonicalParams(searchParams, tab);
+        replaceCanonicalHrefIfChanged(pathname, searchParams, params, router);
+    }, [pathname, router, searchParams]);
 
-        if (tab === "project") {
-            params.delete("tab");
-        } else {
-            params.set("tab", tab);
-        }
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    };
+    useEffect(() => {
+        const canonical = buildCanonicalParams(searchParams, active);
+        replaceCanonicalHrefIfChanged(pathname, searchParams, canonical, router);
+    }, [active, pathname, router, searchParams]);
 
     return (
         <div className="w-full">
@@ -59,7 +49,7 @@ export default function DashboardTabs() {
                             <button
                                 key={t.key}
                                 type="button"
-                                onClick={() => handleTabChange(t.key)}
+                                onClick={() => navigateWithTab(t.key)}
                                 aria-pressed={isActive}
                                 className={[
                                     "relative rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
