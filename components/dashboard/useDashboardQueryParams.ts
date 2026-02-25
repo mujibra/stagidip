@@ -1,14 +1,18 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 import { replaceCanonicalHrefIfChanged, type RouterReplaceLike, type SearchParamsLike } from "@/components/dashboard/queryParams";
 
 export default function useDashboardQueryParams(pathname: string, searchParams: SearchParamsLike, router: RouterReplaceLike) {
-    return useCallback((mutate: (params: URLSearchParams) => void) => {
-        const params = new URLSearchParams(searchParams.toString());
-        mutate(params);
+    const searchParamsKey = useMemo(() => searchParams.toString(), [searchParams]);
 
-        replaceCanonicalHrefIfChanged(pathname, searchParams, params, router);
-    }, [pathname, router, searchParams]);
+    return useCallback((mutate: (params: URLSearchParams) => void) => {
+        const currentParams = new URLSearchParams(searchParamsKey);
+        const nextParams = new URLSearchParams(searchParamsKey);
+
+        mutate(nextParams);
+
+        replaceCanonicalHrefIfChanged(pathname, currentParams, nextParams, router);
+    }, [pathname, router, searchParamsKey]);
 }

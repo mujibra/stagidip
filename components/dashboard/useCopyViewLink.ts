@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { canonicalHrefFromSearchParams, type SearchParamsLike } from "@/components/dashboard/queryParams";
+import { buildCanonicalHref, type SearchParamsLike } from "@/components/dashboard/queryParams";
 
 type CopyFeedbackState = {
     message: string;
@@ -78,6 +78,12 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
     const isMountedRef = useRef(true);
     const clearFeedbackTimeoutRef = useRef<number | null>(null);
 
+    const searchParamsKey = useMemo(() => searchParams.toString(), [searchParams]);
+    const canonicalHref = useMemo(
+        () => buildCanonicalHref(pathname, new URLSearchParams(searchParamsKey)),
+        [pathname, searchParamsKey]
+    );
+
     const setFeedbackSafely = useCallback((next: CopyFeedbackState) => {
         if (!isMountedRef.current) return;
         setCopyFeedback(next);
@@ -95,8 +101,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         setCopyingSafely(true);
 
         try {
-            const href = canonicalHrefFromSearchParams(pathname, searchParams);
-            const url = `${window.location.origin}${href}`;
+            const url = `${window.location.origin}${canonicalHref}`;
             await writeToClipboard(url);
             setFeedbackSafely({ message: "View link copied", type: "success" });
         } catch {
@@ -115,8 +120,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
             isCopyingRef.current = false;
             setCopyingSafely(false);
         }
-    }, [pathname, searchParams, setCopyingSafely, setFeedbackSafely]);
-
+    }, [canonicalHref, setCopyingSafely, setFeedbackSafely]);
 
     useEffect(() => {
         if (clearFeedbackTimeoutRef.current !== null) {
@@ -127,7 +131,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         isCopyingRef.current = false;
         setCopyingSafely(false);
         setFeedbackSafely(null);
-    }, [pathname, searchParams, setCopyingSafely, setFeedbackSafely]);
+    }, [canonicalHref, setCopyingSafely, setFeedbackSafely]);
 
     useEffect(() => {
         return () => {
