@@ -16,7 +16,7 @@ export function buildCanonicalHref(pathname: string, params: URLSearchParams) {
 }
 
 
-type SearchParamsLike = {
+export type SearchParamsLike = {
     toString(): string;
 };
 

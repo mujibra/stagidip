@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { canonicalHrefFromSearchParams } from "@/components/dashboard/queryParams";
-
-type SearchParamsLike = {
-    toString(): string;
-};
+import { canonicalHrefFromSearchParams, type SearchParamsLike } from "@/components/dashboard/queryParams";
 
 type CopyFeedbackState = {
     message: string;

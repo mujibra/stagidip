@@ -2,11 +2,7 @@
 
 import { useCallback } from "react";
 
-import { buildCanonicalHref, canonicalHrefFromSearchParams } from "@/components/dashboard/queryParams";
-
-type SearchParamsLike = {
-    toString(): string;
-};
+import { buildCanonicalHref, canonicalHrefFromSearchParams, type SearchParamsLike } from "@/components/dashboard/queryParams";
 
 type RouterLike = {
     replace(href: string): void;
