@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -26,6 +29,18 @@ type StatusDeliveryResponse = {
     data: StatusDeliveryRow[];
 };
 
+const DEFAULT_IMPL_PAGE_SIZE = 20;
+const IMPLEMENTATION_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
+function resolveImplPageSize(raw: string | null) {
+    const parsed = Number(raw ?? DEFAULT_IMPL_PAGE_SIZE);
+    if (!Number.isFinite(parsed)) return DEFAULT_IMPL_PAGE_SIZE;
+    const value = Math.floor(parsed);
+    return IMPLEMENTATION_PAGE_SIZE_OPTIONS.includes(value as (typeof IMPLEMENTATION_PAGE_SIZE_OPTIONS)[number])
+        ? value
+        : DEFAULT_IMPL_PAGE_SIZE;
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -36,6 +51,10 @@ function parseDate(value: string | null): Date | null {
     if (!value) return null;
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
 }
 
 function formatDate(value: string | null) {
@@ -52,11 +71,14 @@ export default function ImplementationTab() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const perPage = 20;
+    const rawPageSizeParam = searchParams.get("implPageSize");
+    const perPage = resolveImplPageSize(rawPageSizeParam);
     const rawPageParam = searchParams.get("implPage");
     const pageParam = Number(rawPageParam ?? 1);
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
 
     function retryLoad() {
@@ -64,18 +86,36 @@ export default function ImplementationTab() {
         setReloadKey((key) => key + 1);
     }
 
+
     const updatePage = useCallback((nextPage: number) => {
-        const params = new URLSearchParams(searchParams.toString());
+        updateQueryParams((params) => {
+            if (nextPage <= 1) {
+                params.delete("implPage");
+            } else {
+                params.set("implPage", String(nextPage));
+            }
+        });
+    }, [updateQueryParams]);
 
-        if (nextPage <= 1) {
+    const updatePageSize = useCallback((nextPageSize: number) => {
+        updateQueryParams((params) => {
+            if (nextPageSize === DEFAULT_IMPL_PAGE_SIZE) {
+                params.delete("implPageSize");
+            } else {
+                params.set("implPageSize", String(nextPageSize));
+            }
+
             params.delete("implPage");
-        } else {
-            params.set("implPage", String(nextPage));
-        }
+        });
+    }, [updateQueryParams]);
 
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [pathname, router, searchParams]);
+    function resetView() {
+        updateQueryParams((params) => {
+            params.delete("implPage");
+            params.delete("implPageSize");
+        });
+        setStatusDelivery({ state: "loading" });
+    }
 
     useEffect(() => {
         if (rawPageParam === null) return;
@@ -83,6 +123,14 @@ export default function ImplementationTab() {
             updatePage(page);
         }
     }, [rawPageParam, page, updatePage]);
+
+    useEffect(() => {
+        if (rawPageSizeParam === null) return;
+        const canonical = perPage === DEFAULT_IMPL_PAGE_SIZE ? null : String(perPage);
+        if (rawPageSizeParam !== canonical) {
+            updatePageSize(perPage);
+        }
+    }, [perPage, rawPageSizeParam, updatePageSize]);
 
     useEffect(() => {
         let cancelled = false;
@@ -109,7 +157,7 @@ export default function ImplementationTab() {
     const totalPages = useMemo(() => {
         if (statusDelivery.state !== "success") return 1;
         return Math.max(1, Math.ceil((statusDelivery.data.totalDatas ?? 0) / perPage));
-    }, [statusDelivery]);
+    }, [perPage, statusDelivery]);
 
     useEffect(() => {
         if (statusDelivery.state !== "success") return;
@@ -163,25 +211,25 @@ export default function ImplementationTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Delivery Records</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.total) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.upcoming) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Overdue Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.overdue) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Scheduled Departures</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.scheduledDepartures) : "—"}
                                 </div>
                             </div>
                         </div>
@@ -196,8 +244,23 @@ export default function ImplementationTab() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                    <div className="text-xs text-zinc-500">
-                        Page {page} of {totalPages}
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span>Page {page} of {totalPages}</span>
+                        <span>•</span>
+                        <label htmlFor="impl-page-size">Rows</label>
+                        <select
+                            id="impl-page-size"
+                            value={perPage}
+                            onChange={(e) => {
+                                setStatusDelivery({ state: "loading" });
+                                updatePageSize(Number(e.target.value));
+                            }}
+                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                        >
+                            {IMPLEMENTATION_PAGE_SIZE_OPTIONS.map((size) => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -230,8 +293,32 @@ export default function ImplementationTab() {
                         >
                             Refresh
                         </button>
+                        <button
+                            type="button"
+                            onClick={resetView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Reset view
+                        </button>
+                        <button
+                            type="button"
+                            onClick={copyViewLink}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Copy view link
+                        </button>
                     </div>
                 </div>
+
+                {copyFeedback && (
+                    <div
+                        className={`mt-2 text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {copyFeedback.message}
+                    </div>
+                )}
 
                 <div className="mt-3">
                     <DataState

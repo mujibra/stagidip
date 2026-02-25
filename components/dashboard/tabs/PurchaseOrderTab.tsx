@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -51,6 +54,10 @@ async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
     return (await res.json()) as T;
+}
+
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
 }
 
 function toNumber(v: unknown): number {
@@ -103,22 +110,22 @@ export default function PurchaseOrderTab() {
         state: "idle",
     });
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     function retryLoad() {
         setReloadKey((v) => v + 1);
     }
 
     const updateYear = useCallback((nextYear: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (nextYear === nowYear) {
-            params.delete("poYear");
-        } else {
-            params.set("poYear", String(nextYear));
-        }
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [nowYear, pathname, router, searchParams]);
+        updateQueryParams((params) => {
+            if (nextYear === nowYear) {
+                params.delete("poYear");
+            } else {
+                params.set("poYear", String(nextYear));
+            }
+        });
+    }, [nowYear, updateQueryParams]);
 
     useEffect(() => {
         if (rawYearParam === null) return;
@@ -126,6 +133,7 @@ export default function PurchaseOrderTab() {
             updateYear(year);
         }
     }, [rawYearParam, year, nowYear, updateYear]);
+
 
     useEffect(() => {
         let cancelled = false;
@@ -215,15 +223,39 @@ export default function PurchaseOrderTab() {
                             );
                         })}
                     </select>
+                    <button
+                        type="button"
+                        onClick={() => updateYear(nowYear)}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Reset year
+                    </button>
+                    <button
+                        type="button"
+                        onClick={copyViewLink}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Copy view link
+                    </button>
                 </div>
             </div>
+
+            {copyFeedback && (
+                <div
+                    className={`text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                    role="status"
+                    aria-live="polite"
+                >
+                    {copyFeedback.message}
+                </div>
+            )}
 
             {/* KPI Row */}
             <div className="grid gap-3 md:grid-cols-3">
                 <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                     <div className="text-xs text-zinc-500">Total Mesin (All Warehouses)</div>
                     <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totalWarehouseMachines === null ? "—" : totalWarehouseMachines.toLocaleString()}
+                        {totalWarehouseMachines === null ? "—" : formatDashboardNumber(totalWarehouseMachines)}
                     </div>
                 </div>
 
@@ -278,7 +310,7 @@ export default function PurchaseOrderTab() {
                                                 return (
                                                     <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
                                                         <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
-                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
+                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(toNumber(r.jumlah))}</td>
                                                         <td className="px-3 py-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
@@ -338,7 +370,7 @@ export default function PurchaseOrderTab() {
                                                 </td>
                                                 <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
                                                 <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
-                                                    {Number(r.total_mesin_per_customer ?? 0).toLocaleString()}
+                                                    {formatDashboardNumber(toNumber(r.total_mesin_per_customer))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -368,19 +400,19 @@ export default function PurchaseOrderTab() {
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Total PO</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.totalOrders.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.totalOrders) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.totalMachines.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.totalMachines) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                                 <div className="text-xs text-zinc-500">Customers with PO</div>
                                 <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {purchaseOrderSummary ? purchaseOrderSummary.uniqueCustomers.toLocaleString() : "—"}
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.uniqueCustomers) : "—"}
                                 </div>
                             </div>
                         </div>

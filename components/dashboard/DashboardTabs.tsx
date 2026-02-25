@@ -8,6 +8,7 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
+import { sortSearchParams } from "@/components/dashboard/queryParams";
 
 type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
@@ -16,8 +17,8 @@ const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implement
 const TAB_SCOPED_PARAMS: Record<TabKey, string[]> = {
     project: ["year", "month"],
     purchaseOrder: ["poYear"],
-    customer: [],
-    implementation: ["implPage"],
+    customer: ["customerLimit"],
+    implementation: ["implPage", "implPageSize"],
 };
 
 function sanitizeParamsForTab(params: URLSearchParams, tab: TabKey) {
@@ -45,7 +46,7 @@ function buildCanonicalParams(source: URLSearchParams, tab: TabKey) {
         params.set("tab", tab);
     }
 
-    return params;
+    return sortSearchParams(params);
 }
 
 export default function DashboardTabs() {
