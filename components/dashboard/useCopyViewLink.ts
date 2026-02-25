@@ -9,19 +9,49 @@ type CopyFeedbackState = {
     type: "success" | "error";
 } | null;
 
+const COPY_FEEDBACK_TIMEOUT_MS = 1800;
+
 function fallbackCopyToClipboard(text: string) {
     const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.left = "-9999px";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    textarea.setSelectionRange(0, textarea.value.length);
+    const previousActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const selection = window.getSelection();
+    const previousRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
 
-    const succeeded = document.execCommand("copy");
-    document.body.removeChild(textarea);
+    let succeeded = false;
+
+    try {
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+
+        succeeded = document.execCommand("copy");
+    } finally {
+        if (textarea.parentNode) {
+            textarea.parentNode.removeChild(textarea);
+        }
+
+        if (previousRange && selection) {
+            try {
+                selection.removeAllRanges();
+                selection.addRange(previousRange);
+            } catch {
+                // no-op: selection may be unavailable in some browser contexts
+            }
+        }
+
+        if (previousActiveElement && document.contains(previousActiveElement)) {
+            try {
+                previousActiveElement.focus({ preventScroll: true });
+            } catch {
+                previousActiveElement.focus();
+            }
+        }
+    }
 
     if (!succeeded) {
         throw new Error("Clipboard copy failed");
@@ -30,8 +60,12 @@ function fallbackCopyToClipboard(text: string) {
 
 async function writeToClipboard(text: string) {
     if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
+        try {
+            await navigator.clipboard.writeText(text);
+            return;
+        } catch {
+            // fallback to legacy execCommand path when clipboard API is blocked
+        }
     }
 
     fallbackCopyToClipboard(text);
@@ -74,9 +108,9 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
 
             clearFeedbackTimeoutRef.current = window.setTimeout(() => {
                 if (!isMountedRef.current) return;
-                setCopyFeedback(null);
+                setFeedbackSafely(null);
                 clearFeedbackTimeoutRef.current = null;
-            }, 1800);
+            }, COPY_FEEDBACK_TIMEOUT_MS);
 
             isCopyingRef.current = false;
             setCopyingSafely(false);
