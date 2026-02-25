@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
@@ -240,15 +241,7 @@ export default function PurchaseOrderTab() {
                 </div>
             </div>
 
-            {copyFeedback && (
-                <div
-                    className={`text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
-                    role="status"
-                    aria-live="polite"
-                >
-                    {copyFeedback.message}
-                </div>
-            )}
+            {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="text-xs font-semibold" />}
 
             {/* KPI Row */}
             <div className="grid gap-3 md:grid-cols-3">

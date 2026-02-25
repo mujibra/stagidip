@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
@@ -310,15 +311,7 @@ export default function ImplementationTab() {
                     </div>
                 </div>
 
-                {copyFeedback && (
-                    <div
-                        className={`mt-2 text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
-                        role="status"
-                        aria-live="polite"
-                    >
-                        {copyFeedback.message}
-                    </div>
-                )}
+                {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="mt-2 text-xs font-semibold" />}
 
                 <div className="mt-3">
                     <DataState
