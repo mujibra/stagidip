@@ -34,10 +34,21 @@ function fallbackCopyToClipboard(text: string) {
         }
 
         if (previousRange && selection) {
-            selection.removeAllRanges();
-            selection.addRange(previousRange);
+            try {
+                selection.removeAllRanges();
+                selection.addRange(previousRange);
+            } catch {
+                // no-op: selection may be unavailable in some browser contexts
+            }
         }
-        previousActiveElement?.focus();
+
+        if (previousActiveElement) {
+            try {
+                previousActiveElement.focus({ preventScroll: true });
+            } catch {
+                previousActiveElement.focus();
+            }
+        }
     }
 
     if (!succeeded) {
