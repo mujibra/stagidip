@@ -14,3 +14,12 @@ export function buildCanonicalHref(pathname: string, params: URLSearchParams) {
     const qs = sortSearchParams(params).toString();
     return qs ? `${pathname}?${qs}` : pathname;
 }
+
+
+type SearchParamsLike = {
+    toString(): string;
+};
+
+export function canonicalHrefFromSearchParams(pathname: string, searchParams: SearchParamsLike) {
+    return buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
+}

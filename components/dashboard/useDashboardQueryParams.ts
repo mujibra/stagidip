@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 
-import { buildCanonicalHref } from "@/components/dashboard/queryParams";
+import { buildCanonicalHref, canonicalHrefFromSearchParams } from "@/components/dashboard/queryParams";
 
 type SearchParamsLike = {
     toString(): string;
@@ -18,7 +18,7 @@ export default function useDashboardQueryParams(pathname: string, searchParams: 
         mutate(params);
 
         const nextHref = buildCanonicalHref(pathname, params);
-        const currentHref = buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
+        const currentHref = canonicalHrefFromSearchParams(pathname, searchParams);
         if (nextHref === currentHref) return;
 
         router.replace(nextHref);
