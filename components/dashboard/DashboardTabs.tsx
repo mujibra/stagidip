@@ -8,46 +8,8 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
-import { replaceCanonicalHrefIfChanged, sortSearchParams } from "@/components/dashboard/queryParams";
-
-type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
-
-const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implementation"];
-
-const TAB_SCOPED_PARAMS: Record<TabKey, string[]> = {
-    project: ["year", "month"],
-    purchaseOrder: ["poYear"],
-    customer: ["customerLimit"],
-    implementation: ["implPage", "implPageSize"],
-};
-
-function sanitizeParamsForTab(params: URLSearchParams, tab: TabKey) {
-    const allowed = new Set(["tab", ...TAB_SCOPED_PARAMS[tab]]);
-
-    for (const key of Array.from(params.keys())) {
-        if (!allowed.has(key)) {
-            params.delete(key);
-        }
-    }
-}
-
-function getActiveTab(rawTab: string | null): TabKey {
-    if (!rawTab) return "project";
-    return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
-}
-
-function buildCanonicalParams(source: URLSearchParams, tab: TabKey) {
-    const params = new URLSearchParams(source.toString());
-    sanitizeParamsForTab(params, tab);
-
-    if (tab === "project") {
-        params.delete("tab");
-    } else {
-        params.set("tab", tab);
-    }
-
-    return sortSearchParams(params);
-}
+import { replaceCanonicalHrefIfChanged } from "@/components/dashboard/queryParams";
+import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
 export default function DashboardTabs() {
     const router = useRouter();
