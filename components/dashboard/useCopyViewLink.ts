@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildCanonicalHref } from "@/components/dashboard/queryParams";
 
@@ -15,6 +15,7 @@ type CopyFeedbackState = {
 
 export default function useCopyViewLink(pathname: string, searchParams: SearchParamsLike) {
     const [copyFeedback, setCopyFeedback] = useState<CopyFeedbackState>(null);
+    const clearFeedbackTimeoutRef = useRef<number | null>(null);
 
     const copyViewLink = useCallback(async () => {
         try {
@@ -27,8 +28,23 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
             setCopyFeedback({ message: "Failed to copy link", type: "error" });
         }
 
-        window.setTimeout(() => setCopyFeedback(null), 1800);
+        if (clearFeedbackTimeoutRef.current !== null) {
+            window.clearTimeout(clearFeedbackTimeoutRef.current);
+        }
+
+        clearFeedbackTimeoutRef.current = window.setTimeout(() => {
+            setCopyFeedback(null);
+            clearFeedbackTimeoutRef.current = null;
+        }, 1800);
     }, [pathname, searchParams]);
+
+    useEffect(() => {
+        return () => {
+            if (clearFeedbackTimeoutRef.current !== null) {
+                window.clearTimeout(clearFeedbackTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return { copyFeedback, copyViewLink };
 }
