@@ -8,6 +8,7 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { resolveMonth, resolveRecentYear } from "@/components/dashboard/tabQueryState";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -44,22 +45,6 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
-function resolveYear(value: string | null, nowYear: number) {
-    const parsed = Number(value ?? nowYear);
-    if (!Number.isFinite(parsed)) return nowYear;
-    const year = Math.floor(parsed);
-    if (year < nowYear - 5 || year > nowYear) return nowYear;
-    return year;
-}
-
-function resolveMonth(value: string | null, nowMonth: number) {
-    const parsed = Number(value ?? nowMonth);
-    if (!Number.isFinite(parsed)) return nowMonth;
-    const month = Math.floor(parsed);
-    if (month < 1 || month > 12) return nowMonth;
-    return month;
-}
-
 export default function ProjectTab() {
     const router = useRouter();
     const pathname = usePathname();
@@ -70,7 +55,7 @@ export default function ProjectTab() {
 
     const rawYearParam = searchParams.get("year");
     const rawMonthParam = searchParams.get("month");
-    const year = resolveYear(rawYearParam, nowYear);
+    const year = resolveRecentYear(rawYearParam, nowYear);
     const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
