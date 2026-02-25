@@ -122,6 +122,16 @@ export default function ImplementationTab() {
         router.replace(qs ? `${pathname}?${qs}` : pathname);
     }, [pathname, router, searchParams]);
 
+    function resetView() {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("implPage");
+        params.delete("implPageSize");
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+        setStatusDelivery({ state: "loading" });
+    }
+
     useEffect(() => {
         if (rawPageParam === null) return;
         if (page <= 1 || rawPageParam !== String(page)) {
@@ -297,6 +307,13 @@ export default function ImplementationTab() {
                             className="h-8 rounded-lg bg-zinc-900 px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
                         >
                             Refresh
+                        </button>
+                        <button
+                            type="button"
+                            onClick={resetView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Reset view
                         </button>
                         <button
                             type="button"
