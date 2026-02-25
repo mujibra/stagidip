@@ -52,6 +52,10 @@ function parseDate(value: string | null): Date | null {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 function formatDate(value: string | null) {
     const parsed = parseDate(value);
     if (!parsed) return "—";
