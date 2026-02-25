@@ -26,7 +26,41 @@ export function canonicalHrefFromSearchParams(pathname: string, searchParams: Se
 
 
 export function hasCanonicalHrefChanged(pathname: string, current: SearchParamsLike, next: URLSearchParams) {
-    const currentHref = canonicalHrefFromSearchParams(pathname, current);
+    return getCanonicalHrefChange(pathname, current, next).changed;
+}
+
+
+type CanonicalHrefChange = {
+    nextHref: string;
+    changed: boolean;
+};
+
+export function getCanonicalHrefChange(pathname: string, current: SearchParamsLike, next: URLSearchParams): CanonicalHrefChange {
     const nextHref = buildCanonicalHref(pathname, next);
-    return currentHref !== nextHref;
+    const currentHref = canonicalHrefFromSearchParams(pathname, current);
+
+    return {
+        nextHref,
+        changed: currentHref !== nextHref,
+    };
+}
+
+
+export type RouterReplaceLike = {
+    replace(href: string): void;
+};
+
+export function replaceCanonicalHrefIfChanged(
+    pathname: string,
+    current: SearchParamsLike,
+    next: URLSearchParams,
+    router: RouterReplaceLike
+) {
+    const { nextHref, changed } = getCanonicalHrefChange(pathname, current, next);
+
+    if (changed) {
+        router.replace(nextHref);
+    }
+
+    return changed;
 }

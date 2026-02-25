@@ -117,6 +117,18 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         }
     }, [pathname, searchParams, setCopyingSafely, setFeedbackSafely]);
 
+
+    useEffect(() => {
+        if (clearFeedbackTimeoutRef.current !== null) {
+            window.clearTimeout(clearFeedbackTimeoutRef.current);
+            clearFeedbackTimeoutRef.current = null;
+        }
+
+        isCopyingRef.current = false;
+        setCopyingSafely(false);
+        setFeedbackSafely(null);
+    }, [pathname, searchParams, setCopyingSafely, setFeedbackSafely]);
+
     useEffect(() => {
         return () => {
             isMountedRef.current = false;
