@@ -104,7 +104,7 @@ export default function CustomerTab() {
     const rawCustomerLimit = searchParams.get("customerLimit");
     const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
-    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
@@ -306,9 +306,11 @@ export default function CustomerTab() {
                         <button
                             type="button"
                             onClick={copyViewLink}
-                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            disabled={isCopying}
+                            aria-busy={isCopying}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
-                            Copy view link
+                            {isCopying ? "Copying…" : "Copy view link"}
                         </button>
                         <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
                     </div>

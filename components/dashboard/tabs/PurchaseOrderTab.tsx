@@ -111,7 +111,7 @@ export default function PurchaseOrderTab() {
         state: "idle",
     });
     const [reloadKey, setReloadKey] = useState(0);
-    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     function retryLoad() {
@@ -234,9 +234,11 @@ export default function PurchaseOrderTab() {
                     <button
                         type="button"
                         onClick={copyViewLink}
-                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        disabled={isCopying}
+                        aria-busy={isCopying}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                     >
-                        Copy view link
+                        {isCopying ? "Copying…" : "Copy view link"}
                     </button>
                 </div>
             </div>
