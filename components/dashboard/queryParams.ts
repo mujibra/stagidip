@@ -9,3 +9,8 @@ export function sortSearchParams(params: URLSearchParams) {
 
     return new URLSearchParams(sortedEntries);
 }
+
+export function buildCanonicalHref(pathname: string, params: URLSearchParams) {
+    const qs = sortSearchParams(params).toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+}

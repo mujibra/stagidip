@@ -8,7 +8,7 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
-import { sortSearchParams } from "@/components/dashboard/queryParams";
+import { buildCanonicalHref, sortSearchParams } from "@/components/dashboard/queryParams";
 
 type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
@@ -69,8 +69,7 @@ export default function DashboardTabs() {
 
     const navigateWithTab = useCallback((tab: TabKey) => {
         const params = buildCanonicalParams(searchParams, tab);
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
+        router.replace(buildCanonicalHref(pathname, params));
     }, [pathname, router, searchParams]);
 
     useEffect(() => {
