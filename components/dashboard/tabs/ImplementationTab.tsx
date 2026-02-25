@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
@@ -77,7 +78,7 @@ export default function ImplementationTab() {
     const pageParam = Number(rawPageParam ?? 1);
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
-    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
 
@@ -303,22 +304,16 @@ export default function ImplementationTab() {
                         <button
                             type="button"
                             onClick={copyViewLink}
-                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            disabled={isCopying}
+                            aria-busy={isCopying}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
-                            Copy view link
+                            {isCopying ? "Copying…" : "Copy view link"}
                         </button>
                     </div>
                 </div>
 
-                {copyFeedback && (
-                    <div
-                        className={`mt-2 text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
-                        role="status"
-                        aria-live="polite"
-                    >
-                        {copyFeedback.message}
-                    </div>
-                )}
+                {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="mt-2 text-xs font-semibold" />}
 
                 <div className="mt-3">
                     <DataState
