@@ -198,6 +198,15 @@ export default function CustomerTab() {
         window.setTimeout(() => setCopyFeedback(null), 1800);
     }
 
+    function resetView() {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("customerLimit");
+
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+        setReloadKey((key) => key + 1);
+    }
+
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
 
@@ -299,6 +308,13 @@ export default function CustomerTab() {
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Refresh
+                        </button>
+                        <button
+                            type="button"
+                            onClick={resetView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Reset view
                         </button>
                         <button
                             type="button"
