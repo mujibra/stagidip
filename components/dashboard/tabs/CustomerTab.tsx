@@ -7,6 +7,7 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { CUSTOMER_LIMIT_OPTIONS, DEFAULT_CUSTOMER_LIMIT, resolveCustomerLimit } from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -48,16 +49,6 @@ type MesinPerBulanResponse = {
     success: boolean;
     data: MesinPerBulanRow[];
 };
-
-const DEFAULT_CUSTOMER_LIMIT = 8;
-const CUSTOMER_LIMIT_OPTIONS = [5, 8, 10, 15] as const;
-
-function resolveCustomerLimit(raw: string | null) {
-    const parsed = Number(raw ?? DEFAULT_CUSTOMER_LIMIT);
-    if (!Number.isFinite(parsed)) return DEFAULT_CUSTOMER_LIMIT;
-    const next = Math.floor(parsed);
-    return CUSTOMER_LIMIT_OPTIONS.includes(next as (typeof CUSTOMER_LIMIT_OPTIONS)[number]) ? next : DEFAULT_CUSTOMER_LIMIT;
-}
 
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });

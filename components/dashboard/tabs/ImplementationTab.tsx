@@ -7,6 +7,12 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import {
+    DEFAULT_IMPL_PAGE_SIZE,
+    IMPLEMENTATION_PAGE_SIZE_OPTIONS,
+    resolveImplPageSize,
+    resolvePositivePage,
+} from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -29,18 +35,6 @@ type StatusDeliveryResponse = {
     totalDatas: number;
     data: StatusDeliveryRow[];
 };
-
-const DEFAULT_IMPL_PAGE_SIZE = 20;
-const IMPLEMENTATION_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
-
-function resolveImplPageSize(raw: string | null) {
-    const parsed = Number(raw ?? DEFAULT_IMPL_PAGE_SIZE);
-    if (!Number.isFinite(parsed)) return DEFAULT_IMPL_PAGE_SIZE;
-    const value = Math.floor(parsed);
-    return IMPLEMENTATION_PAGE_SIZE_OPTIONS.includes(value as (typeof IMPLEMENTATION_PAGE_SIZE_OPTIONS)[number])
-        ? value
-        : DEFAULT_IMPL_PAGE_SIZE;
-}
 
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
@@ -71,8 +65,7 @@ export default function ImplementationTab() {
     const rawPageSizeParam = searchParams.get("implPageSize");
     const perPage = resolveImplPageSize(rawPageSizeParam);
     const rawPageParam = searchParams.get("implPage");
-    const pageParam = Number(rawPageParam ?? 1);
-    const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
+    const page = resolvePositivePage(rawPageParam);
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);

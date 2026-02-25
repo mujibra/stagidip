@@ -8,6 +8,7 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { resolveRecentYear } from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -91,8 +92,7 @@ export default function PurchaseOrderTab() {
     const now = new Date();
     const nowYear = now.getFullYear();
     const rawYearParam = searchParams.get("poYear");
-    const yearParam = Number(rawYearParam ?? nowYear);
-    const year = Number.isFinite(yearParam) && yearParam >= nowYear - 5 && yearParam <= nowYear ? yearParam : nowYear;
+    const year = resolveRecentYear(rawYearParam, nowYear);
 
     const warehouseUrl = "/api/getDataMesinPerWarehouse";
     const top3Url = useMemo(() => `/api/getData3TopByCustomer?year=${year}`, [year]);
