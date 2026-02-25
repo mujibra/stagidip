@@ -2,20 +2,13 @@
 
 import { useCallback } from "react";
 
-import { buildCanonicalHref, hasCanonicalHrefChanged, type SearchParamsLike } from "@/components/dashboard/queryParams";
+import { replaceCanonicalHrefIfChanged, type RouterReplaceLike, type SearchParamsLike } from "@/components/dashboard/queryParams";
 
-type RouterLike = {
-    replace(href: string): void;
-};
-
-export default function useDashboardQueryParams(pathname: string, searchParams: SearchParamsLike, router: RouterLike) {
+export default function useDashboardQueryParams(pathname: string, searchParams: SearchParamsLike, router: RouterReplaceLike) {
     return useCallback((mutate: (params: URLSearchParams) => void) => {
         const params = new URLSearchParams(searchParams.toString());
         mutate(params);
 
-        const nextHref = buildCanonicalHref(pathname, params);
-        if (!hasCanonicalHrefChanged(pathname, searchParams, params)) return;
-
-        router.replace(nextHref);
+        replaceCanonicalHrefIfChanged(pathname, searchParams, params, router);
     }, [pathname, router, searchParams]);
 }
