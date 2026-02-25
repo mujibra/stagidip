@@ -11,19 +11,6 @@ import ImplementationTab from "../dashboard/tabs/ImplementationTab";
 import { replaceCanonicalHrefIfChanged } from "@/components/dashboard/queryParams";
 import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
-function buildCanonicalParams(source: URLSearchParams, tab: TabKey) {
-    const params = new URLSearchParams(source.toString());
-    sanitizeParamsForTab(params, tab);
-
-    if (tab === "project") {
-        params.delete("tab");
-    } else {
-        params.set("tab", tab);
-    }
-
-    return sortSearchParams(params);
-}
-
 export default function DashboardTabs() {
     const router = useRouter();
     const pathname = usePathname();

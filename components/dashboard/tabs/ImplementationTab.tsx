@@ -36,18 +36,6 @@ type StatusDeliveryResponse = {
     data: StatusDeliveryRow[];
 };
 
-const DEFAULT_IMPL_PAGE_SIZE = 20;
-const IMPLEMENTATION_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
-
-function resolveImplPageSize(raw: string | null) {
-    const parsed = Number(raw ?? DEFAULT_IMPL_PAGE_SIZE);
-    if (!Number.isFinite(parsed)) return DEFAULT_IMPL_PAGE_SIZE;
-    const value = Math.floor(parsed);
-    return IMPLEMENTATION_PAGE_SIZE_OPTIONS.includes(value as (typeof IMPLEMENTATION_PAGE_SIZE_OPTIONS)[number])
-        ? value
-        : DEFAULT_IMPL_PAGE_SIZE;
-}
-
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -58,10 +46,6 @@ function parseDate(value: string | null): Date | null {
     if (!value) return null;
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function formatNumber(value: number) {
-    return new Intl.NumberFormat("id-ID").format(value);
 }
 
 function formatDate(value: string | null) {
