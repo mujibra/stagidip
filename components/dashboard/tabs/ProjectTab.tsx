@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -40,10 +42,6 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
-function formatNumber(value: number) {
-    return new Intl.NumberFormat("id-ID").format(value);
-}
-
 function resolveYear(value: string | null, nowYear: number) {
     const parsed = Number(value ?? nowYear);
     if (!Number.isFinite(parsed)) return nowYear;
@@ -73,7 +71,7 @@ export default function ProjectTab() {
     const year = resolveYear(rawYearParam, nowYear);
     const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
-    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
 
     const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
     const projectUrl = `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`;
@@ -100,17 +98,6 @@ export default function ProjectTab() {
         setReloadKey((current) => current + 1);
     }, []);
 
-    async function handleCopyViewLink() {
-        try {
-            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-            await navigator.clipboard.writeText(url);
-            setCopyFeedback("View link copied");
-        } catch {
-            setCopyFeedback("Failed to copy link");
-        }
-
-        window.setTimeout(() => setCopyFeedback(null), 1800);
-    }
 
     useEffect(() => {
         if (rawYearParam === null && rawMonthParam === null) return;
@@ -246,7 +233,7 @@ export default function ProjectTab() {
                     </button>
                     <button
                         type="button"
-                        onClick={handleCopyViewLink}
+                        onClick={copyViewLink}
                         className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                     >
                         Copy view link
@@ -255,7 +242,13 @@ export default function ProjectTab() {
             </div>
 
             {copyFeedback && (
-                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</div>
+                <div
+                    className={`text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                    role="status"
+                    aria-live="polite"
+                >
+                    {copyFeedback.message}
+                </div>
             )}
 
             <DataState
@@ -264,8 +257,8 @@ export default function ProjectTab() {
                 onRetry={load}
             >
                 <div className="grid gap-3 md:grid-cols-3">
-                    <SummaryCard label="Total Mesin" value={totals ? formatNumber(totals.totalMesin) : "—"} />
-                    <SummaryCard label="Installed" value={totals ? formatNumber(totals.installed) : "—"} />
+                    <SummaryCard label="Total Mesin" value={totals ? formatDashboardNumber(totals.totalMesin) : "—"} />
+                    <SummaryCard label="Installed" value={totals ? formatDashboardNumber(totals.installed) : "—"} />
                     <SummaryCard label="Installed %" value={totals ? `${totals.pct.toFixed(2)}%` : "—"} />
                 </div>
             </DataState>
@@ -322,8 +315,8 @@ export default function ProjectTab() {
                                     {projectStatus.state === "success" && projectStatus.data.datas_per_customer.map((row) => (
                                         <tr key={row.id} className="border-t border-zinc-200 dark:border-zinc-800">
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank_desc}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.jumlah)}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total_mesin)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.jumlah)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.total_mesin)}</td>
                                             <td className="px-3 py-2">
                                                 <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
                                                     {row.persentase.toFixed(1)}%
@@ -368,7 +361,7 @@ function StatusTable({ title, rows }: { title: string; rows: MachineStatusPoint[
                         {rows.map((row) => (
                             <tr key={row.tanggal} className="border-t border-zinc-200 dark:border-zinc-800">
                                 <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.tanggal}</td>
-                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(Number(row.jumlah))}</td>
+                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(Number(row.jumlah))}</td>
                             </tr>
                         ))}
                     </tbody>

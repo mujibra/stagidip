@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -55,10 +57,6 @@ function resolveCustomerLimit(raw: string | null) {
     return CUSTOMER_LIMIT_OPTIONS.includes(next as (typeof CUSTOMER_LIMIT_OPTIONS)[number]) ? next : DEFAULT_CUSTOMER_LIMIT;
 }
 
-function formatNumber(value: number) {
-    return new Intl.NumberFormat("id-ID").format(value);
-}
-
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -104,7 +102,7 @@ export default function CustomerTab() {
     const rawCustomerLimit = searchParams.get("customerLimit");
     const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
-    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
     const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
@@ -186,17 +184,6 @@ export default function CustomerTab() {
         }
     }, [customerLimit, rawCustomerLimit, updateCustomerLimit]);
 
-    async function handleCopyViewLink() {
-        try {
-            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-            await navigator.clipboard.writeText(url);
-            setCopyFeedback("View link copied");
-        } catch {
-            setCopyFeedback("Failed to copy link");
-        }
-
-        window.setTimeout(() => setCopyFeedback(null), 1800);
-    }
 
     function resetView() {
         const params = new URLSearchParams(searchParams.toString());
@@ -268,19 +255,19 @@ export default function CustomerTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Customers</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? formatNumber(customerSummary.totalCustomers) : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.totalCustomers) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Customers with PO</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? formatNumber(customerSummary.customersWithPo) : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.customersWithPo) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? formatNumber(customerSummary.totalMachines) : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.totalMachines) : "—"}
                                 </div>
                             </div>
                         </div>
@@ -318,7 +305,7 @@ export default function CustomerTab() {
                         </button>
                         <button
                             type="button"
-                            onClick={handleCopyViewLink}
+                            onClick={copyViewLink}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Copy view link
@@ -328,8 +315,16 @@ export default function CustomerTab() {
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                    <span>Showing top {customerLimit} of {formatNumber(uniqueTopCustomerCount)} customers</span>
-                    {copyFeedback && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</span>}
+                    <span>Showing top {customerLimit} of {formatDashboardNumber(uniqueTopCustomerCount)} customers</span>
+                    {copyFeedback && (
+                        <span
+                            className={`font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {copyFeedback.message}
+                        </span>
+                    )}
                 </div>
 
                 <div className="mt-3">
@@ -359,7 +354,7 @@ export default function CustomerTab() {
                                                 </span>
                                             </td>
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.total)}</td>
                                             <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
                                                 {topBankStats.totalMesin > 0 ? `${((row.total / topBankStats.totalMesin) * 100).toFixed(1)}%` : "0.0%"}
                                             </td>

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -74,7 +76,7 @@ export default function ImplementationTab() {
     const pageParam = Number(rawPageParam ?? 1);
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
-    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
 
     function retryLoad() {
@@ -82,17 +84,6 @@ export default function ImplementationTab() {
         setReloadKey((key) => key + 1);
     }
 
-    async function handleCopyViewLink() {
-        try {
-            const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-            await navigator.clipboard.writeText(url);
-            setCopyFeedback("View link copied");
-        } catch {
-            setCopyFeedback("Failed to copy link");
-        }
-
-        window.setTimeout(() => setCopyFeedback(null), 1800);
-    }
 
     const updatePage = useCallback((nextPage: number) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -226,25 +217,25 @@ export default function ImplementationTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Delivery Records</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? formatNumber(statusSummary.total) : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.total) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? formatNumber(statusSummary.upcoming) : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.upcoming) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Overdue Arrivals</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? formatNumber(statusSummary.overdue) : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.overdue) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Scheduled Departures</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {statusSummary ? formatNumber(statusSummary.scheduledDepartures) : "—"}
+                                    {statusSummary ? formatDashboardNumber(statusSummary.scheduledDepartures) : "—"}
                                 </div>
                             </div>
                         </div>
@@ -317,7 +308,7 @@ export default function ImplementationTab() {
                         </button>
                         <button
                             type="button"
-                            onClick={handleCopyViewLink}
+                            onClick={copyViewLink}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Copy view link
@@ -326,7 +317,13 @@ export default function ImplementationTab() {
                 </div>
 
                 {copyFeedback && (
-                    <div className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</div>
+                    <div
+                        className={`mt-2 text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {copyFeedback.message}
+                    </div>
                 )}
 
                 <div className="mt-3">
