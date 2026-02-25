@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -72,6 +73,7 @@ export default function ProjectTab() {
     const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
     const projectUrl = `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`;
@@ -80,18 +82,16 @@ export default function ProjectTab() {
     const [projectStatus, setProjectStatus] = useState<Loadable<ProjectStatusResponse>>({ state: "idle" });
 
     const updateDateParams = (next: { year?: number; month?: number }) => {
-        const params = new URLSearchParams(searchParams.toString());
-        const nextYear = next.year ?? year;
-        const nextMonth = next.month ?? month;
+        updateQueryParams((params) => {
+            const nextYear = next.year ?? year;
+            const nextMonth = next.month ?? month;
 
-        if (nextYear === nowYear) params.delete("year");
-        else params.set("year", String(nextYear));
+            if (nextYear === nowYear) params.delete("year");
+            else params.set("year", String(nextYear));
 
-        if (nextMonth === nowMonth) params.delete("month");
-        else params.set("month", pad2(nextMonth));
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
+            if (nextMonth === nowMonth) params.delete("month");
+            else params.set("month", pad2(nextMonth));
+        });
     };
 
     const load = useCallback(() => {
@@ -107,17 +107,14 @@ export default function ProjectTab() {
 
         if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
 
-        const params = new URLSearchParams(searchParams.toString());
+        updateQueryParams((params) => {
+            if (canonicalYear === null) params.delete("year");
+            else params.set("year", canonicalYear);
 
-        if (canonicalYear === null) params.delete("year");
-        else params.set("year", canonicalYear);
-
-        if (canonicalMonth === null) params.delete("month");
-        else params.set("month", canonicalMonth);
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [month, nowMonth, nowYear, pathname, rawMonthParam, rawYearParam, router, searchParams, year]);
+            if (canonicalMonth === null) params.delete("month");
+            else params.set("month", canonicalMonth);
+        });
+    }, [month, nowMonth, nowYear, rawMonthParam, rawYearParam, updateQueryParams, year]);
 
     useEffect(() => {
         let cancelled = false;

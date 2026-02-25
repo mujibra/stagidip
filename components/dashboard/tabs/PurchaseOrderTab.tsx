@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -110,22 +111,21 @@ export default function PurchaseOrderTab() {
     });
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     function retryLoad() {
         setReloadKey((v) => v + 1);
     }
 
     const updateYear = useCallback((nextYear: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (nextYear === nowYear) {
-            params.delete("poYear");
-        } else {
-            params.set("poYear", String(nextYear));
-        }
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [nowYear, pathname, router, searchParams]);
+        updateQueryParams((params) => {
+            if (nextYear === nowYear) {
+                params.delete("poYear");
+            } else {
+                params.set("poYear", String(nextYear));
+            }
+        });
+    }, [nowYear, updateQueryParams]);
 
     useEffect(() => {
         if (rawYearParam === null) return;

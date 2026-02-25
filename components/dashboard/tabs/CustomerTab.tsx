@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -103,6 +104,7 @@ export default function CustomerTab() {
     const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
     const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
@@ -165,15 +167,14 @@ export default function CustomerTab() {
     const handleRetry = () => setReloadKey((key) => key + 1);
 
     const updateCustomerLimit = useCallback((nextLimit: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (nextLimit === DEFAULT_CUSTOMER_LIMIT) {
-            params.delete("customerLimit");
-        } else {
-            params.set("customerLimit", String(nextLimit));
-        }
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [pathname, router, searchParams]);
+        updateQueryParams((params) => {
+            if (nextLimit === DEFAULT_CUSTOMER_LIMIT) {
+                params.delete("customerLimit");
+            } else {
+                params.set("customerLimit", String(nextLimit));
+            }
+        });
+    }, [updateQueryParams]);
 
     useEffect(() => {
         if (rawCustomerLimit === null) return;
@@ -186,11 +187,9 @@ export default function CustomerTab() {
 
 
     function resetView() {
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete("customerLimit");
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
+        updateQueryParams((params) => {
+            params.delete("customerLimit");
+        });
         setReloadKey((key) => key + 1);
     }
 

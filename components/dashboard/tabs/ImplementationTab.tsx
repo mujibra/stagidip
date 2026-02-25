@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -77,6 +78,7 @@ export default function ImplementationTab() {
     const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
 
     function retryLoad() {
@@ -86,40 +88,32 @@ export default function ImplementationTab() {
 
 
     const updatePage = useCallback((nextPage: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-
-        if (nextPage <= 1) {
-            params.delete("implPage");
-        } else {
-            params.set("implPage", String(nextPage));
-        }
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [pathname, router, searchParams]);
+        updateQueryParams((params) => {
+            if (nextPage <= 1) {
+                params.delete("implPage");
+            } else {
+                params.set("implPage", String(nextPage));
+            }
+        });
+    }, [updateQueryParams]);
 
     const updatePageSize = useCallback((nextPageSize: number) => {
-        const params = new URLSearchParams(searchParams.toString());
+        updateQueryParams((params) => {
+            if (nextPageSize === DEFAULT_IMPL_PAGE_SIZE) {
+                params.delete("implPageSize");
+            } else {
+                params.set("implPageSize", String(nextPageSize));
+            }
 
-        if (nextPageSize === DEFAULT_IMPL_PAGE_SIZE) {
-            params.delete("implPageSize");
-        } else {
-            params.set("implPageSize", String(nextPageSize));
-        }
-
-        params.delete("implPage");
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    }, [pathname, router, searchParams]);
+            params.delete("implPage");
+        });
+    }, [updateQueryParams]);
 
     function resetView() {
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete("implPage");
-        params.delete("implPageSize");
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
+        updateQueryParams((params) => {
+            params.delete("implPage");
+            params.delete("implPageSize");
+        });
         setStatusDelivery({ state: "loading" });
     }
 
