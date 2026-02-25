@@ -69,14 +69,21 @@ export default function DashboardTabs() {
 
     const navigateWithTab = useCallback((tab: TabKey) => {
         const params = buildCanonicalParams(searchParams, tab);
-        router.replace(buildCanonicalHref(pathname, params));
+        const nextHref = buildCanonicalHref(pathname, params);
+        const currentHref = buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
+
+        if (nextHref === currentHref) return;
+
+        router.replace(nextHref);
     }, [pathname, router, searchParams]);
 
     useEffect(() => {
-        const current = searchParams.toString();
-        const canonical = buildCanonicalParams(searchParams, active).toString();
-        if (current !== canonical) {
-            router.replace(canonical ? `${pathname}?${canonical}` : pathname);
+        const canonical = buildCanonicalParams(searchParams, active);
+        const nextHref = buildCanonicalHref(pathname, canonical);
+        const currentHref = buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
+
+        if (nextHref !== currentHref) {
+            router.replace(nextHref);
         }
     }, [active, pathname, router, searchParams]);
 
