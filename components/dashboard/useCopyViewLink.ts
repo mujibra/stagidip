@@ -11,6 +11,10 @@ type CopyFeedbackState = {
 
 function fallbackCopyToClipboard(text: string) {
     const textarea = document.createElement("textarea");
+    const previousActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const selection = window.getSelection();
+    const previousRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+
     textarea.value = text;
     textarea.setAttribute("readonly", "");
     textarea.style.position = "fixed";
@@ -22,6 +26,12 @@ function fallbackCopyToClipboard(text: string) {
 
     const succeeded = document.execCommand("copy");
     document.body.removeChild(textarea);
+
+    if (previousRange && selection) {
+        selection.removeAllRanges();
+        selection.addRange(previousRange);
+    }
+    previousActiveElement?.focus();
 
     if (!succeeded) {
         throw new Error("Clipboard copy failed");
