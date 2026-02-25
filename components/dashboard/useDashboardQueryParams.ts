@@ -17,6 +17,10 @@ export default function useDashboardQueryParams(pathname: string, searchParams: 
         const params = new URLSearchParams(searchParams.toString());
         mutate(params);
 
-        router.replace(buildCanonicalHref(pathname, params));
+        const nextHref = buildCanonicalHref(pathname, params);
+        const currentHref = buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
+        if (nextHref === currentHref) return;
+
+        router.replace(nextHref);
     }, [pathname, router, searchParams]);
 }
