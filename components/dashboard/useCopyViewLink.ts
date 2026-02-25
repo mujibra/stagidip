@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from "react";
 
+import { sortSearchParams } from "@/components/dashboard/queryParams";
+
 type SearchParamsLike = {
     toString(): string;
 };
@@ -16,7 +18,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
 
     const copyViewLink = useCallback(async () => {
         try {
-            const qs = searchParams.toString();
+            const qs = sortSearchParams(new URLSearchParams(searchParams.toString())).toString();
             const url = `${window.location.origin}${pathname}${qs ? `?${qs}` : ""}`;
             await navigator.clipboard.writeText(url);
             setCopyFeedback({ message: "View link copied", type: "success" });
