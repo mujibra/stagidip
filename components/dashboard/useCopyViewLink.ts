@@ -13,40 +13,83 @@ type CopyFeedbackState = {
     type: "success" | "error";
 } | null;
 
+function fallbackCopyToClipboard(text: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    const succeeded = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (!succeeded) {
+        throw new Error("Clipboard copy failed");
+    }
+}
+
+async function writeToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    fallbackCopyToClipboard(text);
+}
+
 export default function useCopyViewLink(pathname: string, searchParams: SearchParamsLike) {
     const [copyFeedback, setCopyFeedback] = useState<CopyFeedbackState>(null);
     const [isCopying, setIsCopying] = useState(false);
+    const isCopyingRef = useRef(false);
+    const isMountedRef = useRef(true);
     const clearFeedbackTimeoutRef = useRef<number | null>(null);
 
-    const copyViewLink = useCallback(async () => {
-        if (isCopying) return;
+    const setFeedbackSafely = useCallback((next: CopyFeedbackState) => {
+        if (!isMountedRef.current) return;
+        setCopyFeedback(next);
+    }, []);
 
-        setIsCopying(true);
+    const setCopyingSafely = useCallback((next: boolean) => {
+        if (!isMountedRef.current) return;
+        setIsCopying(next);
+    }, []);
+
+    const copyViewLink = useCallback(async () => {
+        if (isCopyingRef.current) return;
+
+        isCopyingRef.current = true;
+        setCopyingSafely(true);
 
         try {
             const params = new URLSearchParams(searchParams.toString());
             const href = buildCanonicalHref(pathname, params);
             const url = `${window.location.origin}${href}`;
-            await navigator.clipboard.writeText(url);
-            setCopyFeedback({ message: "View link copied", type: "success" });
+            await writeToClipboard(url);
+            setFeedbackSafely({ message: "View link copied", type: "success" });
         } catch {
-            setCopyFeedback({ message: "Failed to copy link", type: "error" });
+            setFeedbackSafely({ message: "Failed to copy link", type: "error" });
+        } finally {
+            if (clearFeedbackTimeoutRef.current !== null) {
+                window.clearTimeout(clearFeedbackTimeoutRef.current);
+            }
+
+            clearFeedbackTimeoutRef.current = window.setTimeout(() => {
+                if (!isMountedRef.current) return;
+                setCopyFeedback(null);
+                clearFeedbackTimeoutRef.current = null;
+            }, 1800);
+
+            isCopyingRef.current = false;
+            setCopyingSafely(false);
         }
-
-        if (clearFeedbackTimeoutRef.current !== null) {
-            window.clearTimeout(clearFeedbackTimeoutRef.current);
-        }
-
-        clearFeedbackTimeoutRef.current = window.setTimeout(() => {
-            setCopyFeedback(null);
-            clearFeedbackTimeoutRef.current = null;
-        }, 1800);
-
-        setIsCopying(false);
-    }, [isCopying, pathname, searchParams]);
+    }, [pathname, searchParams, setCopyingSafely, setFeedbackSafely]);
 
     useEffect(() => {
         return () => {
+            isMountedRef.current = false;
             if (clearFeedbackTimeoutRef.current !== null) {
                 window.clearTimeout(clearFeedbackTimeoutRef.current);
             }
