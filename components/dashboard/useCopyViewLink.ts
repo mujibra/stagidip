@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { buildCanonicalHref } from "@/components/dashboard/queryParams";
+import { canonicalHrefFromSearchParams } from "@/components/dashboard/queryParams";
 
 type SearchParamsLike = {
     toString(): string;
@@ -64,8 +64,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         setCopyingSafely(true);
 
         try {
-            const params = new URLSearchParams(searchParams.toString());
-            const href = buildCanonicalHref(pathname, params);
+            const href = canonicalHrefFromSearchParams(pathname, searchParams);
             const url = `${window.location.origin}${href}`;
             await writeToClipboard(url);
             setFeedbackSafely({ message: "View link copied", type: "success" });
