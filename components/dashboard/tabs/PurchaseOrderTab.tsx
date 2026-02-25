@@ -237,7 +237,13 @@ export default function PurchaseOrderTab() {
             </div>
 
             {copyFeedback && (
-                <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</div>
+                <div
+                    className={`text-xs font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                    role="status"
+                    aria-live="polite"
+                >
+                    {copyFeedback.message}
+                </div>
             )}
 
             {/* KPI Row */}

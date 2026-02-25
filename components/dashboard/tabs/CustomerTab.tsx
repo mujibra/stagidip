@@ -316,7 +316,15 @@ export default function CustomerTab() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                     <span>Showing top {customerLimit} of {formatDashboardNumber(uniqueTopCustomerCount)} customers</span>
-                    {copyFeedback && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{copyFeedback}</span>}
+                    {copyFeedback && (
+                        <span
+                            className={`font-semibold ${copyFeedback.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {copyFeedback.message}
+                        </span>
+                    )}
                 </div>
 
                 <div className="mt-3">

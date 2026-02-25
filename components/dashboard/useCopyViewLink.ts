@@ -6,17 +6,22 @@ type SearchParamsLike = {
     toString(): string;
 };
 
+type CopyFeedbackState = {
+    message: string;
+    type: "success" | "error";
+} | null;
+
 export default function useCopyViewLink(pathname: string, searchParams: SearchParamsLike) {
-    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const [copyFeedback, setCopyFeedback] = useState<CopyFeedbackState>(null);
 
     const copyViewLink = useCallback(async () => {
         try {
             const qs = searchParams.toString();
             const url = `${window.location.origin}${pathname}${qs ? `?${qs}` : ""}`;
             await navigator.clipboard.writeText(url);
-            setCopyFeedback("View link copied");
+            setCopyFeedback({ message: "View link copied", type: "success" });
         } catch {
-            setCopyFeedback("Failed to copy link");
+            setCopyFeedback({ message: "Failed to copy link", type: "error" });
         }
 
         window.setTimeout(() => setCopyFeedback(null), 1800);
