@@ -18,6 +18,7 @@ function fallbackCopyToClipboard(text: string) {
     textarea.style.opacity = "0";
     document.body.appendChild(textarea);
     textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
 
     const succeeded = document.execCommand("copy");
     document.body.removeChild(textarea);

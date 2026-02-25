@@ -8,7 +8,7 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
-import { buildCanonicalHref, canonicalHrefFromSearchParams, sortSearchParams } from "@/components/dashboard/queryParams";
+import { buildCanonicalHref, hasCanonicalHrefChanged, sortSearchParams } from "@/components/dashboard/queryParams";
 
 type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
 
@@ -70,9 +70,7 @@ export default function DashboardTabs() {
     const navigateWithTab = useCallback((tab: TabKey) => {
         const params = buildCanonicalParams(searchParams, tab);
         const nextHref = buildCanonicalHref(pathname, params);
-        const currentHref = canonicalHrefFromSearchParams(pathname, searchParams);
-
-        if (nextHref === currentHref) return;
+        if (!hasCanonicalHrefChanged(pathname, searchParams, params)) return;
 
         router.replace(nextHref);
     }, [pathname, router, searchParams]);
@@ -80,9 +78,8 @@ export default function DashboardTabs() {
     useEffect(() => {
         const canonical = buildCanonicalParams(searchParams, active);
         const nextHref = buildCanonicalHref(pathname, canonical);
-        const currentHref = canonicalHrefFromSearchParams(pathname, searchParams);
 
-        if (nextHref !== currentHref) {
+        if (hasCanonicalHrefChanged(pathname, searchParams, canonical)) {
             router.replace(nextHref);
         }
     }, [active, pathname, router, searchParams]);

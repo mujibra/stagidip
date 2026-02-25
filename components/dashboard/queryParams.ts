@@ -23,3 +23,10 @@ export type SearchParamsLike = {
 export function canonicalHrefFromSearchParams(pathname: string, searchParams: SearchParamsLike) {
     return buildCanonicalHref(pathname, new URLSearchParams(searchParams.toString()));
 }
+
+
+export function hasCanonicalHrefChanged(pathname: string, current: SearchParamsLike, next: URLSearchParams) {
+    const currentHref = canonicalHrefFromSearchParams(pathname, current);
+    const nextHref = buildCanonicalHref(pathname, next);
+    return currentHref !== nextHref;
+}
