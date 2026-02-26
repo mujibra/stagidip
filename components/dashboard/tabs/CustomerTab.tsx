@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { setOrDeleteParam } from "@/components/dashboard/queryParams";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { CUSTOMER_LIMIT_OPTIONS, DEFAULT_CUSTOMER_LIMIT, resolveCustomerLimit } from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -83,7 +90,14 @@ function getSummaryError(
 }
 
 export default function CustomerTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const rawCustomerLimit = searchParams.get("customerLimit");
+    const customerLimit = resolveCustomerLimit(rawCustomerLimit);
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [customers, setCustomers] = useState<Loadable<CustomerResponse>>({ state: "idle" });
     const [purchaseOrders, setPurchaseOrders] = useState<Loadable<PurchaseOrderResponse>>({ state: "idle" });
     const [mesinPerBulan, setMesinPerBulan] = useState<Loadable<MesinPerBulanResponse>>({ state: "idle" });
@@ -145,6 +159,36 @@ export default function CustomerTab() {
 
     const handleRetry = () => setReloadKey((key) => key + 1);
 
+    const updateCustomerLimit = useCallback((nextLimit: number) => {
+        updateQueryParams((params) => {
+            setOrDeleteParam(
+                params,
+                "customerLimit",
+                nextLimit === DEFAULT_CUSTOMER_LIMIT ? null : String(nextLimit)
+            );
+        });
+    }, [updateQueryParams]);
+
+    useEffect(() => {
+        if (rawCustomerLimit === null) return;
+
+        const canonical = customerLimit === DEFAULT_CUSTOMER_LIMIT ? null : String(customerLimit);
+        if (rawCustomerLimit !== canonical) {
+            updateCustomerLimit(customerLimit);
+        }
+    }, [customerLimit, rawCustomerLimit, updateCustomerLimit]);
+
+
+    function resetView() {
+        const changed = updateQueryParams((params) => {
+            params.delete("customerLimit");
+        });
+
+        if (changed) {
+            setReloadKey((key) => key + 1);
+        }
+    }
+
     const customerSummary = useMemo(() => {
         if (customers.state !== "success" || purchaseOrders.state !== "success") return null;
 
@@ -161,19 +205,33 @@ export default function CustomerTab() {
         };
     }, [customers, purchaseOrders]);
 
-    const topBanks = useMemo(() => {
-        if (mesinPerBulan.state !== "success") return [];
+    const topBankStats = useMemo(() => {
+        if (mesinPerBulan.state !== "success") {
+            return { rows: [] as { bank: string; total: number }[], totalCustomers: 0, totalMesin: 0 };
+        }
+
         const totals = new Map<string, number>();
 
         for (const row of mesinPerBulan.data.data) {
             totals.set(row.bank, (totals.get(row.bank) ?? 0) + toNumber(row.total_mesin));
         }
 
-        return Array.from(totals.entries())
+        const allRows = Array.from(totals.entries())
             .map(([bank, total]) => ({ bank, total }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, 8);
-    }, [mesinPerBulan]);
+            .sort((a, b) => {
+                if (b.total !== a.total) return b.total - a.total;
+                return a.bank.localeCompare(b.bank, "id-ID");
+            });
+
+        return {
+            rows: allRows.slice(0, customerLimit),
+            totalCustomers: allRows.length,
+            totalMesin: allRows.reduce((acc, row) => acc + row.total, 0),
+        };
+    }, [customerLimit, mesinPerBulan]);
+
+    const topBanks = topBankStats.rows;
+    const uniqueTopCustomerCount = topBankStats.totalCustomers;
 
     return (
         <div className="space-y-4">
@@ -192,19 +250,19 @@ export default function CustomerTab() {
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Customers</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.totalCustomers.toLocaleString() : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.totalCustomers) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Customers with PO</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.customersWithPo.toLocaleString() : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.customersWithPo) : "—"}
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                                 <div className="text-xs text-zinc-500">Total Mesin (All PO)</div>
                                 <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                                    {customerSummary ? customerSummary.totalMachines.toLocaleString() : "—"}
+                                    {customerSummary ? formatDashboardNumber(customerSummary.totalMachines) : "—"}
                                 </div>
                             </div>
                         </div>
@@ -213,9 +271,49 @@ export default function CustomerTab() {
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Top Customers by Mesin (6 months)</div>
-                    <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs text-zinc-500">Show</label>
+                        <select
+                            value={customerLimit}
+                            onChange={(e) => updateCustomerLimit(Number(e.target.value))}
+                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+                        >
+                            {CUSTOMER_LIMIT_OPTIONS.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={handleRetry}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Refresh
+                        </button>
+                        <button
+                            type="button"
+                            onClick={resetView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Reset view
+                        </button>
+                        <button
+                            type="button"
+                            onClick={copyViewLink}
+                            disabled={isCopying}
+                            aria-busy={isCopying}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            {isCopying ? "Copying…" : "Copy view link"}
+                        </button>
+                        <div className="text-xs text-zinc-500">Data source: /api/getJumlahMesinPerbulan</div>
+                    </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                    <span>Showing top {customerLimit} of {formatDashboardNumber(uniqueTopCustomerCount)} customers</span>
+                    {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} as="span" className="font-semibold" />}
                 </div>
 
                 <div className="mt-3">
@@ -223,22 +321,32 @@ export default function CustomerTab() {
                         state={mesinPerBulan.state}
                         errorMessage={mesinPerBulan.state === "error" ? mesinPerBulan.message : undefined}
                         empty={mesinPerBulan.state === "success" && topBanks.length === 0}
-                        emptyMessage="No mesin totals found for the last 6 months."
+                        emptyMessage={`No mesin totals found for the last 6 months (top ${customerLimit}).`}
                         onRetry={handleRetry}
                     >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[520px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                                     <tr>
+                                        <th className="px-3 py-2">Rank</th>
                                         <th className="px-3 py-2">Customer</th>
                                         <th className="px-3 py-2">Total Mesin</th>
+                                        <th className="px-3 py-2">Share</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {topBanks.map((row) => (
+                                    {topBanks.map((row, idx) => (
                                         <tr key={row.bank} className="border-t border-zinc-200 dark:border-zinc-800">
+                                            <td className="px-3 py-2">
+                                                <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
+                                                    #{idx + 1}
+                                                </span>
+                                            </td>
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.total.toLocaleString()}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.total)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                                                {topBankStats.totalMesin > 0 ? `${((row.total / topBankStats.totalMesin) * 100).toFixed(1)}%` : "0.0%"}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
