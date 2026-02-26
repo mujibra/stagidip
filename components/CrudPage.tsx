@@ -59,7 +59,77 @@ function asInputValue(value: unknown) {
     return value;
   }
 
+  if (Array.isArray(value)) {
+    const snMesinValues = value
+      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
+      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
+
+    if (snMesinValues.length > 0) {
+      return JSON.stringify(snMesinValues);
+    }
+
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
   return value == null ? "" : String(value);
+}
+
+function normalizeEditValue(value: unknown): string | number {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const snMesinValues = value
+      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
+      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
+
+    if (snMesinValues.length > 0) {
+      return JSON.stringify(snMesinValues);
+    }
+
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === "object") {
+    if ("id" in value && (typeof value.id === "number" || typeof value.id === "string")) {
+      return value.id;
+    }
+
+    if ("value" in value && (typeof value.value === "number" || typeof value.value === "string")) {
+      return value.value;
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  return value == null ? "" : String(value);
+}
+
+function buildEditPayload(fields: CrudField[], row: CrudRow): CrudRow {
+  const payload: CrudRow = { ...row };
+
+  for (const field of fields) {
+    payload[field.key] = normalizeEditValue(row[field.key]);
+  }
+
+  return payload;
 }
 
 function escapeCsvValue(value: unknown) {
@@ -82,7 +152,7 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-lg dark:bg-zinc-950">
+      <div className="max-h-[85vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-zinc-950">
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>
           <button
@@ -93,7 +163,7 @@ function Modal({
             Close
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="max-h-[calc(85vh-72px)] overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );
@@ -380,7 +450,7 @@ export default function CrudPage({
               <button
                 type="button"
                 onClick={() => {
-                  setEditForm({ ...row });
+                  setEditForm(buildEditPayload(fields, row));
                   setOpenEdit(true);
                 }}
                 className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
