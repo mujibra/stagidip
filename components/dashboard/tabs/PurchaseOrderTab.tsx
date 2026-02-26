@@ -120,7 +120,7 @@ export default function PurchaseOrderTab() {
     }
 
     const updateYear = useCallback((nextYear: number) => {
-        updateQueryParams((params) => {
+        return updateQueryParams((params) => {
             const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
 
             setOrDeleteParam(params, "poYear", canonicalYear);
@@ -225,7 +225,12 @@ export default function PurchaseOrderTab() {
                     </select>
                     <button
                         type="button"
-                        onClick={() => updateYear(nowYear)}
+                        onClick={() => {
+                            const changed = updateYear(nowYear);
+                            if (changed) {
+                                retryLoad();
+                            }
+                        }}
                         className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                     >
                         Reset year
