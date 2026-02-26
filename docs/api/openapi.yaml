@@ -310,7 +310,7 @@ paths:
       summary: POST /addStatusPo
       description: "Handler source: `app/api/(statusPo)/addStatusPo/route.ts`"
       operationId: post_addStatusPo
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -419,7 +419,7 @@ paths:
       summary: GET /bacth
       description: "Handler source: `app/api/bacth/route.ts`"
       operationId: get_bacth
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -463,7 +463,7 @@ paths:
       summary: POST /bacth
       description: "Handler source: `app/api/bacth/route.ts`"
       operationId: post_bacth
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -695,7 +695,7 @@ paths:
       summary: GET /brand
       description: "Handler source: `app/api/brand/route.ts`"
       operationId: get_brand
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -739,7 +739,7 @@ paths:
       summary: POST /brand
       description: "Handler source: `app/api/brand/route.ts`"
       operationId: post_brand
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -971,7 +971,7 @@ paths:
       summary: POST /changeNewPassword
       description: "Handler source: `app/api/(auth)/changeNewPassword/route.ts`"
       operationId: post_changeNewPassword
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -1172,7 +1172,7 @@ paths:
       summary: POST /checklistStaging
       description: "Handler source: `app/api/(transaksiChecklistStaging)/checklistStaging/route.ts`"
       operationId: post_checklistStaging
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -1696,7 +1696,7 @@ paths:
       summary: POST /checklistStagingMv400
       description: "Handler source: `app/api/(transaksiChecklistStaging)/checklistStagingMv400/route.ts`"
       operationId: post_checklistStagingMv400
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2301,7 +2301,7 @@ paths:
       summary: GET /dataTableInspeksi
       description: "Handler source: `app/api/(inspeksi)/dataTableInspeksi/route.ts`"
       operationId: get_dataTableInspeksi
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2346,7 +2346,7 @@ paths:
       summary: POST /deliveryRequest
       description: "Handler source: `app/api/(deliveryRequest)/deliveryRequest/route.ts`"
       operationId: post_deliveryRequest
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2684,7 +2684,7 @@ paths:
       summary: POST /forgotPwCode
       description: "Handler source: `app/api/(auth)/forgotPwCode/route.ts`"
       operationId: post_forgotPwCode
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2742,7 +2742,7 @@ paths:
       summary: POST /forgotPwEmail
       description: "Handler source: `app/api/(auth)/forgotPwEmail/route.ts`"
       operationId: post_forgotPwEmail
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2799,7 +2799,7 @@ paths:
       summary: POST /forgotPwNew
       description: "Handler source: `app/api/(auth)/forgotPwNew/route.ts`"
       operationId: post_forgotPwNew
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2858,7 +2858,7 @@ paths:
       summary: "GET /get-all-data-snmsin"
       description: "Handler source: `app/api/(purchaseOrder)/get-all-data-snmsin/route.ts`"
       operationId: "get_get-all-data-snmsin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -2965,7 +2965,7 @@ paths:
       summary: "GET /get-data-ims"
       description: "Handler source: `app/api/get-data-ims/route.ts`"
       operationId: "get_get-data-ims"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -3060,7 +3060,7 @@ paths:
       summary: "GET /get-list-typeValues"
       description: "Handler source: `app/api/(mstChecklistStaging)/get-list-typeValues/route.ts`"
       operationId: "get_get-list-typeValues"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -3544,7 +3544,7 @@ paths:
       summary: GET /getAllDeliveryRequest
       description: "Handler source: `app/api/(deliveryRequest)/getAllDeliveryRequest/route.ts`"
       operationId: get_getAllDeliveryRequest
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -3589,7 +3589,7 @@ paths:
       summary: GET /getAllMasterDivisi
       description: "Handler source: `app/api/(divisi)/getAllMasterDivisi/route.ts`"
       operationId: get_getAllMasterDivisi
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -3890,7 +3890,7 @@ paths:
       summary: GET /getDataJenisMesin
       description: "Handler source: `app/api/(dashboard)/getDataJenisMesin/route.ts`"
       operationId: get_getDataJenisMesin
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -3993,7 +3993,7 @@ paths:
       summary: GET /getDataMesinPerWarehouse
       description: "Handler source: `app/api/(dashboard)/getDataMesinPerWarehouse/route.ts`"
       operationId: get_getDataMesinPerWarehouse
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4210,7 +4210,7 @@ paths:
       summary: GET /getDevelopmentSummary
       description: "Handler source: `app/api/(purchaseOrder)/getDevelopmentSummary/route.ts`"
       operationId: get_getDevelopmentSummary
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4420,7 +4420,7 @@ paths:
       summary: GET /getListSN
       description: "Handler source: `app/api/(deliveryRequest)/getListSN/route.ts`"
       operationId: get_getListSN
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4465,7 +4465,7 @@ paths:
       summary: GET /getMachineActivationByCustomer
       description: "Handler source: `app/api/(purchaseOrder)/getMachineActivationByCustomer/route.ts`"
       operationId: get_getMachineActivationByCustomer
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4509,7 +4509,7 @@ paths:
       summary: GET /getMachineDeliveryByType
       description: "Handler source: `app/api/(purchaseOrder)/getMachineDeliveryByType/route.ts`"
       operationId: get_getMachineDeliveryByType
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4553,7 +4553,7 @@ paths:
       summary: GET /getMachineReceivedByCustomer
       description: "Handler source: `app/api/(purchaseOrder)/getMachineReceivedByCustomer/route.ts`"
       operationId: get_getMachineReceivedByCustomer
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -4772,7 +4772,7 @@ paths:
       summary: GET /getPicMarketing
       description: "Handler source: `app/api/(user)/getPicMarketing/route.ts`"
       operationId: get_getPicMarketing
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -5063,7 +5063,7 @@ paths:
       summary: GET /getStaginDurationReport
       description: "Handler source: `app/api/(purchaseOrder)/getStaginDurationReport/route.ts`"
       operationId: get_getStaginDurationReport
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -5107,7 +5107,7 @@ paths:
       summary: GET /getStaginDurationReportV2
       description: "Handler source: `app/api/(purchaseOrder)/getStaginDurationReportV2/route.ts`"
       operationId: get_getStaginDurationReportV2
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -5544,7 +5544,7 @@ paths:
       summary: GET /health
       description: "Handler source: `app/api/health/route.ts`"
       operationId: get_health
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -5739,7 +5739,7 @@ paths:
       summary: "POST /insert-data-ims"
       description: "Handler source: `app/api/insert-data-ims/route.ts`"
       operationId: "post_insert-data-ims"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -5783,7 +5783,7 @@ paths:
       summary: POST /inspeksi
       description: "Handler source: `app/api/(inspeksi)/inspeksi/route.ts`"
       operationId: post_inspeksi
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6104,7 +6104,7 @@ paths:
       summary: POST /login
       description: "Handler source: `app/api/(auth)/login/route.ts`"
       operationId: post_login
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6162,7 +6162,7 @@ paths:
       summary: "POST /login-check"
       description: "Handler source: `app/api/(auth)/login-check/route.ts`"
       operationId: "post_login-check"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6215,7 +6215,7 @@ paths:
       summary: POST /logout
       description: "Handler source: `app/api/(auth)/logout/route.ts`"
       operationId: post_logout
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6268,7 +6268,7 @@ paths:
       summary: "GET /master-customer"
       description: "Handler source: `app/api/master-customer/route.ts`"
       operationId: "get_master-customer"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6312,7 +6312,7 @@ paths:
       summary: "POST /master-customer"
       description: "Handler source: `app/api/master-customer/route.ts`"
       operationId: "post_master-customer"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6546,7 +6546,7 @@ paths:
       summary: "GET /master-gudang"
       description: "Handler source: `app/api/master-gudang/route.ts`"
       operationId: "get_master-gudang"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6590,7 +6590,7 @@ paths:
       summary: "POST /master-gudang"
       description: "Handler source: `app/api/master-gudang/route.ts`"
       operationId: "post_master-gudang"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6823,7 +6823,7 @@ paths:
       summary: "GET /master-mesin"
       description: "Handler source: `app/api/(masterMesin)/master-mesin/route.ts`"
       operationId: "get_master-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -6867,7 +6867,7 @@ paths:
       summary: "POST /master-mesin"
       description: "Handler source: `app/api/(masterMesin)/master-mesin/route.ts`"
       operationId: "post_master-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -7438,7 +7438,7 @@ paths:
       summary: "GET /master-model"
       description: "Handler source: `app/api/master-model/route.ts`"
       operationId: "get_master-model"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -7482,7 +7482,7 @@ paths:
       summary: "POST /master-model"
       description: "Handler source: `app/api/master-model/route.ts`"
       operationId: "post_master-model"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -7714,7 +7714,7 @@ paths:
       summary: "GET /master-parent-type-spek-mesin"
       description: "Handler source: `app/api/master-parent-type-spek-mesin/route.ts`"
       operationId: "get_master-parent-type-spek-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -7758,7 +7758,7 @@ paths:
       summary: "POST /master-parent-type-spek-mesin"
       description: "Handler source: `app/api/master-parent-type-spek-mesin/route.ts`"
       operationId: "post_master-parent-type-spek-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8296,7 +8296,7 @@ paths:
       summary: "GET /master-po"
       description: "Handler source: `app/api/master-po/route.ts`"
       operationId: "get_master-po"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8340,7 +8340,7 @@ paths:
       summary: "POST /master-po"
       description: "Handler source: `app/api/master-po/route.ts`"
       operationId: "post_master-po"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8578,7 +8578,7 @@ paths:
       summary: "GET /master-spek-mesin-f-new"
       description: "Handler source: `app/api/master-spek-mesin-f-new/route.ts`"
       operationId: "get_master-spek-mesin-f-new"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8622,7 +8622,7 @@ paths:
       summary: "POST /master-spek-mesin-f-new"
       description: "Handler source: `app/api/master-spek-mesin-f-new/route.ts`"
       operationId: "post_master-spek-mesin-f-new"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8858,7 +8858,7 @@ paths:
       summary: "GET /master-spekmesin"
       description: "Handler source: `app/api/master-spekmesin/route.ts`"
       operationId: "get_master-spekmesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -8902,7 +8902,7 @@ paths:
       summary: "POST /master-spekmesin"
       description: "Handler source: `app/api/master-spekmesin/route.ts`"
       operationId: "post_master-spekmesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9371,7 +9371,7 @@ paths:
       summary: "GET /master-spesifikasi-mesin"
       description: "Handler source: `app/api/master-spesifikasi-mesin/route.ts`"
       operationId: "get_master-spesifikasi-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9414,7 +9414,7 @@ paths:
       summary: "POST /master-spesifikasi-mesin"
       description: "Handler source: `app/api/master-spesifikasi-mesin/route.ts`"
       operationId: "post_master-spesifikasi-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9639,7 +9639,7 @@ paths:
       summary: "GET /master-spesifikasi-mesin/grouped"
       description: "Handler source: `app/api/master-spesifikasi-mesin/grouped/route.ts`"
       operationId: "get_master-spesifikasi-mesin_grouped"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9684,7 +9684,7 @@ paths:
       summary: "GET /master-style"
       description: "Handler source: `app/api/master-style/route.ts`"
       operationId: "get_master-style"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9728,7 +9728,7 @@ paths:
       summary: "POST /master-style"
       description: "Handler source: `app/api/master-style/route.ts`"
       operationId: "post_master-style"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -9960,7 +9960,7 @@ paths:
       summary: "GET /master-type-spek-mesin"
       description: "Handler source: `app/api/master-type-spek-mesin/route.ts`"
       operationId: "get_master-type-spek-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10191,7 +10191,7 @@ paths:
       summary: "GET /master-user"
       description: "Handler source: `app/api/(user)/master-user/route.ts`"
       operationId: "get_master-user"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10236,7 +10236,7 @@ paths:
       summary: "GET /mst-checkliststaging"
       description: "Handler source: `app/api/(mstChecklistStaging)/mst-checkliststaging/route.ts`"
       operationId: "get_mst-checkliststaging"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10647,7 +10647,7 @@ paths:
       summary: GET /mstInspeksi
       description: "Handler source: `app/api/(inspeksi)/mstInspeksi/route.ts`"
       operationId: get_mstInspeksi
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10691,7 +10691,7 @@ paths:
       summary: POST /mstInspeksi
       description: "Handler source: `app/api/(inspeksi)/mstInspeksi/route.ts`"
       operationId: post_mstInspeksi
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10920,7 +10920,7 @@ paths:
       summary: "GET /pic-mitra"
       description: "Handler source: `app/api/pic-mitra/route.ts`"
       operationId: "get_pic-mitra"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -10964,7 +10964,7 @@ paths:
       summary: "POST /pic-mitra"
       description: "Handler source: `app/api/pic-mitra/route.ts`"
       operationId: "post_pic-mitra"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11196,7 +11196,7 @@ paths:
       summary: POST /picMover
       description: "Handler source: `app/api/(picMover)/picMover/route.ts`"
       operationId: post_picMover
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11544,7 +11544,7 @@ paths:
       summary: GET /pictss
       description: "Handler source: `app/api/pictss/route.ts`"
       operationId: get_pictss
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11588,7 +11588,7 @@ paths:
       summary: POST /pictss
       description: "Handler source: `app/api/pictss/route.ts`"
       operationId: post_pictss
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11820,7 +11820,7 @@ paths:
       summary: GET /profile
       description: "Handler source: `app/api/profile/route.ts`"
       operationId: get_profile
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11864,7 +11864,7 @@ paths:
       summary: GET /purchaseOrder
       description: "Handler source: `app/api/(purchaseOrder)/purchaseOrder/route.ts`"
       operationId: get_purchaseOrder
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -11908,7 +11908,7 @@ paths:
       summary: POST /purchaseOrder
       description: "Handler source: `app/api/(purchaseOrder)/purchaseOrder/route.ts`"
       operationId: post_purchaseOrder
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12651,7 +12651,7 @@ paths:
       summary: GET /purchaseOrder/exportToExcel
       description: "Handler source: `app/api/(purchaseOrder)/purchaseOrder/exportToExcel/route.ts`"
       operationId: get_purchaseOrder_exportToExcel
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12695,7 +12695,7 @@ paths:
       summary: GET /purchaseOrder/exportToPdf
       description: "Handler source: `app/api/(purchaseOrder)/purchaseOrder/exportToPdf/route.ts`"
       operationId: get_purchaseOrder_exportToPdf
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12739,7 +12739,7 @@ paths:
       summary: POST /register
       description: "Handler source: `app/api/(auth)/register/route.ts`"
       operationId: post_register
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12803,7 +12803,7 @@ paths:
       summary: "GET /register-ws-info"
       description: "Handler source: `app/api/register-ws-info/route.ts`"
       operationId: "get_register-ws-info"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12847,7 +12847,7 @@ paths:
       summary: "POST /register-ws-info"
       description: "Handler source: `app/api/register-ws-info/route.ts`"
       operationId: "post_register-ws-info"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -12981,7 +12981,7 @@ paths:
       summary: POST /sendEmails
       description: "Handler source: `app/api/(auth)/sendEmails/route.ts`"
       operationId: post_sendEmails
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -13038,7 +13038,7 @@ paths:
       summary: POST /settingPreStaging
       description: "Handler source: `app/api/(settingPreStaging)/settingPreStaging/route.ts`"
       operationId: post_settingPreStaging
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -13567,7 +13567,7 @@ paths:
       summary: "GET /status-po"
       description: "Handler source: `app/api/(statusPo)/status-po/route.ts`"
       operationId: "get_status-po"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -13612,7 +13612,7 @@ paths:
       summary: GET /statusDelivery
       description: "Handler source: `app/api/(statusDelivery)/statusDelivery/route.ts`"
       operationId: get_statusDelivery
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -13656,7 +13656,7 @@ paths:
       summary: POST /statusDelivery
       description: "Handler source: `app/api/(statusDelivery)/statusDelivery/route.ts`"
       operationId: post_statusDelivery
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -13914,7 +13914,7 @@ paths:
       summary: POST /statusDeliveryDetail
       description: "Handler source: `app/api/(statusDelivery)/statusDeliveryDetail/route.ts`"
       operationId: post_statusDeliveryDetail
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -14090,7 +14090,7 @@ paths:
       summary: GET /test
       description: "Handler source: `app/api/test/route.ts`"
       operationId: get_test
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -14134,7 +14134,7 @@ paths:
       summary: "POST /transaksi-spesifikasi-mesin"
       description: "Handler source: `app/api/(transaksiSpekMesin)/transaksi-spesifikasi-mesin/route.ts`"
       operationId: "post_transaksi-spesifikasi-mesin"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -14200,7 +14200,7 @@ paths:
       summary: "POST /transaksi-spesifikasi-mesin-detail"
       description: "Handler source: `app/api/(transaksiSpekMesin)/transaksi-spesifikasi-mesin-detail/route.ts`"
       operationId: "post_transaksi-spesifikasi-mesin-detail"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -14256,7 +14256,7 @@ paths:
       summary: "PUT /transaksi-spesifikasi-mesin-detail"
       description: "Handler source: `app/api/(transaksiSpekMesin)/transaksi-spesifikasi-mesin-detail/route.ts`"
       operationId: "put_transaksi-spesifikasi-mesin-detail"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -14313,7 +14313,7 @@ paths:
       summary: "POST /transaksi-spesifikasi-mesin-detail-new"
       description: "Handler source: `app/api/(transaksiSpekMesin)/transaksi-spesifikasi-mesin-detail-new/route.ts`"
       operationId: "post_transaksi-spesifikasi-mesin-detail-new"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -15210,7 +15210,7 @@ paths:
       summary: POST /verifikasiEmails
       description: "Handler source: `app/api/(auth)/verifikasiEmails/route.ts`"
       operationId: post_verifikasiEmails
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -15268,7 +15268,7 @@ paths:
       summary: "GET /warehouse-transfer"
       description: "Handler source: `app/api/(warehouse)/warehouse-transfer/route.ts`"
       operationId: "get_warehouse-transfer"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
@@ -15312,7 +15312,7 @@ paths:
       summary: "POST /warehouse-transfer"
       description: "Handler source: `app/api/(warehouse)/warehouse-transfer/route.ts`"
       operationId: "post_warehouse-transfer"
-      parameters:
+      parameters: []
       responses:
         200:
           description: Success
