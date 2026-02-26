@@ -1,6 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { deleteSearchParams, setOrDeleteParam } from "@/components/dashboard/queryParams";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import {
+    DEFAULT_IMPL_PAGE_SIZE,
+    IMPLEMENTATION_PAGE_SIZE_OPTIONS,
+    resolveImplPageSize,
+    resolvePositivePage,
+} from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -47,10 +60,67 @@ function formatDate(value: string | null) {
 }
 
 export default function ImplementationTab() {
-    const perPage = 20;
-    const [page, setPage] = useState(1);
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const rawPageSizeParam = searchParams.get("implPageSize");
+    const perPage = resolveImplPageSize(rawPageSizeParam);
+    const rawPageParam = searchParams.get("implPage");
+    const page = resolvePositivePage(rawPageParam);
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
     const [statusDelivery, setStatusDelivery] = useState<Loadable<StatusDeliveryResponse>>({ state: "loading" });
+
+    function retryLoad() {
+        setStatusDelivery({ state: "loading" });
+        setReloadKey((key) => key + 1);
+    }
+
+
+    const updatePage = useCallback((nextPage: number) => {
+        updateQueryParams((params) => {
+            setOrDeleteParam(params, "implPage", nextPage <= 1 ? null : String(nextPage));
+        });
+    }, [updateQueryParams]);
+
+    const updatePageSize = useCallback((nextPageSize: number) => {
+        updateQueryParams((params) => {
+            setOrDeleteParam(
+                params,
+                "implPageSize",
+                nextPageSize === DEFAULT_IMPL_PAGE_SIZE ? null : String(nextPageSize)
+            );
+
+            deleteSearchParams(params, "implPage");
+        });
+    }, [updateQueryParams]);
+
+    function resetView() {
+        const changed = updateQueryParams((params) => {
+            deleteSearchParams(params, "implPage");
+            params.delete("implPageSize");
+        });
+
+        if (changed) {
+            setStatusDelivery({ state: "loading" });
+        }
+    }
+
+    useEffect(() => {
+        if (rawPageParam === null) return;
+        if (page <= 1 || rawPageParam !== String(page)) {
+            updatePage(page);
+        }
+    }, [rawPageParam, page, updatePage]);
+
+    useEffect(() => {
+        if (rawPageSizeParam === null) return;
+        const canonical = perPage === DEFAULT_IMPL_PAGE_SIZE ? null : String(perPage);
+        if (rawPageSizeParam !== canonical) {
+            updatePageSize(perPage);
+        }
+    }, [perPage, rawPageSizeParam, updatePageSize]);
 
     useEffect(() => {
         let cancelled = false;
@@ -77,11 +147,19 @@ export default function ImplementationTab() {
     const totalPages = useMemo(() => {
         if (statusDelivery.state !== "success") return 1;
         return Math.max(1, Math.ceil((statusDelivery.data.totalDatas ?? 0) / perPage));
-    }, [statusDelivery]);
+    }, [perPage, statusDelivery]);
+
+    useEffect(() => {
+        if (statusDelivery.state !== "success") return;
+        if (page > totalPages) {
+            updatePage(totalPages);
+        }
+    }, [statusDelivery.state, page, totalPages, updatePage]);
 
     const statusSummary = useMemo(() => {
         if (statusDelivery.state !== "success") return null;
         const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const rows = statusDelivery.data.data;
 
         let upcoming = 0;
@@ -92,8 +170,8 @@ export default function ImplementationTab() {
             const arrival = parseDate(row.tgl_perkiraan_tiba);
             const departure = parseDate(row.tgl_perkiraan_keluar);
             if (arrival) {
-                if (arrival >= today) upcoming += 1;
-                if (arrival < today) overdue += 1;
+                if (arrival >= startOfToday) upcoming += 1;
+                if (arrival < startOfToday) overdue += 1;
             }
             if (departure) scheduledDepartures += 1;
         }
@@ -113,35 +191,40 @@ export default function ImplementationTab() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Implementation Summary</div>
                     <div className="text-xs text-zinc-500">Data source: /api/statusDelivery</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-4">
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Total Delivery Records</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.total.toLocaleString() : "—"}
+                <div className="mt-3">
+                    <DataState
+                        state={statusDelivery.state}
+                        errorMessage={statusDelivery.state === "error" ? statusDelivery.message : undefined}
+                        onRetry={retryLoad}
+                    >
+                        <div className="grid gap-3 md:grid-cols-4">
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Total Delivery Records</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? formatDashboardNumber(statusSummary.total) : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? formatDashboardNumber(statusSummary.upcoming) : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Overdue Arrivals</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? formatDashboardNumber(statusSummary.overdue) : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div className="text-xs text-zinc-500">Scheduled Departures</div>
+                                <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {statusSummary ? formatDashboardNumber(statusSummary.scheduledDepartures) : "—"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Upcoming Arrivals</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.upcoming.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Overdue Arrivals</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.overdue.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                        <div className="text-xs text-zinc-500">Scheduled Departures</div>
-                        <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {statusSummary ? statusSummary.scheduledDepartures.toLocaleString() : "—"}
-                        </div>
-                    </div>
+                    </DataState>
                 </div>
-                {statusDelivery.state === "error" && (
-                    <div className="mt-3 text-sm text-red-500">{statusDelivery.message}</div>
-                )}
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -151,8 +234,23 @@ export default function ImplementationTab() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                    <div className="text-xs text-zinc-500">
-                        Page {page} of {totalPages}
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span>Page {page} of {totalPages}</span>
+                        <span>•</span>
+                        <label htmlFor="impl-page-size">Rows</label>
+                        <select
+                            id="impl-page-size"
+                            value={perPage}
+                            onChange={(e) => {
+                                setStatusDelivery({ state: "loading" });
+                                updatePageSize(Number(e.target.value));
+                            }}
+                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                        >
+                            {IMPLEMENTATION_PAGE_SIZE_OPTIONS.map((size) => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -160,7 +258,7 @@ export default function ImplementationTab() {
                             disabled={page <= 1 || statusDelivery.state === "loading"}
                             onClick={() => {
                                 setStatusDelivery({ state: "loading" });
-                                setPage((p) => Math.max(1, p - 1));
+                                updatePage(Math.max(1, page - 1));
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -171,7 +269,7 @@ export default function ImplementationTab() {
                             disabled={page >= totalPages || statusDelivery.state === "loading"}
                             onClick={() => {
                                 setStatusDelivery({ state: "loading" });
-                                setPage((p) => Math.min(totalPages, p + 1));
+                                updatePage(Math.min(totalPages, page + 1));
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -180,23 +278,40 @@ export default function ImplementationTab() {
                         <button
                             type="button"
                             disabled={statusDelivery.state === "loading"}
-                            onClick={() => {
-                                setStatusDelivery({ state: "loading" });
-                                setReloadKey((k) => k + 1);
-                            }}
+                            onClick={retryLoad}
                             className="h-8 rounded-lg bg-zinc-900 px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
                         >
                             Refresh
                         </button>
+                        <button
+                            type="button"
+                            onClick={resetView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            Reset view
+                        </button>
+                        <button
+                            type="button"
+                            onClick={copyViewLink}
+                            disabled={isCopying}
+                            aria-busy={isCopying}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        >
+                            {isCopying ? "Copying…" : "Copy view link"}
+                        </button>
                     </div>
                 </div>
 
+                {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="mt-2 text-xs font-semibold" />}
+
                 <div className="mt-3">
-                    {statusDelivery.state === "loading" && <div className="text-sm text-zinc-500">Loading…</div>}
-                    {statusDelivery.state === "error" && (
-                        <div className="text-sm text-red-500">{statusDelivery.message}</div>
-                    )}
-                    {statusDelivery.state === "success" && (
+                    <DataState
+                        state={statusDelivery.state}
+                        errorMessage={statusDelivery.state === "error" ? statusDelivery.message : undefined}
+                        empty={statusDelivery.state === "success" && statusDelivery.data.data.length === 0}
+                        emptyMessage="No delivery records found for this page."
+                        onRetry={retryLoad}
+                    >
                         <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <table className="min-w-[720px] w-full text-left text-sm">
                                 <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
@@ -209,7 +324,7 @@ export default function ImplementationTab() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {statusDelivery.data.data.map((row) => (
+                                    {statusDelivery.state === "success" && statusDelivery.data.data.map((row) => (
                                         <tr key={row.id} className="border-t border-zinc-200 dark:border-zinc-800">
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">
                                                 {row.id_po}
@@ -228,17 +343,10 @@ export default function ImplementationTab() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {statusDelivery.data.data.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-6 text-sm text-zinc-500" colSpan={5}>
-                                                No delivery records found for this page.
-                                            </td>
-                                        </tr>
-                                    )}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    </DataState>
                 </div>
             </div>
         </div>
