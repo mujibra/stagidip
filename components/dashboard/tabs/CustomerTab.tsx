@@ -50,6 +50,16 @@ type MesinPerBulanResponse = {
     data: MesinPerBulanRow[];
 };
 
+const DEFAULT_CUSTOMER_LIMIT = 8;
+const CUSTOMER_LIMIT_OPTIONS = [5, 8, 10, 15] as const;
+
+function resolveCustomerLimit(raw: string | null) {
+    const parsed = Number(raw ?? DEFAULT_CUSTOMER_LIMIT);
+    if (!Number.isFinite(parsed)) return DEFAULT_CUSTOMER_LIMIT;
+    const next = Math.floor(parsed);
+    return CUSTOMER_LIMIT_OPTIONS.includes(next as (typeof CUSTOMER_LIMIT_OPTIONS)[number]) ? next : DEFAULT_CUSTOMER_LIMIT;
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
