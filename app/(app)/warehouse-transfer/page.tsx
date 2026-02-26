@@ -12,12 +12,12 @@ export default function Page() {
         { key: "id_po", label: "PO ID" },
         { key: "id_customer", label: "Customer ID" },
         { key: "jumlah", label: "Quantity" },
-        { key: "sn_mesins", label: "SN Mesins (JSON)", type: "textarea" },
+        { key: "sn_mesins", label: "SN Mesins", type: "textarea" },
         { key: "from_warehouse", label: "From Warehouse" },
         { key: "to_warehouse", label: "To Warehouse" },
-        { key: "tgl_keluar", label: "Tanggal Keluar" },
-        { key: "tgl_masuk", label: "Tanggal Masuk" },
-        { key: "tgl_staging", label: "Tanggal Staging" },
+        { key: "tgl_keluar", label: "Tanggal Keluar", type: "datetime" },
+        { key: "tgl_masuk", label: "Tanggal Masuk", type: "datetime" },
+        { key: "tgl_staging", label: "Tanggal Staging", type: "datetime" },
         { key: "pic", label: "PIC" },
       ]}
     />
