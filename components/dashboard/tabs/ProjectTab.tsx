@@ -8,6 +8,7 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { setOrDeleteParam } from "@/components/dashboard/queryParams";
 import { resolveMonth, resolveRecentYear, toCanonicalMonthParam, toCanonicalYearParam } from "@/components/dashboard/tabQueryState";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
@@ -75,11 +76,8 @@ export default function ProjectTab() {
             const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
             const canonicalMonth = toCanonicalMonthParam(nextMonth, nowMonth);
 
-            if (canonicalYear === null) params.delete("year");
-            else params.set("year", canonicalYear);
-
-            if (canonicalMonth === null) params.delete("month");
-            else params.set("month", canonicalMonth);
+            setOrDeleteParam(params, "year", canonicalYear);
+            setOrDeleteParam(params, "month", canonicalMonth);
         });
     };
 
@@ -97,11 +95,8 @@ export default function ProjectTab() {
         if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
 
         updateQueryParams((params) => {
-            if (canonicalYear === null) params.delete("year");
-            else params.set("year", canonicalYear);
-
-            if (canonicalMonth === null) params.delete("month");
-            else params.set("month", canonicalMonth);
+            setOrDeleteParam(params, "year", canonicalYear);
+            setOrDeleteParam(params, "month", canonicalMonth);
         });
     }, [month, nowMonth, nowYear, rawMonthParam, rawYearParam, updateQueryParams, year]);
 

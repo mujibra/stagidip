@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { deleteSearchParams, setOrDeleteParam } from "@/components/dashboard/queryParams";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 import { CUSTOMER_LIMIT_OPTIONS, DEFAULT_CUSTOMER_LIMIT, resolveCustomerLimit } from "@/components/dashboard/tabQueryState";
@@ -170,11 +171,11 @@ export default function CustomerTab() {
 
     const updateCustomerLimit = useCallback((nextLimit: number) => {
         updateQueryParams((params) => {
-            if (nextLimit === DEFAULT_CUSTOMER_LIMIT) {
-                params.delete("customerLimit");
-            } else {
-                params.set("customerLimit", String(nextLimit));
-            }
+            setOrDeleteParam(
+                params,
+                "customerLimit",
+                nextLimit === DEFAULT_CUSTOMER_LIMIT ? null : String(nextLimit)
+            );
         });
     }, [updateQueryParams]);
 
@@ -190,7 +191,7 @@ export default function CustomerTab() {
 
     function resetView() {
         const changed = updateQueryParams((params) => {
-            params.delete("customerLimit");
+            deleteSearchParams(params, "customerLimit");
         });
 
         if (changed) {

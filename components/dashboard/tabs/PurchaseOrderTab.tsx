@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { setOrDeleteParam } from "@/components/dashboard/queryParams";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 import { resolveRecentYear, toCanonicalYearParam } from "@/components/dashboard/tabQueryState";
@@ -122,11 +123,7 @@ export default function PurchaseOrderTab() {
         updateQueryParams((params) => {
             const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
 
-            if (canonicalYear === null) {
-                params.delete("poYear");
-            } else {
-                params.set("poYear", canonicalYear);
-            }
+            setOrDeleteParam(params, "poYear", canonicalYear);
         });
     }, [nowYear, updateQueryParams]);
 

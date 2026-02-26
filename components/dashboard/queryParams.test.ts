@@ -5,10 +5,12 @@ import {
     buildCanonicalHref,
     buildCanonicalHrefFromQueryString,
     canonicalHrefFromSearchParams,
+    deleteSearchParams,
     getCanonicalHrefChange,
     hasCanonicalHrefChanged,
     normalizedSearchParams,
     replaceCanonicalHrefIfChanged,
+    setOrDeleteParam,
     searchParamsKey,
     sortSearchParams,
     type SearchParamsLike,
@@ -32,6 +34,25 @@ test("buildCanonicalHrefFromQueryString normalizes leading question mark", () =>
         buildCanonicalHrefFromQueryString("/dashboard", "?b=2&a=1"),
         "/dashboard?a=1&b=2"
     );
+});
+
+
+test("setOrDeleteParam sets non-null values and deletes null values", () => {
+    const params = new URLSearchParams("year=2024&month=05");
+
+    setOrDeleteParam(params, "year", null);
+    setOrDeleteParam(params, "month", "08");
+
+    assert.equal(params.toString(), "month=08");
+});
+
+
+test("deleteSearchParams removes multiple keys", () => {
+    const params = new URLSearchParams("year=2024&month=05&tab=project");
+
+    deleteSearchParams(params, "year", "month");
+
+    assert.equal(params.toString(), "tab=project");
 });
 
 test("canonicalHrefFromSearchParams creates sorted canonical href", () => {
