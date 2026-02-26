@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { resolveMonth, resolveRecentYear } from "@/components/dashboard/tabQueryState";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -40,26 +45,6 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
-function formatNumber(value: number) {
-    return new Intl.NumberFormat("id-ID").format(value);
-}
-
-function resolveYear(value: string | null, nowYear: number) {
-    const parsed = Number(value ?? nowYear);
-    if (!Number.isFinite(parsed)) return nowYear;
-    const year = Math.floor(parsed);
-    if (year < nowYear - 5 || year > nowYear) return nowYear;
-    return year;
-}
-
-function resolveMonth(value: string | null, nowMonth: number) {
-    const parsed = Number(value ?? nowMonth);
-    if (!Number.isFinite(parsed)) return nowMonth;
-    const month = Math.floor(parsed);
-    if (month < 1 || month > 12) return nowMonth;
-    return month;
-}
-
 export default function ProjectTab() {
     const router = useRouter();
     const pathname = usePathname();
@@ -68,9 +53,13 @@ export default function ProjectTab() {
     const nowYear = now.getFullYear();
     const nowMonth = now.getMonth() + 1;
 
-    const year = resolveYear(searchParams.get("year"), nowYear);
-    const month = resolveMonth(searchParams.get("month"), nowMonth);
+    const rawYearParam = searchParams.get("year");
+    const rawMonthParam = searchParams.get("month");
+    const year = resolveRecentYear(rawYearParam, nowYear);
+    const month = resolveMonth(rawMonthParam, nowMonth);
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     const machineUrl = `/api/getDataMachineStatus?year=${year}&month=${pad2(month)}`;
     const projectUrl = `/api/getDataProjectStatus?year=${year}&month=${pad2(month)}`;
@@ -79,23 +68,39 @@ export default function ProjectTab() {
     const [projectStatus, setProjectStatus] = useState<Loadable<ProjectStatusResponse>>({ state: "idle" });
 
     const updateDateParams = (next: { year?: number; month?: number }) => {
-        const params = new URLSearchParams(searchParams.toString());
-        const nextYear = next.year ?? year;
-        const nextMonth = next.month ?? month;
+        updateQueryParams((params) => {
+            const nextYear = next.year ?? year;
+            const nextMonth = next.month ?? month;
 
-        if (nextYear === nowYear) params.delete("year");
-        else params.set("year", String(nextYear));
+            if (nextYear === nowYear) params.delete("year");
+            else params.set("year", String(nextYear));
 
-        if (nextMonth === nowMonth) params.delete("month");
-        else params.set("month", pad2(nextMonth));
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
+            if (nextMonth === nowMonth) params.delete("month");
+            else params.set("month", pad2(nextMonth));
+        });
     };
 
     const load = useCallback(() => {
         setReloadKey((current) => current + 1);
     }, []);
+
+
+    useEffect(() => {
+        if (rawYearParam === null && rawMonthParam === null) return;
+
+        const canonicalYear = year === nowYear ? null : String(year);
+        const canonicalMonth = month === nowMonth ? null : pad2(month);
+
+        if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
+
+        updateQueryParams((params) => {
+            if (canonicalYear === null) params.delete("year");
+            else params.set("year", canonicalYear);
+
+            if (canonicalMonth === null) params.delete("month");
+            else params.set("month", canonicalMonth);
+        });
+    }, [month, nowMonth, nowYear, rawMonthParam, rawYearParam, updateQueryParams, year]);
 
     useEffect(() => {
         let cancelled = false;
@@ -197,13 +202,31 @@ export default function ProjectTab() {
 
                     <button
                         type="button"
+                        onClick={() => updateDateParams({ year: nowYear, month: nowMonth })}
+                        className="ml-2 h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Reset period
+                    </button>
+                    <button
+                        type="button"
                         onClick={load}
-                        className="ml-2 h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                        className="h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
                         Refresh
                     </button>
+                    <button
+                        type="button"
+                        onClick={copyViewLink}
+                        disabled={isCopying}
+                        aria-busy={isCopying}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        {isCopying ? "Copying…" : "Copy view link"}
+                    </button>
                 </div>
             </div>
+
+            {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="text-xs font-semibold" />}
 
             <DataState
                 state={summaryState}
@@ -211,8 +234,8 @@ export default function ProjectTab() {
                 onRetry={load}
             >
                 <div className="grid gap-3 md:grid-cols-3">
-                    <SummaryCard label="Total Mesin" value={totals ? formatNumber(totals.totalMesin) : "—"} />
-                    <SummaryCard label="Installed" value={totals ? formatNumber(totals.installed) : "—"} />
+                    <SummaryCard label="Total Mesin" value={totals ? formatDashboardNumber(totals.totalMesin) : "—"} />
+                    <SummaryCard label="Installed" value={totals ? formatDashboardNumber(totals.installed) : "—"} />
                     <SummaryCard label="Installed %" value={totals ? `${totals.pct.toFixed(2)}%` : "—"} />
                 </div>
             </DataState>
@@ -269,8 +292,8 @@ export default function ProjectTab() {
                                     {projectStatus.state === "success" && projectStatus.data.datas_per_customer.map((row) => (
                                         <tr key={row.id} className="border-t border-zinc-200 dark:border-zinc-800">
                                             <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{row.bank_desc}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.jumlah)}</td>
-                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(row.total_mesin)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.jumlah)}</td>
+                                            <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(row.total_mesin)}</td>
                                             <td className="px-3 py-2">
                                                 <span className="inline-flex items-center rounded-full bg-linear-to-r from-indigo-500/15 via-sky-500/15 to-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100">
                                                     {row.persentase.toFixed(1)}%
@@ -315,7 +338,7 @@ function StatusTable({ title, rows }: { title: string; rows: MachineStatusPoint[
                         {rows.map((row) => (
                             <tr key={row.tanggal} className="border-t border-zinc-200 dark:border-zinc-800">
                                 <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{row.tanggal}</td>
-                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatNumber(Number(row.jumlah))}</td>
+                                <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(Number(row.jumlah))}</td>
                             </tr>
                         ))}
                     </tbody>
