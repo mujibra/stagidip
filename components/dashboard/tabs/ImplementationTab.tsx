@@ -100,11 +100,14 @@ export default function ImplementationTab() {
     }, [updateQueryParams]);
 
     function resetView() {
-        updateQueryParams((params) => {
+        const changed = updateQueryParams((params) => {
             params.delete("implPage");
             params.delete("implPageSize");
         });
-        setStatusDelivery({ state: "loading" });
+
+        if (changed) {
+            setStatusDelivery({ state: "loading" });
+        }
     }
 
     useEffect(() => {

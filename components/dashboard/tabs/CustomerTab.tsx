@@ -189,10 +189,13 @@ export default function CustomerTab() {
 
 
     function resetView() {
-        updateQueryParams((params) => {
+        const changed = updateQueryParams((params) => {
             params.delete("customerLimit");
         });
-        setReloadKey((key) => key + 1);
+
+        if (changed) {
+            setReloadKey((key) => key + 1);
+        }
     }
 
     const customerSummary = useMemo(() => {
