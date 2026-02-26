@@ -4,10 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCanonicalHref, type SearchParamsLike, searchParamsKey } from "@/components/dashboard/queryParams";
 
-type CopyFeedbackState = {
+export type CopyFeedbackState = {
     message: string;
     type: "success" | "error";
 } | null;
+
+export type UseCopyViewLinkResult = {
+    copyFeedback: CopyFeedbackState;
+    copyViewLink: () => Promise<void>;
+    isCopying: boolean;
+};
 
 const COPY_FEEDBACK_TIMEOUT_MS = 1800;
 
@@ -71,7 +77,7 @@ async function writeToClipboard(text: string) {
     fallbackCopyToClipboard(text);
 }
 
-export default function useCopyViewLink(pathname: string, searchParams: SearchParamsLike) {
+export default function useCopyViewLink(pathname: string, searchParams: SearchParamsLike): UseCopyViewLinkResult {
     const [copyFeedback, setCopyFeedback] = useState<CopyFeedbackState>(null);
     const [isCopying, setIsCopying] = useState(false);
     const isCopyingRef = useRef(false);
