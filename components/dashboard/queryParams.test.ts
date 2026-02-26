@@ -6,6 +6,7 @@ import {
     canonicalHrefFromSearchParams,
     getCanonicalHrefChange,
     hasCanonicalHrefChanged,
+    normalizedSearchParams,
     replaceCanonicalHrefIfChanged,
     searchParamsKey,
     sortSearchParams,
@@ -46,6 +47,15 @@ test("searchParamsKey normalizes equivalent param ordering", () => {
 
     assert.equal(searchParamsKey(first), searchParamsKey(second));
     assert.equal(searchParamsKey(first), "implPage=2&implPageSize=50&tab=implementation");
+});
+
+
+test("normalizedSearchParams returns sorted URLSearchParams", () => {
+    const searchParams: SearchParamsLike = {
+        toString: () => "z=1&a=2&a=1",
+    };
+
+    assert.equal(normalizedSearchParams(searchParams).toString(), "a=1&a=2&z=1");
 });
 
 test("getCanonicalHrefChange returns changed=false for semantically equivalent param order", () => {

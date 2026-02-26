@@ -20,12 +20,16 @@ export type SearchParamsLike = {
     toString(): string;
 };
 
+export function normalizedSearchParams(searchParams: SearchParamsLike) {
+    return sortSearchParams(new URLSearchParams(searchParams.toString()));
+}
+
 export function searchParamsKey(searchParams: SearchParamsLike) {
-    return sortSearchParams(new URLSearchParams(searchParams.toString())).toString();
+    return normalizedSearchParams(searchParams).toString();
 }
 
 export function canonicalHrefFromSearchParams(pathname: string, searchParams: SearchParamsLike) {
-    return buildCanonicalHref(pathname, new URLSearchParams(searchParamsKey(searchParams)));
+    return buildCanonicalHref(pathname, normalizedSearchParams(searchParams));
 }
 
 
