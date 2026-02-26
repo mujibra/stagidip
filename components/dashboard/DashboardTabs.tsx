@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -8,58 +8,47 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
+import { replaceCanonicalHrefIfChanged, searchParamsKey } from "@/components/dashboard/queryParams";
+import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
-type TabKey = "project" | "purchaseOrder" | "customer" | "implementation";
-
-const VALID_TABS: TabKey[] = ["project", "purchaseOrder", "customer", "implementation"];
-
-function getActiveTab(rawTab: string | null): TabKey {
-    if (!rawTab) return "project";
-    return VALID_TABS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "project";
-}
+const DASHBOARD_TABS = [
+    { key: "project", label: "Project" },
+    { key: "purchaseOrder", label: "Purchase Order" },
+    { key: "customer", label: "Customer" },
+    { key: "implementation", label: "Implementation" },
+] as const satisfies { key: TabKey; label: string }[];
 
 export default function DashboardTabs() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const tabs = useMemo(
-        () =>
-            [
-                { key: "project" as const, label: "Project" },
-                { key: "purchaseOrder" as const, label: "Purchase Order" },
-                { key: "customer" as const, label: "Customer" },
-                { key: "implementation" as const, label: "Implementation" },
-            ] satisfies { key: TabKey; label: string }[],
-        []
-    );
+    const paramsKey = useMemo(() => searchParamsKey(searchParams), [searchParams]);
+    const currentSearchParams = useMemo(() => new URLSearchParams(paramsKey), [paramsKey]);
 
-    const active = useMemo<TabKey>(() => getActiveTab(searchParams.get("tab")), [searchParams]);
+    const active = useMemo<TabKey>(() => getActiveTab(currentSearchParams.get("tab")), [currentSearchParams]);
 
-    const handleTabChange = (tab: TabKey) => {
-        const params = new URLSearchParams(searchParams.toString());
+    const navigateWithTab = useCallback((tab: TabKey) => {
+        const params = buildCanonicalParams(currentSearchParams, tab);
+        replaceCanonicalHrefIfChanged(pathname, currentSearchParams, params, router);
+    }, [currentSearchParams, pathname, router]);
 
-        if (tab === "project") {
-            params.delete("tab");
-        } else {
-            params.set("tab", tab);
-        }
-
-        const qs = params.toString();
-        router.replace(qs ? `${pathname}?${qs}` : pathname);
-    };
+    useEffect(() => {
+        const canonical = buildCanonicalParams(currentSearchParams, active);
+        replaceCanonicalHrefIfChanged(pathname, currentSearchParams, canonical, router);
+    }, [active, currentSearchParams, pathname, router]);
 
     return (
         <div className="w-full">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
                 <div className="flex gap-1 overflow-x-auto py-2">
-                    {tabs.map((t) => {
+                    {DASHBOARD_TABS.map((t) => {
                         const isActive = active === t.key;
                         return (
                             <button
                                 key={t.key}
                                 type="button"
-                                onClick={() => handleTabChange(t.key)}
+                                onClick={() => navigateWithTab(t.key)}
                                 aria-pressed={isActive}
                                 className={[
                                     "relative rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
