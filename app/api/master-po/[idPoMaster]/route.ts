@@ -20,6 +20,16 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function parseCustomerIds(values: Array<string | null | undefined>): number[] {
+    return Array.from(
+        new Set(
+            values
+                .map((id) => Number(id))
+                .filter((id): id is number => Number.isInteger(id) && id > 0),
+        ),
+    );
+}
+
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
         const idPoMaster = Number((await ctx.params).idPoMaster);
@@ -36,11 +46,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster
             });
         }
 
-        const customerIds = Array.from(
-            new Set(masterPos.map((po) => po.id_customer).filter((id): id is string => Boolean(id)))
-        );
+        const customerIds = parseCustomerIds(masterPos.map((po) => po.id_customer));
         const customers = customerIds.length
-            ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds.map((id) => Number(id)) } } })
+            ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds } } })
             : [];
         const customerMap = new Map(customers.map((c) => [String(c.id), c]));
 
