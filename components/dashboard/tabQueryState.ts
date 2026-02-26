@@ -47,3 +47,11 @@ export function resolveMonth(raw: string | null, fallbackMonth: number) {
     const value = Math.floor(parsed);
     return value >= 1 && value <= 12 ? value : fallbackMonth;
 }
+
+export function toCanonicalYearParam(year: number, defaultYear: number) {
+    return year === defaultYear ? null : String(year);
+}
+
+export function toCanonicalMonthParam(month: number, defaultMonth: number) {
+    return month === defaultMonth ? null : String(month).padStart(2, "0");
+}

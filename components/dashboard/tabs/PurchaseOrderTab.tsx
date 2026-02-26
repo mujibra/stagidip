@@ -8,7 +8,7 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
-import { resolveRecentYear } from "@/components/dashboard/tabQueryState";
+import { resolveRecentYear, toCanonicalYearParam } from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -120,10 +120,12 @@ export default function PurchaseOrderTab() {
 
     const updateYear = useCallback((nextYear: number) => {
         updateQueryParams((params) => {
-            if (nextYear === nowYear) {
+            const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
+
+            if (canonicalYear === null) {
                 params.delete("poYear");
             } else {
-                params.set("poYear", String(nextYear));
+                params.set("poYear", canonicalYear);
             }
         });
     }, [nowYear, updateQueryParams]);
