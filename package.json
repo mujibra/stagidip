@@ -11,7 +11,9 @@
     "etl:customers": "tsx etl/run.ts",
     "etl:warehouses": "tsx etl/run.ts",
     "migration:check-routes": "node scripts/check-canonical-routes.mjs",
-    "docs:infer-examples": "node scripts/infer-openapi-examples.mjs"
+    "docs:infer-examples": "node scripts/infer-openapi-examples.mjs",
+    "test:dashboard": "tsx --test components/dashboard/queryParams.test.ts components/dashboard/dashboardTabParams.test.ts components/dashboard/tabQueryState.test.ts",
+    "progress:frontend-improvements": "node scripts/frontend-improvement-progress.mjs"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
