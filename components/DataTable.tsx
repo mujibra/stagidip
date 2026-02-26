@@ -20,14 +20,18 @@ const INDONESIA_DATE_FORMATTER = new Intl.DateTimeFormat("id-ID", {
   day: "2-digit",
   month: "long",
   year: "numeric",
+});
+
+const INDONESIA_TIME_FORMATTER = new Intl.DateTimeFormat("id-ID", {
   hour: "2-digit",
   minute: "2-digit",
-  second: "2-digit",
   hour12: false,
 });
 
 function formatIndonesianDate(value: Date) {
-  return INDONESIA_DATE_FORMATTER.format(value);
+  const datePart = INDONESIA_DATE_FORMATTER.format(value);
+  const timePart = INDONESIA_TIME_FORMATTER.format(value).replace(".", ":");
+  return `${datePart}, ${timePart}`;
 }
 
 function parseDateCandidate(value: string): Date | null {
