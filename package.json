@@ -13,7 +13,8 @@
     "migration:check-routes": "node scripts/check-canonical-routes.mjs",
     "docs:infer-examples": "node scripts/infer-openapi-examples.mjs",
     "test:dashboard": "tsx --test components/dashboard/queryParams.test.ts components/dashboard/dashboardTabParams.test.ts components/dashboard/tabQueryState.test.ts",
-    "progress:frontend-improvements": "node scripts/frontend-improvement-progress.mjs"
+    "progress:frontend-improvements": "node scripts/frontend-improvement-progress.mjs",
+    "qa:smoke": "node scripts/qa-smoke-test.mjs"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
