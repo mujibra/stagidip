@@ -46,11 +46,20 @@ type CrudRow = Record<string, unknown>;
 const DEFAULT_MESSAGE_TIMEOUT = 3000;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
-function buildPayload(fields: CrudField[], values: Record<string, string>) {
+function buildPayload(fields: CrudField[], values: Record<string, unknown>) {
   return fields.reduce<Record<string, string>>((acc, field) => {
-    acc[field.key] = values[field.key] ?? "";
+    const value = values[field.key];
+    acc[field.key] = typeof value === "string" ? value : value == null ? "" : String(value);
     return acc;
   }, {});
+}
+
+function asInputValue(value: unknown) {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+
+  return value == null ? "" : String(value);
 }
 
 function escapeCsvValue(value: unknown) {
@@ -349,7 +358,7 @@ export default function CrudPage({
       {
         key: "no",
         label: "No",
-        render: (_row: Record<string, string | number | boolean>, index: number) => (
+        render: (_row: CrudRow, index: number) => (
           <span>{(activePage - 1) * pageSize + index + 1}</span>
         ),
         className: "w-16 text-center",
@@ -365,7 +374,7 @@ export default function CrudPage({
       baseColumns.push({
         key: "actions",
         label: "Actions",
-        render: (row: Record<string, string | number | boolean>) => (
+        render: (row: CrudRow) => (
           <div className="flex flex-wrap justify-end gap-2">
             {allowEdit ? (
               <button
@@ -577,7 +586,7 @@ export default function CrudPage({
                 <span className="mb-1 block">{field.label}</span>
                 {field.type === "textarea" ? (
                   <textarea
-                    value={editForm[field.key] ?? ""}
+                    value={asInputValue(editForm[field.key])}
                     onChange={(event) =>
                       setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
                     }
@@ -585,7 +594,7 @@ export default function CrudPage({
                   />
                 ) : (
                   <input
-                    value={editForm[field.key] ?? ""}
+                    value={asInputValue(editForm[field.key])}
                     onChange={(event) =>
                       setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
                     }
