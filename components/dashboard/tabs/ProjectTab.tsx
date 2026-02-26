@@ -148,6 +148,8 @@ export default function ProjectTab() {
         return { totalMesin, installed, pct };
     }, [projectStatus]);
 
+    const isLoading = machineStatus.state === "loading" || projectStatus.state === "loading";
+
     const summaryState = useMemo<"idle" | "loading" | "error" | "success">(() => {
         if (projectStatus.state === "error") return "error";
         if (projectStatus.state === "loading") return "loading";
@@ -212,7 +214,8 @@ export default function ProjectTab() {
                     <button
                         type="button"
                         onClick={load}
-                        className="h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                        disabled={isLoading}
+                        className="h-9 rounded-xl bg-zinc-900 px-3 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
                         Refresh
                     </button>

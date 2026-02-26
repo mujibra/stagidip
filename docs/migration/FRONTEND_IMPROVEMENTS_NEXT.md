@@ -9,6 +9,19 @@ This list captures frontend parity/quality improvements identified during execut
 - Link to the module audit file and target PR when available.
 - Prioritize execution using `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
 
+## Progress Snapshot
+
+Use this command to get the latest completion percentage from the tracker table:
+
+```bash
+npm run progress:frontend-improvements
+```
+
+The script reports:
+- Implementation progress (`done` + `qa-review`)
+- Closure progress (`done` only)
+- Remaining `in-progress` and `qa-review` rows
+
 ## Dashboard (Week 1 focus)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
