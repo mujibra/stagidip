@@ -67,6 +67,7 @@ export default function ImplementationTab() {
     const perPage = resolveImplPageSize(rawPageSizeParam);
     const rawPageParam = searchParams.get("implPage");
     const page = resolvePositivePage(rawPageParam);
+    const isDefaultView = page <= 1 && perPage === DEFAULT_IMPL_PAGE_SIZE;
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
@@ -292,7 +293,8 @@ export default function ImplementationTab() {
                         <button
                             type="button"
                             onClick={resetView}
-                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            disabled={isDefaultView || statusDelivery.state === "loading"}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Reset view
                         </button>
