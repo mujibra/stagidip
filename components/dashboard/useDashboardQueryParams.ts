@@ -13,6 +13,6 @@ export default function useDashboardQueryParams(pathname: string, searchParams: 
 
         mutate(nextParams);
 
-        replaceCanonicalHrefIfChanged(pathname, currentParams, nextParams, router);
+        return replaceCanonicalHrefIfChanged(pathname, currentParams, nextParams, router);
     }, [pathname, router, paramsKey]);
 }
