@@ -59,7 +59,57 @@ function asInputValue(value: unknown) {
     return value;
   }
 
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
   return value == null ? "" : String(value);
+}
+
+function normalizeEditValue(value: unknown): string | number {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === "object") {
+    if ("id" in value && (typeof value.id === "number" || typeof value.id === "string")) {
+      return value.id;
+    }
+
+    if ("value" in value && (typeof value.value === "number" || typeof value.value === "string")) {
+      return value.value;
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  return value == null ? "" : String(value);
+}
+
+function buildEditPayload(fields: CrudField[], row: CrudRow): CrudRow {
+  const payload: CrudRow = { ...row };
+
+  for (const field of fields) {
+    payload[field.key] = normalizeEditValue(row[field.key]);
+  }
+
+  return payload;
 }
 
 function escapeCsvValue(value: unknown) {
@@ -380,7 +430,7 @@ export default function CrudPage({
               <button
                 type="button"
                 onClick={() => {
-                  setEditForm({ ...row });
+                  setEditForm(buildEditPayload(fields, row));
                   setOpenEdit(true);
                 }}
                 className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
