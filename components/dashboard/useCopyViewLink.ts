@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { buildCanonicalHref, type SearchParamsLike } from "@/components/dashboard/queryParams";
+import { buildCanonicalHref, type SearchParamsLike, searchParamsKey } from "@/components/dashboard/queryParams";
 
 type CopyFeedbackState = {
     message: string;
@@ -78,10 +78,10 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
     const isMountedRef = useRef(true);
     const clearFeedbackTimeoutRef = useRef<number | null>(null);
 
-    const searchParamsKey = useMemo(() => searchParams.toString(), [searchParams]);
+    const paramsKey = useMemo(() => searchParamsKey(searchParams), [searchParams]);
     const canonicalHref = useMemo(
-        () => buildCanonicalHref(pathname, new URLSearchParams(searchParamsKey)),
-        [pathname, searchParamsKey]
+        () => buildCanonicalHref(pathname, new URLSearchParams(paramsKey)),
+        [pathname, paramsKey]
     );
 
     const setFeedbackSafely = useCallback((next: CopyFeedbackState) => {

@@ -7,6 +7,7 @@ import {
     getCanonicalHrefChange,
     hasCanonicalHrefChanged,
     replaceCanonicalHrefIfChanged,
+    searchParamsKey,
     sortSearchParams,
     type SearchParamsLike,
 } from "./queryParams";
@@ -32,6 +33,19 @@ test("canonicalHrefFromSearchParams creates sorted canonical href", () => {
         canonicalHrefFromSearchParams("/dashboard", searchParams),
         "/dashboard?implPage=2&implPageSize=50&tab=implementation"
     );
+});
+
+
+test("searchParamsKey normalizes equivalent param ordering", () => {
+    const first: SearchParamsLike = {
+        toString: () => "tab=implementation&implPageSize=50&implPage=2",
+    };
+    const second: SearchParamsLike = {
+        toString: () => "implPage=2&tab=implementation&implPageSize=50",
+    };
+
+    assert.equal(searchParamsKey(first), searchParamsKey(second));
+    assert.equal(searchParamsKey(first), "implPage=2&implPageSize=50&tab=implementation");
 });
 
 test("getCanonicalHrefChange returns changed=false for semantically equivalent param order", () => {
