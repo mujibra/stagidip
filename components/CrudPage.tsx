@@ -46,9 +46,69 @@ type CrudRow = Record<string, unknown>;
 const DEFAULT_MESSAGE_TIMEOUT = 3000;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
+function extractSnMesinValues(value: unknown): string[] {
+  if (value == null) return [];
+
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) => extractSnMesinValues(entry));
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed) || (parsed && typeof parsed === "object")) {
+        const values = extractSnMesinValues(parsed);
+        if (values.length > 0) return values;
+      }
+    } catch {
+      // Fallback below when this is not JSON.
+    }
+
+    return trimmed
+      .split(/[\n,;|]+/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "number") {
+    return [String(value)];
+  }
+
+  if (value && typeof value === "object") {
+    if ("snMesin" in value && (typeof value.snMesin === "string" || typeof value.snMesin === "number")) {
+      return [String(value.snMesin).trim()].filter(Boolean);
+    }
+
+    if ("sn_mesin" in value && (typeof value.sn_mesin === "string" || typeof value.sn_mesin === "number")) {
+      return [String(value.sn_mesin).trim()].filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
+function toSnMesinsDisplayValue(value: unknown): string {
+  const values = extractSnMesinValues(value);
+  return values.join(" | ");
+}
+
+function toSnMesinsPayloadValue(value: unknown): string {
+  const values = extractSnMesinValues(value);
+  return JSON.stringify(values);
+}
+
 function buildPayload(fields: CrudField[], values: Record<string, unknown>) {
   return fields.reduce<Record<string, string>>((acc, field) => {
     const value = values[field.key];
+
+    if (field.key === "sn_mesins") {
+      acc[field.key] = toSnMesinsPayloadValue(value);
+      return acc;
+    }
+
     acc[field.key] = typeof value === "string" ? value : value == null ? "" : String(value);
     return acc;
   }, {});
@@ -60,17 +120,11 @@ function asInputValue(value: unknown) {
   }
 
   if (Array.isArray(value)) {
-    const snMesinValues = value
-      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
-      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
-      .map((entry) => String(entry).trim())
-      .filter(Boolean);
-
-    if (snMesinValues.length > 0) {
-      return JSON.stringify(snMesinValues);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
     }
-
-    return JSON.stringify(value);
   }
 
   if (value && typeof value === "object") {
@@ -84,22 +138,16 @@ function asInputValue(value: unknown) {
   return value == null ? "" : String(value);
 }
 
-function normalizeEditValue(value: unknown): string | number {
+function normalizeEditValue(value: unknown, fieldKey: string): string | number {
+  if (fieldKey === "sn_mesins") {
+    return toSnMesinsDisplayValue(value);
+  }
+
   if (typeof value === "string" || typeof value === "number") {
     return value;
   }
 
   if (Array.isArray(value)) {
-    const snMesinValues = value
-      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
-      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
-      .map((entry) => String(entry).trim())
-      .filter(Boolean);
-
-    if (snMesinValues.length > 0) {
-      return JSON.stringify(snMesinValues);
-    }
-
     return JSON.stringify(value);
   }
 
@@ -126,7 +174,7 @@ function buildEditPayload(fields: CrudField[], row: CrudRow): CrudRow {
   const payload: CrudRow = { ...row };
 
   for (const field of fields) {
-    payload[field.key] = normalizeEditValue(row[field.key]);
+    payload[field.key] = normalizeEditValue(row[field.key], field.key);
   }
 
   return payload;
