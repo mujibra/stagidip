@@ -21,6 +21,21 @@ export function buildCanonicalHrefFromQueryString(pathname: string, queryString:
 }
 
 
+export function deleteSearchParams(params: URLSearchParams, ...keys: string[]) {
+    for (const key of keys) {
+        params.delete(key);
+    }
+}
+
+export function setOrDeleteParam(params: URLSearchParams, key: string, value: string | null) {
+    if (value === null) {
+        params.delete(key);
+        return;
+    }
+
+    params.set(key, value);
+}
+
 export type SearchParamsLike = {
     toString(): string;
 };

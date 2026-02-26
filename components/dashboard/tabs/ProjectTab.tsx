@@ -8,7 +8,8 @@ import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
-import { resolveMonth, resolveRecentYear } from "@/components/dashboard/tabQueryState";
+import { setOrDeleteParam } from "@/components/dashboard/queryParams";
+import { resolveMonth, resolveRecentYear, toCanonicalMonthParam, toCanonicalYearParam } from "@/components/dashboard/tabQueryState";
 
 type MachineStatusPoint = { tanggal: string; jumlah: string };
 type MachineStatusResponse = {
@@ -72,11 +73,11 @@ export default function ProjectTab() {
             const nextYear = next.year ?? year;
             const nextMonth = next.month ?? month;
 
-            if (nextYear === nowYear) params.delete("year");
-            else params.set("year", String(nextYear));
+            const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
+            const canonicalMonth = toCanonicalMonthParam(nextMonth, nowMonth);
 
-            if (nextMonth === nowMonth) params.delete("month");
-            else params.set("month", pad2(nextMonth));
+            setOrDeleteParam(params, "year", canonicalYear);
+            setOrDeleteParam(params, "month", canonicalMonth);
         });
     };
 
@@ -88,17 +89,14 @@ export default function ProjectTab() {
     useEffect(() => {
         if (rawYearParam === null && rawMonthParam === null) return;
 
-        const canonicalYear = year === nowYear ? null : String(year);
-        const canonicalMonth = month === nowMonth ? null : pad2(month);
+        const canonicalYear = toCanonicalYearParam(year, nowYear);
+        const canonicalMonth = toCanonicalMonthParam(month, nowMonth);
 
         if (rawYearParam === canonicalYear && rawMonthParam === canonicalMonth) return;
 
         updateQueryParams((params) => {
-            if (canonicalYear === null) params.delete("year");
-            else params.set("year", canonicalYear);
-
-            if (canonicalMonth === null) params.delete("month");
-            else params.set("month", canonicalMonth);
+            setOrDeleteParam(params, "year", canonicalYear);
+            setOrDeleteParam(params, "month", canonicalMonth);
         });
     }, [month, nowMonth, nowYear, rawMonthParam, rawYearParam, updateQueryParams, year]);
 

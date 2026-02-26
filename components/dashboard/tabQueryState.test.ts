@@ -11,6 +11,8 @@ import {
     resolveMonth,
     resolvePositivePage,
     resolveRecentYear,
+    toCanonicalMonthParam,
+    toCanonicalYearParam,
 } from "./tabQueryState";
 
 test("customer and implementation option constants stay stable", () => {
@@ -56,4 +58,13 @@ test("resolveMonth enforces 1-12 month bounds", () => {
     assert.equal(resolveMonth("0", 8), 8);
     assert.equal(resolveMonth("13", 8), 8);
     assert.equal(resolveMonth("bad", 8), 8);
+});
+
+
+test("canonical year/month params omit defaults and format month", () => {
+    assert.equal(toCanonicalYearParam(2025, 2025), null);
+    assert.equal(toCanonicalYearParam(2024, 2025), "2024");
+
+    assert.equal(toCanonicalMonthParam(8, 8), null);
+    assert.equal(toCanonicalMonthParam(3, 8), "03");
 });

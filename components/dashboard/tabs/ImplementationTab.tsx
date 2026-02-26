@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DataState from "@/components/dashboard/DataState";
 import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
 import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { deleteSearchParams, setOrDeleteParam } from "@/components/dashboard/queryParams";
 import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
 import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
 import {
@@ -79,29 +80,25 @@ export default function ImplementationTab() {
 
     const updatePage = useCallback((nextPage: number) => {
         updateQueryParams((params) => {
-            if (nextPage <= 1) {
-                params.delete("implPage");
-            } else {
-                params.set("implPage", String(nextPage));
-            }
+            setOrDeleteParam(params, "implPage", nextPage <= 1 ? null : String(nextPage));
         });
     }, [updateQueryParams]);
 
     const updatePageSize = useCallback((nextPageSize: number) => {
         updateQueryParams((params) => {
-            if (nextPageSize === DEFAULT_IMPL_PAGE_SIZE) {
-                params.delete("implPageSize");
-            } else {
-                params.set("implPageSize", String(nextPageSize));
-            }
+            setOrDeleteParam(
+                params,
+                "implPageSize",
+                nextPageSize === DEFAULT_IMPL_PAGE_SIZE ? null : String(nextPageSize)
+            );
 
-            params.delete("implPage");
+            deleteSearchParams(params, "implPage");
         });
     }, [updateQueryParams]);
 
     function resetView() {
         const changed = updateQueryParams((params) => {
-            params.delete("implPage");
+            deleteSearchParams(params, "implPage");
             params.delete("implPageSize");
         });
 
