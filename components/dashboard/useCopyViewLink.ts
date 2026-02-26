@@ -100,6 +100,13 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         setIsCopying(next);
     }, []);
 
+    const clearFeedbackTimer = useCallback(() => {
+        if (clearFeedbackTimeoutRef.current === null) return;
+
+        window.clearTimeout(clearFeedbackTimeoutRef.current);
+        clearFeedbackTimeoutRef.current = null;
+    }, []);
+
     const copyViewLink = useCallback(async () => {
         if (isCopyingRef.current) return;
 
@@ -113,9 +120,7 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
         } catch {
             setFeedbackSafely({ message: "Failed to copy link", type: "error" });
         } finally {
-            if (clearFeedbackTimeoutRef.current !== null) {
-                window.clearTimeout(clearFeedbackTimeoutRef.current);
-            }
+            clearFeedbackTimer();
 
             clearFeedbackTimeoutRef.current = window.setTimeout(() => {
                 if (!isMountedRef.current) return;
@@ -126,27 +131,22 @@ export default function useCopyViewLink(pathname: string, searchParams: SearchPa
             isCopyingRef.current = false;
             setCopyingSafely(false);
         }
-    }, [canonicalHref, setCopyingSafely, setFeedbackSafely]);
+    }, [canonicalHref, clearFeedbackTimer, setCopyingSafely, setFeedbackSafely]);
 
     useEffect(() => {
-        if (clearFeedbackTimeoutRef.current !== null) {
-            window.clearTimeout(clearFeedbackTimeoutRef.current);
-            clearFeedbackTimeoutRef.current = null;
-        }
+        clearFeedbackTimer();
 
         isCopyingRef.current = false;
         setCopyingSafely(false);
         setFeedbackSafely(null);
-    }, [canonicalHref, setCopyingSafely, setFeedbackSafely]);
+    }, [canonicalHref, clearFeedbackTimer, setCopyingSafely, setFeedbackSafely]);
 
     useEffect(() => {
         return () => {
             isMountedRef.current = false;
-            if (clearFeedbackTimeoutRef.current !== null) {
-                window.clearTimeout(clearFeedbackTimeoutRef.current);
-            }
+            clearFeedbackTimer();
         };
-    }, []);
+    }, [clearFeedbackTimer]);
 
     return { copyFeedback, copyViewLink, isCopying };
 }
