@@ -60,6 +60,16 @@ function asInputValue(value: unknown) {
   }
 
   if (Array.isArray(value)) {
+    const snMesinValues = value
+      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
+      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
+
+    if (snMesinValues.length > 0) {
+      return JSON.stringify(snMesinValues);
+    }
+
     return JSON.stringify(value);
   }
 
@@ -80,6 +90,16 @@ function normalizeEditValue(value: unknown): string | number {
   }
 
   if (Array.isArray(value)) {
+    const snMesinValues = value
+      .map((entry) => (entry && typeof entry === "object" && "snMesin" in entry ? entry.snMesin : entry))
+      .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
+
+    if (snMesinValues.length > 0) {
+      return JSON.stringify(snMesinValues);
+    }
+
     return JSON.stringify(value);
   }
 
@@ -132,7 +152,7 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-lg dark:bg-zinc-950">
+      <div className="max-h-[85vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-zinc-950">
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>
           <button
@@ -143,7 +163,7 @@ function Modal({
             Close
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="max-h-[calc(85vh-72px)] overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );
