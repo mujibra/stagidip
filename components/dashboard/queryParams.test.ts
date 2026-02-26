@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
     buildCanonicalHref,
+    buildCanonicalHrefFromQueryString,
     canonicalHrefFromSearchParams,
     getCanonicalHrefChange,
     hasCanonicalHrefChanged,
@@ -23,6 +24,14 @@ test("sortSearchParams sorts keys and then values", () => {
 test("buildCanonicalHref omits trailing question mark when params are empty", () => {
     const params = new URLSearchParams();
     assert.equal(buildCanonicalHref("/dashboard", params), "/dashboard");
+});
+
+
+test("buildCanonicalHrefFromQueryString normalizes leading question mark", () => {
+    assert.equal(
+        buildCanonicalHrefFromQueryString("/dashboard", "?b=2&a=1"),
+        "/dashboard?a=1&b=2"
+    );
 });
 
 test("canonicalHrefFromSearchParams creates sorted canonical href", () => {

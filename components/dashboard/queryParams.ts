@@ -15,6 +15,11 @@ export function buildCanonicalHref(pathname: string, params: URLSearchParams) {
     return qs ? `${pathname}?${qs}` : pathname;
 }
 
+export function buildCanonicalHrefFromQueryString(pathname: string, queryString: string) {
+    const normalizedQuery = queryString.startsWith("?") ? queryString.slice(1) : queryString;
+    return buildCanonicalHref(pathname, new URLSearchParams(normalizedQuery));
+}
+
 
 export type SearchParamsLike = {
     toString(): string;
@@ -29,8 +34,7 @@ export function searchParamsKey(searchParams: SearchParamsLike) {
 }
 
 export function canonicalHrefFromSearchParams(pathname: string, searchParams: SearchParamsLike) {
-    const qs = searchParamsKey(searchParams);
-    return qs ? `${pathname}?${qs}` : pathname;
+    return buildCanonicalHrefFromQueryString(pathname, searchParams.toString());
 }
 
 
