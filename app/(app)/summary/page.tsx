@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import PageHeader from "@/components/PageHeader";
+import StatCard from "@/components/StatCard";
 
 const summarySections = [
   { href: "/summary/machine", label: "Machine Summary", description: "Track machine inventory and summary counts." },
@@ -48,11 +49,3 @@ export default function Page() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="text-xs text-zinc-500">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{value}</div>
-    </div>
-  );
-}

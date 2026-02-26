@@ -5,6 +5,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
+import { escapeCsvValue } from "@/lib/client/csv";
+import { resolveFilterValue } from "@/lib/client/filter";
+import { buildCanonicalQueryString } from "@/lib/client/queryString";
 import { useDebouncedValue } from "@/lib/client/useDebouncedValue";
 
 type UserRow = {
@@ -50,32 +53,14 @@ function roleClass(role: string | null | undefined) {
 }
 
 function resolveStatusFilter(value: string | null) {
-  const upper = (value ?? "").toUpperCase();
-  return VALID_STATUS.includes(upper as (typeof VALID_STATUS)[number]) ? upper : STATUS_ALL;
+  return resolveFilterValue({
+    value,
+    fallback: STATUS_ALL,
+    allowed: VALID_STATUS,
+    normalize: (candidate) => candidate.toUpperCase(),
+  });
 }
 
-function escapeCsvValue(value: unknown) {
-  const text = String(value ?? "");
-  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
-    return `"${text.replaceAll('"', '""')}"`;
-  }
-  return text;
-}
-
-function buildCanonicalQueryString(params: URLSearchParams, next: { q: string; role: string; status: string }) {
-  const nextParams = new URLSearchParams(params.toString());
-
-  if (next.q) nextParams.set("q", next.q);
-  else nextParams.delete("q");
-
-  if (next.role !== ROLE_ALL) nextParams.set("role", next.role);
-  else nextParams.delete("role");
-
-  if (next.status !== STATUS_ALL) nextParams.set("status", next.status);
-  else nextParams.delete("status");
-
-  return nextParams.toString();
-}
 
 export default function UserManagementPage() {
   const router = useRouter();
@@ -160,11 +145,17 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    const canonicalQuery = buildCanonicalQueryString(params, {
-      q: (searchParams.get("q") ?? "").trim(),
-      role: getSafeRole(searchParams.get("role") ?? ROLE_ALL),
-      status: resolveStatusFilter(searchParams.get("status")),
-    });
+    const canonicalQuery = buildCanonicalQueryString(params, [
+      { key: "q", value: (searchParams.get("q") ?? "").trim() },
+      { key: "role", value: (() => {
+        const role = getSafeRole(searchParams.get("role") ?? ROLE_ALL);
+        return role === ROLE_ALL ? "" : role;
+      })() },
+      { key: "status", value: (() => {
+        const status = resolveStatusFilter(searchParams.get("status"));
+        return status === STATUS_ALL ? "" : status;
+      })() },
+    ]);
 
     if (canonicalQuery === searchParams.toString()) return;
     router.replace(canonicalQuery ? `${pathname}?${canonicalQuery}` : pathname);
@@ -187,11 +178,11 @@ export default function UserManagementPage() {
     const nextRole = getSafeRole(next.role ?? roleFilter);
     const nextStatus = resolveStatusFilter(next.status ?? statusFilter);
 
-    const qs = buildCanonicalQueryString(params, {
-      q: nextQuery,
-      role: nextRole,
-      status: nextStatus,
-    });
+    const qs = buildCanonicalQueryString(params, [
+      { key: "q", value: nextQuery },
+      { key: "role", value: nextRole === ROLE_ALL ? "" : nextRole },
+      { key: "status", value: nextStatus === STATUS_ALL ? "" : nextStatus },
+    ]);
 
     router.replace(qs ? `${pathname}?${qs}` : pathname);
   }, [getSafeRole, pathname, query, roleFilter, router, searchParams, statusFilter]);
