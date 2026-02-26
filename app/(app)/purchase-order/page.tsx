@@ -38,6 +38,8 @@ type PurchaseOrderFormValues = {
   status_po: string;
 };
 
+type PurchaseOrderFormErrors = Partial<Record<keyof PurchaseOrderFormValues, string>>;
+
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const STATUS_ALL = "all";
@@ -104,6 +106,66 @@ function parseNumericField(value: string) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function validatePurchaseOrderForm(values: PurchaseOrderFormValues): PurchaseOrderFormErrors {
+  const nextErrors: PurchaseOrderFormErrors = {};
+
+  if (!values.no_po.trim()) {
+    nextErrors.no_po = "PO Number cannot be empty.";
+  }
+
+  if (!parseNumericField(values.id_type_mesin)) {
+    nextErrors.id_type_mesin = "Type Mesin is required and must be numeric.";
+  }
+
+  if (!parseNumericField(values.model)) {
+    nextErrors.model = "Model is required and must be numeric.";
+  }
+
+  const jumlah = parseNumericField(values.jumlah);
+  if (!jumlah || jumlah <= 0) {
+    nextErrors.jumlah = "Jumlah is required and must be greater than 0.";
+  }
+
+  if (values.customer.trim() && !parseNumericField(values.customer)) {
+    nextErrors.customer = "Customer must be numeric.";
+  }
+
+  if (values.tgl_po.trim()) {
+    const parsedDate = new Date(values.tgl_po.trim());
+    if (Number.isNaN(parsedDate.getTime())) {
+      nextErrors.tgl_po = "PO Date must be a valid date (YYYY-MM-DD).";
+    }
+  }
+
+  return nextErrors;
+}
+
+function inferFormErrorsFromMessage(message: string): PurchaseOrderFormErrors {
+  const normalized = message.toLowerCase();
+  const nextErrors: PurchaseOrderFormErrors = {};
+
+  if (normalized.includes("no_po") || normalized.includes("po number")) {
+    nextErrors.no_po = "Please provide a valid PO Number.";
+  }
+  if (normalized.includes("id_type_mesin") || normalized.includes("type mesin")) {
+    nextErrors.id_type_mesin = "Please provide a valid Type Mesin.";
+  }
+  if (normalized.includes("model")) {
+    nextErrors.model = "Please provide a valid Model.";
+  }
+  if (normalized.includes("jumlah")) {
+    nextErrors.jumlah = "Please provide a valid Jumlah.";
+  }
+  if (normalized.includes("customer")) {
+    nextErrors.customer = "Please provide a valid Customer.";
+  }
+  if (normalized.includes("tgl") || normalized.includes("date")) {
+    nextErrors.tgl_po = "Please provide a valid PO Date.";
+  }
+
+  return nextErrors;
+}
+
 
 function resolvePage(value: string | null) {
   const parsed = Number(value ?? "1");
@@ -142,6 +204,7 @@ export default function PurchaseOrderPage() {
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [formValues, setFormValues] = useState<PurchaseOrderFormValues>(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState<PurchaseOrderFormErrors>({});
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   useEffect(() => {
@@ -342,6 +405,7 @@ export default function PurchaseOrderPage() {
   const openCreateModal = () => {
     setSelectedRowId(null);
     setFormValues(EMPTY_FORM);
+    setFormErrors({});
     setModalMode("create");
   };
 
@@ -356,6 +420,7 @@ export default function PurchaseOrderPage() {
       jumlah: toStringValue(row.jumlah),
       status_po: toStringValue(row.status_po),
     });
+    setFormErrors({});
     setModalMode("edit");
   };
 
@@ -363,23 +428,23 @@ export default function PurchaseOrderPage() {
     setModalMode(null);
     setSelectedRowId(null);
     setFormValues(EMPTY_FORM);
+    setFormErrors({});
   };
 
   const handleFormChange = (field: keyof PurchaseOrderFormValues, value: string) => {
     setFormValues((current) => ({ ...current, [field]: value }));
+    setFormErrors((current) => ({ ...current, [field]: undefined }));
   };
 
   const submitForm = async () => {
-    const requiredError =
-      !parseNumericField(formValues.id_type_mesin) ||
-      !parseNumericField(formValues.model) ||
-      !parseNumericField(formValues.jumlah);
-
-    if (requiredError) {
-      setActionMessage({ type: "error", text: "Type Mesin, Model, and Jumlah are required numeric values." });
+    const nextErrors = validatePurchaseOrderForm(formValues);
+    if (Object.values(nextErrors).some(Boolean)) {
+      setFormErrors(nextErrors);
+      setActionMessage({ type: "error", text: "Please fix the highlighted form fields." });
       return;
     }
 
+    setFormErrors({});
     setFormSubmitting(true);
 
     const payload = {
@@ -407,6 +472,7 @@ export default function PurchaseOrderPage() {
       const result = (await response.json()) as { success?: boolean; message?: string };
 
       if (!response.ok || !result.success) {
+        setFormErrors(inferFormErrorsFromMessage(result.message ?? ""));
         setActionMessage({
           type: "error",
           text: result.message ?? `Failed to ${modalMode === "edit" ? "update" : "create"} purchase order.`,
@@ -729,8 +795,12 @@ export default function PurchaseOrderPage() {
                 <input
                   value={formValues.no_po}
                   onChange={(event) => handleFormChange("no_po", event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.no_po ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.no_po ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.no_po}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500">
                 PO Date
@@ -738,40 +808,60 @@ export default function PurchaseOrderPage() {
                   value={formValues.tgl_po}
                   onChange={(event) => handleFormChange("tgl_po", event.target.value)}
                   placeholder="YYYY-MM-DD"
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.tgl_po ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.tgl_po ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.tgl_po}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500">
                 Type Mesin *
                 <input
                   value={formValues.id_type_mesin}
                   onChange={(event) => handleFormChange("id_type_mesin", event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.id_type_mesin ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.id_type_mesin ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.id_type_mesin}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500">
                 Model *
                 <input
                   value={formValues.model}
                   onChange={(event) => handleFormChange("model", event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.model ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.model ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.model}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500">
                 Customer
                 <input
                   value={formValues.customer}
                   onChange={(event) => handleFormChange("customer", event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.customer ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.customer ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.customer}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500">
                 Jumlah *
                 <input
                   value={formValues.jumlah}
                   onChange={(event) => handleFormChange("jumlah", event.target.value)}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  className={[
+                    "w-full rounded-md border px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+                    formErrors.jumlah ? "border-rose-400 dark:border-rose-500" : "border-zinc-200 dark:border-zinc-700",
+                  ].join(" ")}
                 />
+                {formErrors.jumlah ? <p className="text-xs text-rose-600 dark:text-rose-400">{formErrors.jumlah}</p> : null}
               </label>
               <label className="space-y-1 text-xs text-zinc-500 sm:col-span-2">
                 Status
