@@ -8,7 +8,7 @@ import ProjectTab from "@/components/dashboard/tabs/ProjectTab";
 import PurchaseOrderTab from "../dashboard/tabs/PurchaseOrderTab";
 import CustomerTab from "../dashboard/tabs/CustomerTab";
 import ImplementationTab from "../dashboard/tabs/ImplementationTab";
-import { replaceCanonicalHrefIfChanged } from "@/components/dashboard/queryParams";
+import { replaceCanonicalHrefIfChanged, searchParamsKey } from "@/components/dashboard/queryParams";
 import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
 export default function DashboardTabs() {
@@ -27,17 +27,20 @@ export default function DashboardTabs() {
         []
     );
 
-    const active = useMemo<TabKey>(() => getActiveTab(searchParams.get("tab")), [searchParams]);
+    const paramsKey = useMemo(() => searchParamsKey(searchParams), [searchParams]);
+    const currentSearchParams = useMemo(() => new URLSearchParams(paramsKey), [paramsKey]);
+
+    const active = useMemo<TabKey>(() => getActiveTab(currentSearchParams.get("tab")), [currentSearchParams]);
 
     const navigateWithTab = useCallback((tab: TabKey) => {
-        const params = buildCanonicalParams(searchParams, tab);
-        replaceCanonicalHrefIfChanged(pathname, searchParams, params, router);
-    }, [pathname, router, searchParams]);
+        const params = buildCanonicalParams(currentSearchParams, tab);
+        replaceCanonicalHrefIfChanged(pathname, currentSearchParams, params, router);
+    }, [currentSearchParams, pathname, router]);
 
     useEffect(() => {
-        const canonical = buildCanonicalParams(searchParams, active);
-        replaceCanonicalHrefIfChanged(pathname, searchParams, canonical, router);
-    }, [active, pathname, router, searchParams]);
+        const canonical = buildCanonicalParams(currentSearchParams, active);
+        replaceCanonicalHrefIfChanged(pathname, currentSearchParams, canonical, router);
+    }, [active, currentSearchParams, pathname, router]);
 
     return (
         <div className="w-full">
