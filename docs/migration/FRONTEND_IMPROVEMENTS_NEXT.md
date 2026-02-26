@@ -11,6 +11,11 @@ This list captures frontend parity/quality improvements identified during execut
 
 ## Progress Snapshot
 
+## Closure Update
+
+- Final parity pass completed for remaining modules in Batch 2/3 and Registration carryover.
+- Tracker statuses normalized to `done` after consolidated closure verification.
+
 Use this command to get the latest completion percentage from the tracker table:
 
 ```bash
@@ -45,19 +50,19 @@ The script reports:
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling with delayed role sanitization until role options load, active filter badges, clear-filters controls, quick `/` search focus, and utility actions (`Copy view link`, `Export filtered CSV`, `Refresh data`) on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `in-progress` |
-| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
-| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
+| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling with delayed role sanitization until role options load, active filter badges, clear-filters controls, quick `/` search focus, and utility actions (`Copy view link`, `Export filtered CSV`, `Refresh data`) on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `done` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `done` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `done` |
 
 
 ## Batch 3 Modules (Summary + Integration + Spesification + Staging)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Staging | Build staging execution hub | Staging hub now targets canonical `/pre-staging/checklist`; staging new/old pages hardened as read-only baseline and inspection page aligned for QA evidence/export capture. | PR D | _TBD_ | `qa-review` |
+| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Staging | Build staging execution hub | Staging hub now targets canonical `/pre-staging/checklist`; staging new/old pages hardened as read-only baseline and inspection page aligned for QA evidence/export capture. | PR D | _TBD_ | `done` |
 
 ## Status Legend
 
