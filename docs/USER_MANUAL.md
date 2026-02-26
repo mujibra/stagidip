@@ -261,6 +261,7 @@ For full endpoint-level payloads and examples:
 - `docs/api/response-examples.md`
 - `docs/api/openapi.yaml`
 - `docs/api/stagidip.postman_collection.json`
+- Full QA step-by-step test script (project-wide): `docs/QA_FULL_TEST_SCRIPT.md`
 
 ## 8) QA automation script
 
