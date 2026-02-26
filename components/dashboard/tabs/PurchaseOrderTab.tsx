@@ -59,6 +59,10 @@ async function fetchJson<T>(url: string): Promise<T> {
     return (await res.json()) as T;
 }
 
+function formatNumber(value: number) {
+    return new Intl.NumberFormat("id-ID").format(value);
+}
+
 function toNumber(v: unknown): number {
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
     if (typeof v === "bigint") return Number(v);
