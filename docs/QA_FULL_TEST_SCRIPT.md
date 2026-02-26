@@ -1,414 +1,224 @@
-# StagiDIP Full QA Test Script (End-to-End)
+# STAGIDIP QA GUIDE (NON-TECHNICAL / MANUAL TEST)
 
-> Audience: QA Engineers, new maintainers, and UAT testers.
+> This version is for QA who do **not** read code.
 > 
-> Goal: Provide a **complete, step-by-step** testing script for all major features/pages in this project.
+> Use this like a checklist: open page -> click button -> compare result.
 
 ---
 
-## 1. Preconditions
+## A. Before Testing (Very Important)
 
-Before running tests, ensure:
+1. Ask developer/admin for:
+   - URL website (example: `http://localhost:3000`)
+   - 1 valid login account
+   - 1 invalid login account (or wrong password)
+2. Open browser in Incognito.
+3. Login page must open.
 
-1. Application is running:
-   ```bash
-   npm run dev
-   ```
-2. Base URL reachable: `http://localhost:3000`
-3. DB is connected and seeded with at least minimal data for each module.
-4. Test credentials are available:
-   - Valid user (active)
-   - Invalid user/password pair
-5. Browser cache is clean (recommended: incognito profile for a clean run).
+If login page cannot open, stop and report: **"Environment not ready"**.
 
 ---
 
-## 2. Test data checklist
+## B. Simple Test Result Format
 
-Prepare at minimum:
+For each test case, mark:
 
-- 1 brand name for create/update/delete test.
-- 1 customer record test payload.
-- 1 warehouse name for create/update/delete test.
-- 1 batch name for batch CRUD test.
-- 1 purchase order payload (or existing PO) for operational pages.
-- 1 status delivery payload (id_po, id_mesin, sn, ETA/ETD).
+- ✅ PASS = result same as expected
+- ❌ FAIL = result not same as expected
+- ⛔ BLOCKED = cannot test (data/access/environment missing)
 
-Keep values unique (append timestamp) to avoid collisions.
+Template:
 
----
-
-## 3. Quick automated pre-checks
-
-Run:
-
-```bash
-npm run test:dashboard
-npm run migration:check-routes
-npm run qa:smoke
-```
-
-If app is not running, `qa:smoke` will fail by design.
-
-For authenticated smoke checks:
-
-```bash
-QA_EMAIL="your_user@example.com" QA_PASSWORD="your_password" npm run qa:smoke
-```
+| Test ID | Page | Result | Evidence (Screenshot Name) | Notes |
+|---|---|---|---|---|
+| AUTH-01 | Login | ✅ PASS | auth-01.png | - |
 
 ---
 
-## 4. Global smoke (UI)
+## C. CORE FLOW (Do this first)
 
-### TC-GLOBAL-001: Unauthenticated redirect
+## AUTH MODULE
 
-- **Steps**
-  1. Open `http://localhost:3000/dashboard` in fresh session.
-- **Expected**
-  - Redirect to `/login`.
+### AUTH-01 — Open protected page without login
+- Step:
+  1. In incognito, open `/dashboard` directly.
+- Expected:
+  - Automatically redirected to `/login`.
 
-### TC-GLOBAL-002: Login success
-
-- **Steps**
+### AUTH-02 — Login with valid account
+- Step:
   1. Open `/login`.
-  2. Enter valid credentials.
-  3. Click Sign in.
-- **Expected**
-  - Redirect to `/dashboard`.
-  - Sidebar visible.
+  2. Input valid email + password.
+  3. Click **Sign in**.
+- Expected:
+  - Go to Dashboard page.
+  - Sidebar menu visible.
 
-### TC-GLOBAL-003: Login failure
+### AUTH-03 — Login with wrong password
+- Step:
+  1. Logout first (if still logged in).
+  2. Input valid email + wrong password.
+- Expected:
+  - Error message shown.
+  - Stay on login page.
 
-- **Steps**
-  1. Open `/login`.
-  2. Enter invalid credentials.
-- **Expected**
-  - Error message appears.
-  - No redirect to dashboard.
-
-### TC-GLOBAL-004: Logout
-
-- **Steps**
-  1. While logged in, click Logout.
-  2. Try open `/dashboard` again.
-- **Expected**
-  - Session invalidated.
-  - Redirect to `/login`.
+### AUTH-04 — Logout
+- Step:
+  1. Click **Logout** button.
+  2. Open `/dashboard` again.
+- Expected:
+  - Redirect back to login.
 
 ---
 
-## 5. Canonical route alias checks
+## D. MENU-BY-MENU MANUAL TEST (NO CODE)
 
-Validate each alias redirects correctly:
+> Rule for every data table page:
+> 1) Page loads
+> 2) Search works
+> 3) Add/Edit/Delete (if button exists)
+> 4) Success/error message appears
+> 5) Data updates in table
 
-| Alias | Expected Canonical |
+## 1) Dashboard
+- Open: `Dashboard` menu
+- Check:
+  - Tab can be changed
+  - No blank white screen
+  - No crash error
+
+## 2) Registration Menu
+Open each submenu below and repeat table rule:
+
+- Purchase Order (registration)
+- Types
+- Models
+- User Management
+- Detail Part Number
+- Detail Specification
+- Detail Prestaging
+- Detail Preloading
+- Setting Pre Staging
+- Warehouse
+- Batch
+- Customer
+- Status PO
+- Style
+
+Special for **User Management**:
+- Verify role filter works.
+- Verify status filter works.
+
+Special for **Batch**:
+- Check popup modal Add/Edit can open and close.
+
+## 3) Specification
+- Open `Specification` menu.
+- Verify table loads and search works.
+
+## 4) Staging Registration (Purchase Order)
+- Open `Staging Registration` menu.
+- Verify:
+  - Search works
+  - Status filter works
+  - Pagination works
+
+## 5) Pre Staging
+- Open `Pre Staging Checklist`.
+- Verify list shows data (or proper empty message).
+
+## 6) Staging
+Test pages:
+- Staging New Machine
+- Staging Old Machine
+- Pre Loading Inspection
+
+Check each page:
+- Table loads
+- No crash
+- If export button exists, export works
+
+## 7) Status Delivery
+- Open `Status Delivery`.
+- If Add/Edit/Delete available, test all 3 actions.
+
+## 8) Warehouse
+- Open `Warehouse Transfer`.
+- Verify date fields can be input and saved.
+- Verify list updates after save.
+
+- Open `Delivery Request` (from warehouse/summary link).
+- Verify page opens and data visible.
+
+## 9) Summary
+Open each summary page and verify it opens normally:
+- Summary Machine
+- Summary Accessories
+- Summary New Machine
+- Summary Old Machine
+- Summary Warehouse Transfer
+- Summary Warehouse
+- Summary Pre Staging
+- Duration Staging Summary
+- Duration Report Summary
+- Development Summary
+- Summary Status Delivery
+- Summary UPS
+- Implementation Table
+
+## 10) My Datindo Integration
+- Open `My Datindo Integration`.
+- Verify table appears and no crash.
+
+---
+
+## E. Alias URL Test (Important)
+
+Copy URL below one-by-one in browser, expected redirect to right page:
+
+| Open URL | Must redirect to |
 |---|---|
-| `/porcaheOrder` | `/purchase-order` |
 | `/statusDelivery` | `/status-delivery` |
 | `/warehouseTransfer` | `/warehouse-transfer` |
 | `/viewNewMachine` | `/staging/new-machine` |
 | `/viewOldMachine` | `/staging/old-machine` |
-| `/stagging/checklistStagging` | `/pre-staging/checklist` |
-| `/stagging/inspeksiTestings` | `/staging/inspection-testing` |
-| `/integration` | `/integration/my-datindo` |
-| `/summary/newMachine` | `/summary/new-machine` |
-| `/summary/oldMachine` | `/summary/old-machine` |
-| `/summary/deliveryRequest` | `/summary/delivery-request` |
-| `/summary/statusDelivery` | `/summary/status-delivery` |
+| `/porcaheOrder` | `/purchase-order` |
+
+If not redirected correctly, mark FAIL.
 
 ---
 
-## 6. Module-by-module detailed test script
+## F. Bug Report Format (for QA)
 
-## 6.1 Dashboard (`/dashboard`)
+Use this simple format for every bug:
 
-### TC-DB-001: Tab navigation
-- Open Dashboard.
-- Switch across all tabs.
-- Verify active tab highlight and no crash.
-
-### TC-DB-002: Query param sync
-- Change filters/page in each tab (if available).
-- Refresh browser.
-- Verify state reconstructed from URL.
-
-### TC-DB-003: Copy link behavior
-- Trigger “copy view link”.
-- Open copied URL in new tab.
-- Verify same view state.
+1. **Title**: short bug title
+2. **Page/Menu**: where issue happened
+3. **Steps**:
+   - Step 1
+   - Step 2
+4. **Actual Result**: what happened
+5. **Expected Result**: what should happen
+6. **Evidence**: screenshot/video
+7. **Severity**: High / Medium / Low
 
 ---
 
-## 6.2 Registration Hub (`/registration`)
-
-### TC-REG-HUB-001: Section cards
-- Open `/registration`.
-- Click each section card.
-- Verify destination opens without 404.
-
----
-
-## 6.3 Registration modules
-
-> For each CRUD module below, execute baseline CRUD matrix:
->
-> - **Create** valid data
-> - **Create** invalid/empty data (validation)
-> - **Edit** existing row
-> - **Delete** row
-> - Search/filter result
-> - Export CSV (if available)
-
-### A) Brand (`/registration/brand`)
-- API target: `/api/brand`.
-
-### B) Customer (`/registration/customer`)
-- API target: `/api/master-customer`.
-
-### C) Model (`/registration/model`)
-- API target: `/api/master-model`.
-
-### D) Machine (`/registration/machine`)
-- API target: `/api/master-mesin`.
-
-### E) Part Number (`/registration/part-number`)
-- API target: `/api/master-part`.
-
-### F) Warehouse (`/registration/warehouse`)
-- API target: `/api/master-gudang`.
-
-### G) Status PO (`/registration/status-po`)
-- API target: `/api/status-po`.
-
-### H) Style (`/registration/style`)
-- API target: `/api/master-style`.
-
-### I) Purchase Order (registration) (`/registration/purchase-order`)
-- API target: `/api/master-po`.
-
-### J) Setting Pre-Staging (`/registration/setting-pre-staging`)
-- API target: `/api/settingPreStaging`.
-
-### K) PIC Mover (`/registration/pic-mover`)
-- API target: `/api/picMover`.
-
-### L) Batch (`/registration/batch`) — custom page
-- API target: `/api/bacth` and `/api/bacth/:id`.
-- Verify modal open/close and success/error message auto-dismiss.
-
-### M) User Management (`/registration/user-management`) — custom page
-- API target: `/api/master-user`.
-- Verify:
-  - role filtering
-  - status filtering
-  - query filter
-  - URL sync for filters
-
-### N) Read-focused modules
-- Type (`/registration/type`)
-- Detail Specification (`/registration/detail-specification`)
-- Machine Specification (`/registration/machine-specification`)
-- Template Pre-Staging (`/registration/template-pre-staging`)
-- Template Pre-Loading (`/registration/template-pre-loading`)
-
-For these pages verify:
-- list loads
-- empty state text
-- sorting/searching
-- no create/edit/delete buttons where disabled
-
----
-
-## 6.4 Specification (`/spesification`)
-
-### TC-SPC-001
-- Load data from `/api/master-spekmesin`.
-- Validate create/edit/delete flows if available.
-- Validate JSON/form payload behavior if required by endpoint.
-
----
-
-## 6.5 Staging Registration (`/purchase-order`)
-
-### TC-PO-001: Search and status filters
-- Use keyword search.
-- Filter by status options.
-- Verify row count changes.
-
-### TC-PO-002: Pagination
-- Change page size and navigate pages.
-- Verify query params `page`, `pageSize` update.
-
-### TC-PO-003: Create/edit/delete
-- Add a record with valid payload.
-- Edit status/date fields.
-- Delete record and verify removal.
-
----
-
-## 6.6 Pre-Staging (`/pre-staging/checklist`)
-
-### TC-PST-001
-- Verify read-only list from `/api/mst-checkliststaging`.
-- Confirm no create/edit/delete controls.
-- Test CSV export if available.
-
----
-
-## 6.7 Staging Hub (`/staging`)
-
-### TC-STG-HUB-001
-- Open `/staging`.
-- Validate each card opens correct page.
-
-### TC-STG-NEW-001 (`/staging/new-machine`)
-- Read-only list from `/api/purchaseOrder`.
-- Validate empty state and export.
-
-### TC-STG-OLD-001 (`/staging/old-machine`)
-- Same as new-machine checks.
-
-### TC-STG-INSP-001 (`/staging/inspection-testing`)
-- Checklist list from `/api/mst-checkliststaging`.
-- Confirm read-only constraints.
-
----
-
-## 6.8 Status Delivery (`/status-delivery`)
-
-### TC-SD-001
-- Create record with: `id_po`, `id_mesin`, `sn_mesin`, ETA, ETD, notes.
-- Verify appears in table.
-
-### TC-SD-002
-- Edit ETA/ETD and notes.
-- Verify updates reflected.
-
-### TC-SD-003
-- Delete record.
-- Verify removed and success message shown.
-
----
-
-## 6.9 Warehouse Transfer (`/warehouse-transfer`)
-
-### TC-WH-001
-- Create transfer record with `sn_mesins` multi-value data.
-- Verify serialization and table display.
-
-### TC-WH-002
-- Validate date fields: `tgl_keluar`, `tgl_masuk`, `tgl_staging`.
-- Verify value format after reload/edit.
-
-### TC-WH-003
-- Edit and delete transfer record.
-
----
-
-## 6.10 Summary Hub (`/summary`) + summary pages
-
-Open each summary page and verify:
-
-1. Page loads.
-2. Correct dataset endpoint responds.
-3. Filters/search work.
-4. Empty/loading states are correct.
-5. CSV export works (if available).
-
-Pages:
-
-- `/summary/machine`
-- `/summary/new-machine`
-- `/summary/old-machine`
-- `/summary/warehouse-transfer`
-- `/summary/warehouse`
-- `/summary/pre-staging`
-- `/summary/duration-staging`
-- `/summary/duration-report`
-- `/summary/development`
-- `/summary/status-delivery`
-- `/summary/accessories`
-- `/summary/ups`
-- `/summary/implementation`
-- `/summary/delivery-request`
-
----
-
-## 6.11 Integration (`/integration/my-datindo`)
-
-### TC-INT-001
-- Load page and verify read-only table from `/api/register-ws-info`.
-- Validate columns: ws id/name, serial, model, ticket, installation date.
-
-### TC-INT-002
-- Validate export CSV (if enabled).
-
----
-
-## 7. API security and behavior checks (manual)
-
-Using Postman/curl:
-
-1. `GET /api/health` without token => `200`.
-2. `GET /api/master-user` without token => `401`.
-3. `POST /api/login` with valid credentials => `200` + Set-Cookie.
-4. Retest protected endpoint with token => not `401`.
-5. `POST /api/logout` => token invalidated.
-
----
-
-## 8. Non-functional checks
-
-## 8.1 Performance sanity
-
-- Dashboard first load <= acceptable threshold in your environment.
-- No severe UI freeze when opening large tables.
-
-## 8.2 Responsiveness
-
-- Verify common desktop widths: 1280, 1440, 1920.
-- Verify smaller width behavior where sidebar collapses.
-
-## 8.3 Error handling
-
-- Temporarily disconnect DB / break endpoint response and verify:
-  - error banner/message appears
-  - app does not white-screen/crash
-
----
-
-## 9. UAT sign-off template
-
-Use this table in your report:
-
-| Module | Test Cases Executed | Passed | Failed | Blocked | Notes |
-|---|---:|---:|---:|---:|---|
-| Auth & Security |  |  |  |  |  |
-| Dashboard |  |  |  |  |  |
-| Registration |  |  |  |  |  |
-| Specification |  |  |  |  |  |
-| Purchase Order |  |  |  |  |  |
-| Pre-Staging |  |  |  |  |  |
-| Staging |  |  |  |  |  |
-| Status Delivery |  |  |  |  |  |
-| Warehouse Transfer |  |  |  |  |  |
-| Summary |  |  |  |  |  |
-| Integration |  |  |  |  |  |
-
-Final UAT result:
-
-- [ ] GO-LIVE READY
-- [ ] CONDITIONAL (minor fixes)
+## G. Final Sign-off (Simple)
+
+| Area | PASS | FAIL | BLOCKED | Notes |
+|---|---:|---:|---:|---|
+| Auth |  |  |  |  |
+| Dashboard |  |  |  |  |
+| Registration |  |  |  |  |
+| Specification |  |  |  |  |
+| Staging |  |  |  |  |
+| Status Delivery |  |  |  |  |
+| Warehouse |  |  |  |  |
+| Summary |  |  |  |  |
+| Integration |  |  |  |  |
+
+Final decision:
+- [ ] READY FOR UAT
+- [ ] READY WITH MINOR FIX
 - [ ] NOT READY
-
----
-
-## 10. Optional: export this MD to PDF
-
-If you need PDF for sharing:
-
-```bash
-npx markdown-pdf docs/QA_FULL_TEST_SCRIPT.md
-```
-
-(Or use VS Code markdown preview → Print to PDF.)
