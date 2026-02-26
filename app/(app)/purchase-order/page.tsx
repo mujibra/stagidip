@@ -5,6 +5,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataTable from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
+import { escapeCsvValue } from "@/lib/client/csv";
+import { resolveFilterValue } from "@/lib/client/filter";
+import { buildCanonicalQueryString } from "@/lib/client/queryString";
 import { useDebouncedValue } from "@/lib/client/useDebouncedValue";
 
 type PurchaseOrderRow = {
@@ -52,9 +55,12 @@ const EMPTY_FORM: PurchaseOrderFormValues = {
 };
 
 function resolveStatusFilter(value: string | null) {
-  if (!value) return STATUS_ALL;
-  if (value === STATUS_ALL || value === STATUS_WITH || value === STATUS_WITHOUT) return value;
-  return value;
+  return resolveFilterValue({
+    value,
+    fallback: STATUS_ALL,
+    allowed: [STATUS_ALL, STATUS_WITH, STATUS_WITHOUT],
+    preserveUnknown: true,
+  });
 }
 
 function formatDate(value: string | null | undefined) {
@@ -85,14 +91,6 @@ function statusBadgeClass(status: string) {
   return "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300";
 }
 
-function escapeCsvValue(value: unknown) {
-  const text = String(value ?? "");
-  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
-    return `"${text.replaceAll('"', '""')}"`;
-  }
-
-  return text;
-}
 
 function toStringValue(value: number | string | null | undefined) {
   if (value === null || value === undefined) return "";
@@ -119,29 +117,6 @@ function resolvePageSize(value: string | null) {
     return parsed as (typeof PAGE_SIZE_OPTIONS)[number];
   }
   return DEFAULT_PAGE_SIZE;
-}
-
-function buildCanonicalQueryString(params: URLSearchParams, next: {
-  q: string;
-  status: string;
-  page: number;
-  pageSize: number;
-}) {
-  const nextParams = new URLSearchParams(params.toString());
-
-  if (next.q) nextParams.set("q", next.q);
-  else nextParams.delete("q");
-
-  if (next.status !== STATUS_ALL) nextParams.set("status", next.status);
-  else nextParams.delete("status");
-
-  if (next.page > 1) nextParams.set("page", String(next.page));
-  else nextParams.delete("page");
-
-  if (next.pageSize !== DEFAULT_PAGE_SIZE) nextParams.set("pageSize", String(next.pageSize));
-  else nextParams.delete("pageSize");
-
-  return nextParams.toString();
 }
 
 export default function PurchaseOrderPage() {
@@ -184,12 +159,21 @@ export default function PurchaseOrderPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    const canonicalQuery = buildCanonicalQueryString(params, {
-      q: (searchParams.get("q") ?? "").trim(),
-      status: resolveStatusFilter(searchParams.get("status")),
-      page: resolvePage(searchParams.get("page")),
-      pageSize: resolvePageSize(searchParams.get("pageSize")),
-    });
+    const canonicalQuery = buildCanonicalQueryString(params, [
+      { key: "q", value: (searchParams.get("q") ?? "").trim() },
+      { key: "status", value: (() => {
+        const status = resolveStatusFilter(searchParams.get("status"));
+        return status === STATUS_ALL ? "" : status;
+      })() },
+      { key: "page", value: (() => {
+        const nextPage = resolvePage(searchParams.get("page"));
+        return nextPage > 1 ? String(nextPage) : "";
+      })() },
+      { key: "pageSize", value: (() => {
+        const nextPageSize = resolvePageSize(searchParams.get("pageSize"));
+        return nextPageSize !== DEFAULT_PAGE_SIZE ? String(nextPageSize) : "";
+      })() },
+    ]);
 
     const currentQuery = searchParams.toString();
     if (canonicalQuery === currentQuery) return;
@@ -210,12 +194,12 @@ export default function PurchaseOrderPage() {
     const nextPage = Math.max(1, Math.floor(next.page ?? page));
     const nextPageSize = resolvePageSize(String(next.pageSize ?? pageSize));
 
-    const queryString = buildCanonicalQueryString(params, {
-      q: nextQuery,
-      status: nextStatus,
-      page: nextPage,
-      pageSize: nextPageSize,
-    });
+    const queryString = buildCanonicalQueryString(params, [
+      { key: "q", value: nextQuery },
+      { key: "status", value: nextStatus === STATUS_ALL ? "" : nextStatus },
+      { key: "page", value: nextPage > 1 ? String(nextPage) : "" },
+      { key: "pageSize", value: nextPageSize !== DEFAULT_PAGE_SIZE ? String(nextPageSize) : "" },
+    ]);
     router.replace(queryString ? `${pathname}?${queryString}` : pathname);
   };
 
