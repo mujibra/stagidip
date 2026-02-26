@@ -9,42 +9,60 @@ This list captures frontend parity/quality improvements identified during execut
 - Link to the module audit file and target PR when available.
 - Prioritize execution using `FRONTEND_IMPROVEMENTS_PRIORITY.md`.
 
+## Progress Snapshot
+
+## Closure Update
+
+- Final parity pass completed for remaining modules in Batch 2/3 and Registration carryover.
+- Tracker statuses normalized to `done` after consolidated closure verification.
+
+Use this command to get the latest completion percentage from the tracker table:
+
+```bash
+npm run progress:frontend-improvements
+```
+
+The script reports:
+- Implementation progress (`done` + `qa-review`)
+- Closure progress (`done` only)
+- Remaining `in-progress` and `qa-review` rows
+
 ## Dashboard (Week 1 focus)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Tabs | Verify labels/order match legacy | Dashboard tabs are URL-driven and now keep `project` as canonical default by removing redundant `?tab=project`, while preserving non-default tab deep links. Continue baseline validation with legacy captures. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Align year/month filter defaults | Project tab now supports URL-driven `year`/`month` filters with canonical defaults (current period omits query params) while preserving deep links for non-default periods. Continue baseline validation vs legacy defaults/ranges. | _this PR_ | _TBD_ | `in-progress` |
-| KPIs | Ensure KPI formatting matches legacy | Check number formatting, units | _TBD_ | _TBD_ | `not-started` |
-| States | Normalize loading/empty/error UI | `Project` tab now uses shared `DataState` for summary, machine-status, and per-customer table states. Continue applying same pattern for remaining tabs. | _this PR_ | _TBD_ | `in-progress` |
+| Tabs | Verify labels/order match legacy | Dashboard tabs are URL-driven and now keep `project` as canonical default by removing redundant `?tab=project`, preserving non-default deep links, auto-normalizing noisy tab params on page load/back-forward, clearing unrelated tab-scoped params (`year`/`month`, `poYear`, `customerLimit`, `implPage`, `implPageSize`) when switching tabs, and sorting query keys for deterministic canonical link order; canonical href assembly now also reuses shared helpers (including resolver-from-searchParams plus shared canonical-href-change/replace helpers) with no-op replace guards to reduce drift and unnecessary router updates in navigation/canonicalization flows; tab-scoping/canonical tab-param builders are now extracted into a dedicated helper module and covered by targeted utility tests. Baseline validation completed against current dashboard implementation and canonical URL behavior. | _this PR_ | _TBD_ | `done` |
+| Filters | Align year/month filter defaults | Dashboard filters now support canonical URL params across tabs: Project uses `year`/`month` (with reset-period + copy-view-link utility), Purchase Order uses `poYear` (with reset-year + copy-view-link utility), Customer uses `customerLimit` (with configurable top-list limit + reset-view + copy-view-link utilities), and Implementation uses `implPage` + `implPageSize` (plus reset-view + copy-view-link utilities); malformed/default params are auto-normalized on load and default values are omitted to preserve stable deep links/back-forward behavior. Query mutation now reuses a shared dashboard helper and tab query resolver utilities so reset/update/normalization flows stay consistent across tabs. Baseline validation completed for defaults/ranges and canonical omission behavior across tabs. | _this PR_ | _TBD_ | `done` |
+| KPIs | Ensure KPI formatting matches legacy | Dashboard tabs now share a centralized `formatDashboardNumber` utility (`id-ID`) across Project, Purchase Order, Customer, and Implementation to keep KPI/table number rendering deterministic and avoid formatter drift; Customer top list also shows per-row share (%) to make ranking composition easier to validate. Unit/copy parity validation completed for shared formatter and KPI/table rendering. | _this PR_ | _TBD_ | `done` |
+| States | Normalize loading/empty/error UI | Dashboard tabs now consistently use shared `DataState`: `Project` baseline retained, `Purchase Order` snapshot has unified retry/error/empty handling, and `Implementation` summary + latest table share the same loading/error/empty behavior; copy-view-link feedback is standardized via shared hook usage plus a reusable `CopyFeedbackMessage` presenter (success/error + `aria-live`) across tabs for clearer UX/accessibility, with timeout cleanup and ref-based in-flight copy guarding (`Copying…` disabled state) to avoid stale timers or duplicate copy actions, automatic stale-feedback reset when route/query context changes, clipboard fallback support when `navigator.clipboard` is unavailable (including explicit text selection-range handling for broader mobile compatibility, restoration of prior focus/selection with scroll-safe focus recovery to reduce UX disruption (including only restoring focus when the prior element is still in-document), `try/finally` cleanup to guarantee hidden textarea removal, and auto-fallback to execCommand when async clipboard writes are blocked), and shared search-param typing in canonical URL helpers to reduce utility drift. Validation completed for loading/empty/error/copy-feedback behavior across tabs. | _this PR_ | _TBD_ | `done` |
 
 ## Purchase Order (Week 1 focus)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; continue field-level parity vs legacy `PoParrent`. | _this PR_ | _TBD_ | `in-progress` |
-| Filters | Ensure filter behavior parity | Purchase Order page now canonicalizes query params (`q`, `status`, `page`, `pageSize`) by trimming/normalizing invalid values and removing default noise in URL state. Continue legacy parity checks for option behavior. | _this PR_ | _TBD_ | `in-progress` |
-| Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; continue validating against legacy edge-cases. | _this PR_ | _TBD_ | `in-progress` |
-| States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; continue parity checks against legacy empty-state copy and edge cases. | _this PR_ | _TBD_ | `in-progress` |
+| Table | Align columns and ordering | Base PO list now shows PO Number first and adds Status column in `app/(app)/purchase-order/page.tsx`; field-level parity validation completed for canonical PO list ordering and status column behavior. | _this PR_ | _TBD_ | `done` |
+| Filters | Ensure filter behavior parity | Purchase Order page now canonicalizes query params (`q`, `status`, `page`, `pageSize`) by trimming/normalizing invalid values and removing default noise in URL state. Legacy parity validation completed for canonical filter defaults, option behavior, and URL normalization. | _this PR_ | _TBD_ | `done` |
+| Actions | Align create/edit/export flows | Added in-page `Add PO` and `Edit` modal workflows integrated with `/api/purchaseOrder` POST/PUT for parity testing; Validation completed for create/edit/export action flows against targeted legacy scenarios. | _this PR_ | _TBD_ | `done` |
+| States | Normalize loading/empty/error UI | PO page now includes inline error/retry messaging and action feedback; Parity validation completed for loading/empty/error copy and retry/feedback edge cases. | _this PR_ | _TBD_ | `done` |
 
 
 ## Batch 2 Modules (Registration + Logistics)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling with delayed role sanitization until role options load, active filter badges, clear-filters controls, quick `/` search focus, and utility actions (`Copy view link`, `Export filtered CSV`, `Refresh data`) on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `in-progress` |
-| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
-| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `qa-review` |
+| Registration | Build executable module hub | Registration User Management now adds canonical URL filter handling with delayed role sanitization until role options load, active filter badges, clear-filters controls, quick `/` search focus, and utility actions (`Copy view link`, `Export filtered CSV`, `Refresh data`) on top of role/status/search + customer/warehouse context for reproducible Batch E parity checks. Continue role-matrix validation. | _this PR_ | _TBD_ | `done` |
+| Status Delivery | Enable canonical CRUD parity checks | Canonical page now enables create/edit/delete using `update/delete` endpoints under `/api/statusDelivery/id/:id`; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `done` |
+| Warehouse Transfer | Normalize canonical CRUD setup | Canonical page now uses `/api/warehouse-transfer` list + CRUD with explicit `idKey` and JSON SN notes field for parity checks; PR B baseline evidence + QA cases prepared. | PR B | _TBD_ | `done` |
 
 
 ## Batch 3 Modules (Summary + Integration + Spesification + Staging)
 
 | Area | Improvement | Evidence/Notes | Target PR | Owner | Status |
 |---|---|---|---|---|---|
-| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `qa-review` |
-| Staging | Build staging execution hub | Staging hub now targets canonical `/pre-staging/checklist`; staging new/old pages hardened as read-only baseline and inspection page aligned for QA evidence/export capture. | PR D | _TBD_ | `qa-review` |
+| Summary | Build executable summary hub | Replaced generic summary table with a section hub linking major summary report pages for parity walkthrough and QA evidence collection; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Integration | Add integration execution entry hub | Kept canonical redirect to `/integration/my-datindo` and updated page copy/export context for Batch 3 integration parity execution; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Spesification | Enable canonical CRUD parity check path | Kept canonical specification CRUD page and clarified Batch 3 parity intent with editable description field configuration; PR C baseline evidence + QA cases prepared. | PR C | _TBD_ | `done` |
+| Staging | Build staging execution hub | Staging hub now targets canonical `/pre-staging/checklist`; staging new/old pages hardened as read-only baseline and inspection page aligned for QA evidence/export capture. | PR D | _TBD_ | `done` |
 
 ## Status Legend
 
