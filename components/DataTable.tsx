@@ -16,12 +16,46 @@ type Column<T> = {
 
 type RowKeyGetter<T> = keyof T | ((row: T, index: number) => string | number);
 
+function formatObjectValue(value: Record<string, unknown>): string {
+  const preferredKeys = ["label", "name", "nama", "gudang_desc", "code", "alamat", "id"];
+
+  const preferredValues = preferredKeys
+    .map((key) => value[key])
+    .filter((entry): entry is string | number => typeof entry === "string" || typeof entry === "number")
+    .map((entry) => String(entry).trim())
+    .filter(Boolean);
+
+  if (preferredValues.length > 0) {
+    return preferredValues.join(" • ");
+  }
+
+  const primitiveEntries = Object.entries(value)
+    .filter(([, entry]) => typeof entry === "string" || typeof entry === "number" || typeof entry === "boolean")
+    .slice(0, 3)
+    .map(([key, entry]) => `${key}: ${String(entry)}`);
+
+  if (primitiveEntries.length > 0) {
+    return primitiveEntries.join(" • ");
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (value instanceof Date) return value.toLocaleDateString();
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     return String(value);
   }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => formatValue(entry)).filter(Boolean).join(", ");
+  }
+
   if (typeof value === "object") {
     if ("value" in value && (typeof value.value === "string" || typeof value.value === "number")) {
       return String(value.value);
@@ -36,12 +70,10 @@ function formatValue(value: unknown): string {
         return String(value);
       }
     }
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return String(value);
-    }
+
+    return formatObjectValue(value as Record<string, unknown>);
   }
+
   return String(value);
 }
 
