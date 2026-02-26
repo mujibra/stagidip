@@ -171,7 +171,7 @@ export default function DataTable<T extends Record<string, unknown>>({
         containerClassName ?? "max-h-[800px]",
       ].join(" ")}
     >
-      <table className="w-full text-sm">
+      <table className="min-w-full table-fixed text-sm">
         <thead className="sticky top-0 z-10 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-400">
           <tr>
             {columns.map((column) => {
@@ -186,7 +186,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                     : "descending";
 
               return (
-                <th key={key} scope="col" aria-sort={ariaSort} className={`px-3 py-3 ${column.className ?? ""}`}>
+                <th key={key} scope="col" aria-sort={ariaSort} className={`px-3 py-3 align-top ${column.className ?? ""}`}>
                   <button
                     type="button"
                     onClick={() => handleSort(column)}
@@ -234,7 +234,7 @@ export default function DataTable<T extends Record<string, unknown>>({
             Array.from({ length: Math.max(1, loadingRows) }).map((_, rowIndex) => (
               <tr key={`loading-${rowIndex}`} className="border-t border-zinc-100 dark:border-zinc-900">
                 {columns.map((column) => (
-                  <td key={`loading-${rowIndex}-${String(column.key)}`} className={`px-3 py-3 ${column.className ?? ""}`}>
+                  <td key={`loading-${rowIndex}-${String(column.key)}`} className={`px-3 py-3 align-top break-words ${column.className ?? ""}`}>
                     <div className="h-4 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
                   </td>
                 ))}
@@ -253,7 +253,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                 className="border-t border-zinc-100 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/20"
               >
                 {columns.map((column) => (
-                  <td key={String(column.key)} className={`px-3 py-3 ${column.className ?? ""}`}>
+                  <td key={String(column.key)} className={`px-3 py-3 align-top break-words ${column.className ?? ""}`}>
                     {column.render ? column.render(row, index) : formatValue(row[column.key as keyof T])}
                   </td>
                 ))}
