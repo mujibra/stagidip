@@ -53,7 +53,18 @@ function formatValue(value: unknown): string {
   }
 
   if (Array.isArray(value)) {
-    return value.map((entry) => formatValue(entry)).filter(Boolean).join(", ");
+    const snMesinValues = value
+      .map((entry) => {
+        if (entry && typeof entry === "object" && "snMesin" in entry) {
+          const sn = entry.snMesin;
+          return typeof sn === "string" || typeof sn === "number" ? String(sn) : "";
+        }
+
+        return formatValue(entry);
+      })
+      .filter((entry) => entry.trim().length > 0);
+
+    return snMesinValues.join(", ");
   }
 
   if (typeof value === "object") {
