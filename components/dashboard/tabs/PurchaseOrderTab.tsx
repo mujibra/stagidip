@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import DataState from "@/components/dashboard/DataState";
+import CopyFeedbackMessage from "@/components/dashboard/CopyFeedbackMessage";
+import formatDashboardNumber from "@/components/dashboard/formatDashboardNumber";
+import { setOrDeleteParam } from "@/components/dashboard/queryParams";
+import useCopyViewLink from "@/components/dashboard/useCopyViewLink";
+import useDashboardQueryParams from "@/components/dashboard/useDashboardQueryParams";
+import { resolveRecentYear, toCanonicalYearParam } from "@/components/dashboard/tabQueryState";
 
 type Loadable<T> =
     | { state: "idle" | "loading" }
@@ -80,8 +87,14 @@ function toNumber(v: unknown): number {
 
 
 export default function PurchaseOrderTab() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const now = new Date();
-    const [year, setYear] = useState<number>(now.getFullYear());
+    const nowYear = now.getFullYear();
+    const rawYearParam = searchParams.get("poYear");
+    const year = resolveRecentYear(rawYearParam, nowYear);
+    const isDefaultYear = year === nowYear;
 
     const warehouseUrl = "/api/getDataMesinPerWarehouse";
     const top3Url = useMemo(() => `/api/getData3TopByCustomer?year=${year}`, [year]);
@@ -96,10 +109,28 @@ export default function PurchaseOrderTab() {
         state: "idle",
     });
     const [reloadKey, setReloadKey] = useState(0);
+    const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
+    const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
 
     function retryLoad() {
         setReloadKey((v) => v + 1);
     }
+
+    const updateYear = useCallback((nextYear: number) => {
+        return updateQueryParams((params) => {
+            const canonicalYear = toCanonicalYearParam(nextYear, nowYear);
+
+            setOrDeleteParam(params, "poYear", canonicalYear);
+        });
+    }, [nowYear, updateQueryParams]);
+
+    useEffect(() => {
+        if (rawYearParam === null) return;
+        if (year === nowYear || rawYearParam !== String(year)) {
+            updateYear(year);
+        }
+    }, [rawYearParam, year, nowYear, updateYear]);
+
 
     useEffect(() => {
         let cancelled = false;
@@ -177,11 +208,11 @@ export default function PurchaseOrderTab() {
                     <label className="text-xs text-zinc-500">Year</label>
                     <select
                         value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
+                        onChange={(e) => updateYear(Number(e.target.value))}
                         className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                     >
                         {Array.from({ length: 6 }).map((_, i) => {
-                            const y = now.getFullYear() - i;
+                            const y = nowYear - i;
                             return (
                                 <option key={y} value={y}>
                                     {y}
@@ -189,15 +220,36 @@ export default function PurchaseOrderTab() {
                             );
                         })}
                     </select>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            updateYear(nowYear);
+                        }}
+                        disabled={isDefaultYear}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        Reset year
+                    </button>
+                    <button
+                        type="button"
+                        onClick={copyViewLink}
+                        disabled={isCopying}
+                        aria-busy={isCopying}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                        {isCopying ? "Copying…" : "Copy view link"}
+                    </button>
                 </div>
             </div>
+
+            {copyFeedback && <CopyFeedbackMessage feedback={copyFeedback} className="text-xs font-semibold" />}
 
             {/* KPI Row */}
             <div className="grid gap-3 md:grid-cols-3">
                 <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
                     <div className="text-xs text-zinc-500">Total Mesin (All Warehouses)</div>
                     <div className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                        {totalWarehouseMachines === null ? "—" : totalWarehouseMachines.toLocaleString()}
+                        {totalWarehouseMachines === null ? "—" : formatDashboardNumber(totalWarehouseMachines)}
                     </div>
                 </div>
 
@@ -252,7 +304,7 @@ export default function PurchaseOrderTab() {
                                                 return (
                                                     <tr key={r.gudang_id} className="border-t border-zinc-200 dark:border-zinc-800">
                                                         <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.gudang_name}</td>
-                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{toNumber(r.jumlah).toLocaleString()}</td>
+                                                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">{formatDashboardNumber(toNumber(r.jumlah))}</td>
                                                         <td className="px-3 py-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="h-2 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
@@ -312,7 +364,7 @@ export default function PurchaseOrderTab() {
                                                 </td>
                                                 <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-50">{r.bank_desc}</td>
                                                 <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
-                                                    {Number(r.total_mesin_per_customer ?? 0).toLocaleString()}
+                                                    {formatDashboardNumber(toNumber(r.total_mesin_per_customer))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -330,30 +382,36 @@ export default function PurchaseOrderTab() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Purchase Order Snapshot</div>
                     <div className="text-xs text-zinc-500">Data source: /api/purchaseOrder</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Total PO</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.totalOrders.toLocaleString() : "—"}
+                <div className="mt-3">
+                    <DataState
+                        state={purchaseOrders.state}
+                        errorMessage={purchaseOrders.state === "error" ? purchaseOrders.message : undefined}
+                        empty={purchaseOrders.state === "success" && purchaseOrders.data.data.length === 0}
+                        emptyMessage="No purchase orders found."
+                        onRetry={retryLoad}
+                    >
+                        <div className="grid gap-3 md:grid-cols-3">
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Total PO</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.totalOrders) : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.totalMachines) : "—"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                <div className="text-xs text-zinc-500">Customers with PO</div>
+                                <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                                    {purchaseOrderSummary ? formatDashboardNumber(purchaseOrderSummary.uniqueCustomers) : "—"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Total Mesin (PO)</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.totalMachines.toLocaleString() : "—"}
-                        </div>
-                    </div>
-                    <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                        <div className="text-xs text-zinc-500">Customers with PO</div>
-                        <div className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-                            {purchaseOrderSummary ? purchaseOrderSummary.uniqueCustomers.toLocaleString() : "—"}
-                        </div>
-                    </div>
+                    </DataState>
                 </div>
-
-                {purchaseOrders.state === "error" && (
-                    <div className="mt-3 text-sm text-red-500">{purchaseOrders.message}</div>
-                )}
             </div>
         </div>
     );
