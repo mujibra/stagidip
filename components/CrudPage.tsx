@@ -9,7 +9,7 @@ import { useDebouncedValue } from "@/lib/client/useDebouncedValue";
 type CrudField = {
   key: string;
   label: string;
-  type?: "text" | "textarea";
+  type?: "text" | "textarea" | "datetime";
 };
 
 type CrudPageProps = {
@@ -45,6 +45,33 @@ type CrudRow = Record<string, unknown>;
 
 const DEFAULT_MESSAGE_TIMEOUT = 3000;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
+
+
+function isDateField(field: CrudField) {
+  if (field.type === "datetime") return true;
+
+  const key = field.key.toLowerCase();
+  return key.startsWith("tgl_") || key.includes("tanggal") || key.endsWith("_at") || key.includes("date");
+}
+
+function toDateForInput(value: unknown): string {
+  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const adjusted = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000);
+  return adjusted.toISOString().slice(0, 16);
+}
+
+function toDateForPayload(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toISOString();
+}
 
 function extractSnMesinValues(value: unknown): string[] {
   if (value == null) return [];
@@ -109,6 +136,11 @@ function buildPayload(fields: CrudField[], values: Record<string, unknown>) {
       return acc;
     }
 
+    if (isDateField(field)) {
+      acc[field.key] = toDateForPayload(value);
+      return acc;
+    }
+
     acc[field.key] = typeof value === "string" ? value : value == null ? "" : String(value);
     return acc;
   }, {});
@@ -138,9 +170,13 @@ function asInputValue(value: unknown) {
   return value == null ? "" : String(value);
 }
 
-function normalizeEditValue(value: unknown, fieldKey: string): string | number {
-  if (fieldKey === "sn_mesins") {
+function normalizeEditValue(value: unknown, field: CrudField): string | number {
+  if (field.key === "sn_mesins") {
     return toSnMesinsDisplayValue(value);
+  }
+
+  if (isDateField(field)) {
+    return toDateForInput(value);
   }
 
   if (typeof value === "string" || typeof value === "number") {
@@ -174,7 +210,7 @@ function buildEditPayload(fields: CrudField[], row: CrudRow): CrudRow {
   const payload: CrudRow = { ...row };
 
   for (const field of fields) {
-    payload[field.key] = normalizeEditValue(row[field.key], field.key);
+    payload[field.key] = normalizeEditValue(row[field.key], field);
   }
 
   return payload;
@@ -679,6 +715,7 @@ export default function CrudPage({
                   />
                 ) : (
                   <input
+                    type={isDateField(field) ? "datetime-local" : "text"}
                     value={form[field.key] ?? ""}
                     onChange={(event) => setForm({ ...form, [field.key]: event.target.value })}
                     className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
@@ -712,6 +749,7 @@ export default function CrudPage({
                   />
                 ) : (
                   <input
+                    type={isDateField(field) ? "datetime-local" : "text"}
                     value={asInputValue(editForm[field.key])}
                     onChange={(event) =>
                       setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))

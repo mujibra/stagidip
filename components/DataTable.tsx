@@ -16,6 +16,32 @@ type Column<T> = {
 
 type RowKeyGetter<T> = keyof T | ((row: T, index: number) => string | number);
 
+const INDONESIA_DATE_FORMATTER = new Intl.DateTimeFormat("id-ID", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+
+function formatIndonesianDate(value: Date) {
+  return INDONESIA_DATE_FORMATTER.format(value);
+}
+
+function parseDateCandidate(value: string): Date | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const looksLikeDate = /^\d{4}-\d{2}-\d{2}/.test(trimmed) || /^\d{4}\/\d{2}\/\d{2}/.test(trimmed);
+  if (!looksLikeDate) return null;
+
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
 function formatObjectValue(value: Record<string, unknown>): string {
   const preferredKeys = ["label", "name", "nama", "gudang_desc", "code", "alamat", "id"];
 
@@ -47,8 +73,13 @@ function formatObjectValue(value: Record<string, unknown>): string {
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "";
-  if (value instanceof Date) return value.toLocaleDateString();
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+  if (value instanceof Date) return formatIndonesianDate(value);
+  if (typeof value === "string") {
+    const parsed = parseDateCandidate(value);
+    return parsed ? formatIndonesianDate(parsed) : value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
   }
 
@@ -76,7 +107,7 @@ function formatValue(value: unknown): string {
     }
     if ("toISOString" in value && typeof value.toISOString === "function") {
       try {
-        return new Date(value.toISOString()).toLocaleDateString();
+        return formatIndonesianDate(new Date(value.toISOString()));
       } catch {
         return String(value);
       }
