@@ -11,21 +11,17 @@ import ImplementationTab from "../dashboard/tabs/ImplementationTab";
 import { replaceCanonicalHrefIfChanged, searchParamsKey } from "@/components/dashboard/queryParams";
 import { buildCanonicalParams, getActiveTab, type TabKey } from "@/components/dashboard/dashboardTabParams";
 
+const DASHBOARD_TABS = [
+    { key: "project", label: "Project" },
+    { key: "purchaseOrder", label: "Purchase Order" },
+    { key: "customer", label: "Customer" },
+    { key: "implementation", label: "Implementation" },
+] as const satisfies { key: TabKey; label: string }[];
+
 export default function DashboardTabs() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-
-    const tabs = useMemo(
-        () =>
-            [
-                { key: "project" as const, label: "Project" },
-                { key: "purchaseOrder" as const, label: "Purchase Order" },
-                { key: "customer" as const, label: "Customer" },
-                { key: "implementation" as const, label: "Implementation" },
-            ] satisfies { key: TabKey; label: string }[],
-        []
-    );
 
     const paramsKey = useMemo(() => searchParamsKey(searchParams), [searchParams]);
     const currentSearchParams = useMemo(() => new URLSearchParams(paramsKey), [paramsKey]);
@@ -46,7 +42,7 @@ export default function DashboardTabs() {
         <div className="w-full">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
                 <div className="flex gap-1 overflow-x-auto py-2">
-                    {tabs.map((t) => {
+                    {DASHBOARD_TABS.map((t) => {
                         const isActive = active === t.key;
                         return (
                             <button
