@@ -235,8 +235,21 @@ function Modal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="max-h-[85vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-zinc-950">
+    <div className="
+        fixed inset-0 z-50 flex items-center justify-center p-4
+        bg-black/40 backdrop-blur-sm
+        transition-opacity duration-400 ease-out
+        animate-in fade-in
+      ">
+      <div
+        className="
+          max-h-[85vh] w-full max-w-xl overflow-hidden
+          rounded-2xl bg-white shadow-lg dark:bg-zinc-950
+          transform transition-all duration-400 ease-out
+          scale-100 translate-y-0
+          animate-in zoom-in-95 slide-in-from-bottom-2
+        "
+      >
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>
           <button
@@ -537,7 +550,7 @@ export default function CrudPage({
                   setEditForm(buildEditPayload(fields, row));
                   setOpenEdit(true);
                 }}
-                className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+                className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200 cursor-pointer"
               >
                 Edit
               </button>
@@ -546,7 +559,7 @@ export default function CrudPage({
               <button
                 type="button"
                 onClick={() => handleDelete(row)}
-                className="rounded-md border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-50"
+                className="rounded-md border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-50 cursor-pointer"
               >
                 Delete
               </button>
@@ -570,7 +583,7 @@ export default function CrudPage({
             <button
               type="button"
               onClick={() => setOpenCreate(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
             >
               Add New
             </button>
@@ -725,7 +738,7 @@ export default function CrudPage({
             ))}
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold hover:bg-blue-400 text-white cursor-pointer"
             >
               Save
             </button>
@@ -761,7 +774,7 @@ export default function CrudPage({
             ))}
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-lg bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-2 text-sm font-semibold text-white"
             >
               Update
             </button>
