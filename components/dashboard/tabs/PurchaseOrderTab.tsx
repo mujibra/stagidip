@@ -98,6 +98,7 @@ export default function PurchaseOrderTab() {
     const nowYear = now.getFullYear();
     const rawYearParam = searchParams.get("poYear");
     const year = resolveRecentYear(rawYearParam, nowYear);
+    const isDefaultYear = year === nowYear;
 
     const warehouseUrl = "/api/getDataMesinPerWarehouse";
     const top3Url = useMemo(() => `/api/getData3TopByCustomer?year=${year}`, [year]);
@@ -231,7 +232,8 @@ export default function PurchaseOrderTab() {
                                 retryLoad();
                             }
                         }}
-                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                        disabled={isDefaultYear}
+                        className="h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                     >
                         Reset year
                     </button>

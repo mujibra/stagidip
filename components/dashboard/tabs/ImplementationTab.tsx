@@ -67,6 +67,7 @@ export default function ImplementationTab() {
     const perPage = resolveImplPageSize(rawPageSizeParam);
     const rawPageParam = searchParams.get("implPage");
     const page = resolvePositivePage(rawPageParam);
+    const isDefaultView = page <= 1 && perPage === DEFAULT_IMPL_PAGE_SIZE;
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
@@ -79,13 +80,13 @@ export default function ImplementationTab() {
 
 
     const updatePage = useCallback((nextPage: number) => {
-        updateQueryParams((params) => {
+        return updateQueryParams((params) => {
             setOrDeleteParam(params, "implPage", nextPage <= 1 ? null : String(nextPage));
         });
     }, [updateQueryParams]);
 
     const updatePageSize = useCallback((nextPageSize: number) => {
-        updateQueryParams((params) => {
+        return updateQueryParams((params) => {
             setOrDeleteParam(
                 params,
                 "implPageSize",
@@ -242,8 +243,10 @@ export default function ImplementationTab() {
                             id="impl-page-size"
                             value={perPage}
                             onChange={(e) => {
-                                setStatusDelivery({ state: "loading" });
-                                updatePageSize(Number(e.target.value));
+                                const changed = updatePageSize(Number(e.target.value));
+                                if (changed) {
+                                    setStatusDelivery({ state: "loading" });
+                                }
                             }}
                             className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
                         >
@@ -257,8 +260,10 @@ export default function ImplementationTab() {
                             type="button"
                             disabled={page <= 1 || statusDelivery.state === "loading"}
                             onClick={() => {
-                                setStatusDelivery({ state: "loading" });
-                                updatePage(Math.max(1, page - 1));
+                                const changed = updatePage(Math.max(1, page - 1));
+                                if (changed) {
+                                    setStatusDelivery({ state: "loading" });
+                                }
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -268,8 +273,10 @@ export default function ImplementationTab() {
                             type="button"
                             disabled={page >= totalPages || statusDelivery.state === "loading"}
                             onClick={() => {
-                                setStatusDelivery({ state: "loading" });
-                                updatePage(Math.min(totalPages, page + 1));
+                                const changed = updatePage(Math.min(totalPages, page + 1));
+                                if (changed) {
+                                    setStatusDelivery({ state: "loading" });
+                                }
                             }}
                             className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200"
                         >
@@ -286,7 +293,8 @@ export default function ImplementationTab() {
                         <button
                             type="button"
                             onClick={resetView}
-                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            disabled={isDefaultView || statusDelivery.state === "loading"}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Reset view
                         </button>

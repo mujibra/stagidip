@@ -95,6 +95,7 @@ export default function CustomerTab() {
     const searchParams = useSearchParams();
     const rawCustomerLimit = searchParams.get("customerLimit");
     const customerLimit = resolveCustomerLimit(rawCustomerLimit);
+    const isDefaultCustomerView = customerLimit === DEFAULT_CUSTOMER_LIMIT;
     const [reloadKey, setReloadKey] = useState(0);
     const { copyFeedback, copyViewLink, isCopying } = useCopyViewLink(pathname, searchParams);
     const updateQueryParams = useDashboardQueryParams(pathname, searchParams, router);
@@ -160,7 +161,7 @@ export default function CustomerTab() {
     const handleRetry = () => setReloadKey((key) => key + 1);
 
     const updateCustomerLimit = useCallback((nextLimit: number) => {
-        updateQueryParams((params) => {
+        return updateQueryParams((params) => {
             setOrDeleteParam(
                 params,
                 "customerLimit",
@@ -180,13 +181,9 @@ export default function CustomerTab() {
 
 
     function resetView() {
-        const changed = updateQueryParams((params) => {
+        updateQueryParams((params) => {
             deleteSearchParams(params, "customerLimit");
         });
-
-        if (changed) {
-            setReloadKey((key) => key + 1);
-        }
     }
 
     const customerSummary = useMemo(() => {
@@ -277,7 +274,9 @@ export default function CustomerTab() {
                         <label className="text-xs text-zinc-500">Show</label>
                         <select
                             value={customerLimit}
-                            onChange={(e) => updateCustomerLimit(Number(e.target.value))}
+                            onChange={(e) => {
+                                updateCustomerLimit(Number(e.target.value));
+                            }}
                             className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
                         >
                             {CUSTOMER_LIMIT_OPTIONS.map((opt) => (
@@ -294,7 +293,8 @@ export default function CustomerTab() {
                         <button
                             type="button"
                             onClick={resetView}
-                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                            disabled={isDefaultCustomerView}
+                            className="h-8 rounded-lg border border-zinc-200 px-3 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                         >
                             Reset view
                         </button>
