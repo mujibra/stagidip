@@ -170,7 +170,7 @@ export default function CustomerTab() {
     const handleRetry = () => setReloadKey((key) => key + 1);
 
     const updateCustomerLimit = useCallback((nextLimit: number) => {
-        updateQueryParams((params) => {
+        return updateQueryParams((params) => {
             setOrDeleteParam(
                 params,
                 "customerLimit",
@@ -190,13 +190,9 @@ export default function CustomerTab() {
 
 
     function resetView() {
-        const changed = updateQueryParams((params) => {
+        updateQueryParams((params) => {
             deleteSearchParams(params, "customerLimit");
         });
-
-        if (changed) {
-            setReloadKey((key) => key + 1);
-        }
     }
 
     const customerSummary = useMemo(() => {
