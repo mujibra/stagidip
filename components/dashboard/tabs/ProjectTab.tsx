@@ -202,10 +202,7 @@ export default function ProjectTab() {
                     <button
                         type="button"
                         onClick={() => {
-                            const changed = updateDateParams({ year: nowYear, month: nowMonth });
-                            if (changed) {
-                                load();
-                            }
+                            updateDateParams({ year: nowYear, month: nowMonth });
                         }}
                         disabled={isDefaultPeriod}
                         className="ml-2 h-9 rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
