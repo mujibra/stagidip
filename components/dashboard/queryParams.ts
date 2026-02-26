@@ -29,7 +29,8 @@ export function searchParamsKey(searchParams: SearchParamsLike) {
 }
 
 export function canonicalHrefFromSearchParams(pathname: string, searchParams: SearchParamsLike) {
-    return buildCanonicalHref(pathname, normalizedSearchParams(searchParams));
+    const qs = searchParamsKey(searchParams);
+    return qs ? `${pathname}?${qs}` : pathname;
 }
 
 
