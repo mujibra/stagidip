@@ -21,13 +21,7 @@ function toDate(value: unknown): Date | null {
 }
 
 function parseCustomerIds(values: Array<string | null | undefined>): number[] {
-    return Array.from(
-        new Set(
-            values
-                .map((id) => Number(id))
-                .filter((id): id is number => Number.isInteger(id) && id > 0),
-        ),
-    );
+    return Array.from(new Set(values.map((id) => Number(id)).filter((id): id is number => Number.isInteger(id) && id > 0)));
 }
 
 export async function GET() {
@@ -39,14 +33,12 @@ export async function GET() {
 
         const customerIds = parseCustomerIds(masterPos.map((po) => po.id_customer));
 
-        const customers = customerIds.length
-            ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds } } })
-            : [];
+        const customers = customerIds.length ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds } } }) : [];
         const customerMap = new Map(customers.map((c) => [String(c.id), c]));
 
         const data = masterPos.map((po) => ({
             ...po,
-            customer: po.id_customer ? customerMap.get(po.id_customer) ?? null : null,
+            customer: po.id_customer ? (customerMap.get(po.id_customer) ?? null) : null,
         }));
 
         return NextResponse.json({
@@ -88,7 +80,7 @@ export async function POST(req: NextRequest) {
         } catch (err) {
             const message = err instanceof Error ? err.message : "Unknown error";
             if (message.includes("Unique constraint failed") || message.includes("P2002")) {
-                return NextResponse.json({ errorMessage: "PO Number was Exist" }, { status: 400 });
+                return validationError({ no_po_master: ["Nomor PO sudah digunakan"] });
             }
             return NextResponse.json({ errorMessage: message }, { status: 400 });
         }
