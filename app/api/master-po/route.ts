@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/app/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { badRequestError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toDate, toNumber } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
@@ -14,14 +17,8 @@ type MasterPoBody = {
     status_po?: string;
 };
 
-function toDate(value: unknown): Date | null {
-    if (!value) return null;
-    const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function parseCustomerIds(values: Array<string | null | undefined>): number[] {
-    return Array.from(new Set(values.map((id) => Number(id)).filter((id): id is number => Number.isInteger(id) && id > 0)));
+    return Array.from(new Set(values.map((id) => toNumber(id)).filter((id): id is number => Number.isInteger(id) && id > 0)));
 }
 
 export async function GET() {
@@ -54,37 +51,29 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<MasterPoBody>(req);
-        const no_po_master = (body.no_po_master ?? "").trim();
 
-        if (!no_po_master) {
-            return validationError({ no_po_master: ["No Po tidak boleh Kosong"] });
-        }
+        const errors = validateRequiredName(body.no_po_master, "no_po_master", "No Po tidak boleh Kosong");
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        const tglPo = toDate(body.tgl_po);
+        const created = await prisma.mst_po.create({
+            data: {
+                no_po_master: body.no_po_master!.trim(),
+                tgl_po: toDate(body.tgl_po) ?? undefined,
+                id_customer: body.id_customer ?? null,
+                status_po: body.status_po ?? null,
+            },
+        });
 
-        try {
-            const created = await prisma.mst_po.create({
-                data: {
-                    no_po_master,
-                    tgl_po: tglPo ?? undefined,
-                    id_customer: body.id_customer ?? null,
-                    status_po: body.status_po ?? null,
-                },
-            });
-
-            return NextResponse.json({
-                success: true,
-                message: "PO Master created successfully.",
-                data: toJsonSafe(created),
-            });
-        } catch (err) {
-            const message = err instanceof Error ? err.message : "Unknown error";
-            if (message.includes("Unique constraint failed") || message.includes("P2002")) {
-                return validationError({ no_po_master: ["Nomor PO sudah digunakan"] });
-            }
-            return NextResponse.json({ errorMessage: message }, { status: 400 });
-        }
+        return NextResponse.json({
+            success: true,
+            message: "PO Master created successfully.",
+            data: toJsonSafe(created),
+        });
     } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return badRequestError("PO Number was Exist");
+        }
+
         return serverError(error);
     }
 }
