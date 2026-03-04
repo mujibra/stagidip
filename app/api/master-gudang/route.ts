@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 type CreateGudangDTO = {
@@ -26,13 +29,12 @@ export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateGudangDTO>(req);
 
-        const errors: Record<string, string[]> = {};
-        if (!body.gudang_desc) errors.gudang_desc = ["Gudang wajib diisi"];
-        if (Object.keys(errors).length) return validationError(errors);
+        const errors = validateRequiredName(body.gudang_desc, "gudang_desc", "Gudang wajib diisi");
+        if (hasValidationErrors(errors)) return validationError(errors);
 
         const created = await prisma.mst_gudang.create({
             data: {
-                gudang_desc: body.gudang_desc!,
+                gudang_desc: body.gudang_desc!.trim(),
             },
         });
 

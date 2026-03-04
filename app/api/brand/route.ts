@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 export async function GET() {
@@ -23,19 +26,16 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const form = await req.formData();
-        const name = String(form.get("name") || "").trim();
+        const name = form.get("name");
 
-        const errors: Record<string, string[]> = {};
-        if (!name) errors.name = ["Brand tidak boleh kosong"];
+        const nameErrors = validateRequiredName(name, "name", "Brand tidak boleh kosong");
+        if (hasValidationErrors(nameErrors)) return validationError(nameErrors);
 
-        if (Object.keys(errors).length) return validationError(errors);
+        const normalizedName = String(name).trim();
+        const existed = await prisma.brand.findFirst({ where: { name: normalizedName } });
+        if (existed) return badRequestError("Brand sudah ada, tidak boleh sama");
 
-        const existed = await prisma.brand.findFirst({ where: { name } });
-        if (existed) {
-            return validationError({ name: ["Brand sudah ada, tidak boleh sama"] });
-        }
-
-        const brand = await prisma.brand.create({ data: { name } });
+        const brand = await prisma.brand.create({ data: { name: normalizedName } });
 
         return NextResponse.json({
             success: true,

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
 
 export const runtime = "nodejs";
@@ -31,15 +33,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateStyleDTO>(req);
-        const name = (body.name ?? "").trim();
-
-        if (!name) {
-            return validationError({ name: ["Style tidak boleh kosong"] });
-        }
+        const nameErrors = validateRequiredName(body.name, "name", "Style tidak boleh kosong");
+        if (hasValidationErrors(nameErrors)) return validationError(nameErrors);
 
         const created = await prisma.mst_style.create({
             data: {
-                name,
+                name: body.name!.trim(),
                 created_at: new Date(),
                 updated_at: new Date(),
             },

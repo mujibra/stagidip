@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 type CopyTemplateBody = {
@@ -27,29 +30,27 @@ function findDivisiTo(oldId: number, mapping: { id_divisi_from: number; id_divis
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ idMesin: string }> }) {
     try {
-        const idMesin = Number((await ctx.params).idMesin);
+        const { idMesin } = await ctx.params;
         const body = await parseBody<CopyTemplateBody>(req);
-        const copyFromModel = Number(body.copy_from_model);
 
-        if (!copyFromModel) {
-            return validationError({ copy_from_model: ["copy_from_model wajib diisi"] });
-        }
+        const errors = mergeValidationBags(
+            validateMasterIdParam(idMesin),
+            validatePositiveId(body.copy_from_model, "copy_from_model", "copy_from_model wajib diisi")
+        );
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        const mesinExists = await prisma.mst_mesin.findUnique({ where: { id: idMesin }, select: { id: true } });
-        if (!mesinExists) {
-            return NextResponse.json({ success: false, message: "Mesin tidak ditemukan" }, { status: 400 });
-        }
+        const idMesinNum = toNumber(idMesin)!;
+        const copyFromModel = toNumber(body.copy_from_model)!;
+
+        const mesinExists = await prisma.mst_mesin.findUnique({ where: { id: idMesinNum }, select: { id: true } });
+        if (!mesinExists) return notFoundError("Mesin tidak ditemukan");
 
         const oldDivisi = await prisma.mst_divisi.findMany({ where: { id_mesin: copyFromModel } });
-        if (!oldDivisi.length) {
-            return NextResponse.json({ success: false, message: "Tidak ada template divisi untuk disalin" }, { status: 400 });
-        }
+        if (!oldDivisi.length) return badRequestError("Tidak ada template divisi untuk disalin");
 
-        await prisma.mst_divisi.createMany({
-            data: oldDivisi.map((d) => ({ name: d.name, id_mesin: idMesin })),
-        });
+        await prisma.mst_divisi.createMany({ data: oldDivisi.map((d) => ({ name: d.name, id_mesin: idMesinNum })) });
 
-        const newDivisi = await prisma.mst_divisi.findMany({ where: { id_mesin: idMesin } });
+        const newDivisi = await prisma.mst_divisi.findMany({ where: { id_mesin: idMesinNum } });
         const divisiMapping = mapDivisi(
             oldDivisi.map((d) => d.id),
             newDivisi.map((d) => d.id)
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ idMesin: s
                     test_desc: c.test_desc,
                     result_detail: c.result_detail,
                     id_divisi: targetDivisiId,
-                    id_mesin: idMesin,
+                    id_mesin: idMesinNum,
                     id_type_values: c.id_type_values,
                 };
             })
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ idMesin: s
         if (dataItems.length > 0) {
             await prisma.mst_checklist_staging.createMany({ data: dataItems });
             await prisma.mst_mesin.update({
-                where: { id: idMesin },
+                where: { id: idMesinNum },
                 data: { status_template_prestaging: 1, copy_from_model: copyFromModel },
             });
         }

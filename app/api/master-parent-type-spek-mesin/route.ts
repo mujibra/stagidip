@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
+import { hasValidationErrors, mergeValidationBags } from "@/lib/http/validation";
+import { validateRequiredArray, validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
-export const runtime = "nodejs";
 
-type ParentRow = Awaited<ReturnType<typeof prisma.mst_parent_type_spesifikasi_msn.findMany>>[number];
+export const runtime = "nodejs";
 
 type TypeAtmItem = {
     type: string;
@@ -31,7 +32,8 @@ export async function GET() {
                 ...rest,
             }));
 
-            const { type_atm, ...clean } = row;
+            const clean = { ...row };
+            delete clean.type_atm;
 
             return {
                 ...clean,
@@ -59,17 +61,15 @@ export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateParentTypeDTO>(req);
 
-        const errors: Record<string, string[]> = {};
-        if (!body.parent) errors.parent = ["Parent wajib diisi"];
-        if (!body.type_atm) errors.type_atm = ["Type ATM wajib diisi"];
-
-        if (Object.keys(errors).length > 0) {
-            return validationError(errors);
-        }
+        const errors = mergeValidationBags(
+            validateRequiredName(body.parent, "parent", "Parent wajib diisi"),
+            validateRequiredArray(body.type_atm, "type_atm", "Type ATM wajib diisi")
+        );
+        if (hasValidationErrors(errors)) return validationError(errors);
 
         const created = await prisma.mst_parent_type_spesifikasi_msn.create({
             data: {
-                parent: body.parent!,
+                parent: body.parent!.trim(),
                 type_atm: JSON.stringify(body.type_atm),
             },
         });
