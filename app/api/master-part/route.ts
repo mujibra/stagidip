@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/app/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
 import { serializeId, serializeMany } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
 
@@ -58,14 +58,14 @@ async function resolveMesinIdsFromSearch(search: string): Promise<number[]> {
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
+        const searchParams = req.nextUrl.searchParams;
 
         const mesinIdParam = searchParams.get("mesinId");
         const statusParam = searchParams.get("status"); // ACTIVE/INACTIVE
         const typeParam = searchParams.get("type"); // MESIN/PART_MESIN
         const search = (searchParams.get("search") ?? "").trim();
 
-        const { skip, take } = getPagination(searchParams);
+        const { skip, take, page, perPage } = getPagination(searchParams, { defaultPerPage: 20 });
 
         const mesinId = toIntOrNull(mesinIdParam);
 
@@ -125,6 +125,8 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             totalDatas: total,
+            page,
+            perPage,
             data: serializeMany(data),
         });
     } catch (error) {
@@ -170,7 +172,7 @@ export async function POST(req: NextRequest) {
             });
 
             if (!mesin) {
-                return NextResponse.json({ success: false, message: "Mesin tidak ditemukan" }, { status: 400 });
+                return notFoundError("Mesin tidak ditemukan");
             }
 
             const modelRow = await prisma.models.findUnique({
@@ -193,13 +195,7 @@ export async function POST(req: NextRequest) {
                 });
 
                 if (activeExists) {
-                    return NextResponse.json(
-                        {
-                            success: false,
-                            message: `PartNumber Mesin dengan Type ${mesin.type} hanya boleh 1 yang aktif.`,
-                        },
-                        { status: 400 },
-                    );
+                    return badRequestError(`PartNumber Mesin dengan Type ${mesin.type} hanya boleh 1 yang aktif.`);
                 }
             }
 

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/app/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
 
 export const runtime = "nodejs";
 
@@ -14,51 +17,49 @@ type UpdateMesinDTO = {
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
         const body = await parseBody<UpdateMesinDTO & Record<string, unknown>>(req);
 
-        const merek = String(body.merek ?? "").trim();
-        const model = body.model;
-        const type = String(body.type ?? "").trim();
+        const errors = mergeValidationBags(
+            validateMasterIdParam(id),
+            validateRequiredName(body.merek, "merek", "Merek tidak boleh kosong !"),
+            validatePositiveId(body.model, "model", "Model tidak boleh kosong !"),
+            validateRequiredName(body.type, "type", "Type tidak boleh kosong")
+        );
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        const errors: Record<string, string[]> = {};
-        if (!merek) errors.merek = ["Merek tidak boleh kosong !"];
-        if (!model) errors.model = ["Model tidak boleh kosong !"];
-        if (!type) errors.type = ["Type tidak boleh kosong"];
-        if (Object.keys(errors).length) return validationError(errors);
+        const merek = String(body.merek).trim();
+        const model = toNumber(body.model)!;
+        const type = String(body.type).trim();
 
-        const { merek: _m, model: _mo, type: _t, ...rest } = body;
+        const rest = { ...body } as Record<string, unknown>;
+        delete rest.merek;
+        delete rest.model;
+        delete rest.type;
 
-        try {
-            const updated = await prisma.mst_mesin.update({
-                where: { id },
-                data: {
-                    merek,
-                    model: Number(model),
-                    type,
-                    ...rest,
-                },
-            });
+        const updated = await prisma.mst_mesin.update({
+            where: { id: toNumber(id)! },
+            data: {
+                merek,
+                model,
+                type,
+                ...rest,
+            },
+        });
 
-            return NextResponse.json({
-                success: true,
-                message: "Data berhasil diupdate",
-                data: { ...updated, id: String(updated.id) },
-            });
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : "Terjadi kesalahan pada database";
-            if (msg.includes("Unique constraint failed")) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        message: `Model Mesin ${type} sudah ada, Harap Isi Nama Model dengan nama lain`,
-                    },
-                    { status: 400 }
-                );
-            }
-            return NextResponse.json({ success: false, message: msg }, { status: 400 });
-        }
+        return NextResponse.json({
+            success: true,
+            message: "Data berhasil diupdate",
+            data: { ...updated, id: String(updated.id) },
+        });
     } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return badRequestError("Model Mesin sudah ada, Harap Isi Nama Model dengan nama lain");
+        }
+        if (error instanceof Error && error.message.includes("Unique constraint failed")) {
+            return badRequestError("Model Mesin sudah ada, Harap Isi Nama Model dengan nama lain");
+        }
+        if (isPrismaNotFoundError(error)) return notFoundError("Data tidak ditemukan");
         return serverError(error);
     }
 }

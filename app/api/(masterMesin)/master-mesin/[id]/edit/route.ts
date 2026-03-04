@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
 
 export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const mesin = await prisma.mst_mesin.findUnique({ where: { id } });
-        if (!mesin) {
-            return NextResponse.json(
-                { success: false, message: "Data tidak ditemukan", data: [] },
-                { status: 400 }
-            );
-        }
+        const idNum = toNumber(id)!;
+        const mesin = await prisma.mst_mesin.findUnique({ where: { id: idNum } });
+        if (!mesin) return notFoundError("Data tidak ditemukan", { data: [] });
 
         const model = await prisma.models.findUnique({ where: { id: Number(mesin.model) } });
 

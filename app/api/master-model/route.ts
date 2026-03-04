@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 type CreateModelDTO = { name?: string };
@@ -25,20 +28,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateModelDTO>(req);
-        const name = (body.name ?? "").trim();
+        const errors = validateRequiredName(body.name, "name", "Nama Model tidak boleh kosong");
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        if (!name) return validationError({ name: ["Nama Model tidak boleh kosong"] });
-
+        const name = body.name!.trim();
         const exists = await prisma.models.findFirst({ where: { name } });
         if (exists) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    errorCode: "23000",
-                    message: `SN Mesin ${name} sudah ada, Harap Isi Nama Type dengan nama lain`,
-                },
-                { status: 400 }
-            );
+            return badRequestError(`SN Mesin ${name} sudah ada, Harap Isi Nama Type dengan nama lain`, {
+                errorCode: "23000",
+            });
         }
 
         const created = await prisma.models.create({ data: { name } });

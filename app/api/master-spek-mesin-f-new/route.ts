@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
+import { mergeValidationBags, hasValidationErrors, validatePositiveId } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
+
 export const runtime = "nodejs";
 
-type Row = Awaited<ReturnType<typeof prisma.mst_spesifikasi_mesin_fnew.findMany>>[number];
 
 export async function GET(req: NextRequest) {
     try {
@@ -50,38 +52,30 @@ export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateSpekMesinDTO>(req);
 
-        const errors: Record<string, string[]> = {};
-        if (!body.item_id) errors.item_id = ["Item ID wajib diisi"];
-        if (!body.item_code) errors.item_code = ["Item Code wajib diisi"];
-        if (!body.description) errors.description = ["Description wajib diisi"];
+        const errors = mergeValidationBags(
+            validatePositiveId(body.item_id, "item_id", "Item ID wajib diisi"),
+            validateRequiredName(body.item_code, "item_code", "Item Code wajib diisi"),
+            validateRequiredName(body.description, "description", "Description wajib diisi")
+        );
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        if (Object.keys(errors).length > 0) {
-            return validationError(errors);
-        }
+        const item_code = body.item_code!.trim();
+        const description = body.description!.trim();
 
         const childExists = await prisma.mst_type_spesifikasi_msn.findFirst({
             where: {
                 id: body.item_id,
-                val: body.item_code,
+                val: item_code,
             },
         });
 
-        if (!childExists) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Child Item was Not Found.",
-                    data: [],
-                },
-                { status: 400 }
-            );
-        }
+        if (!childExists) return notFoundError("Child Item was Not Found.", { data: [] });
 
         const created = await prisma.mst_spesifikasi_mesin_fnew.create({
             data: {
                 item_id: body.item_id!,
-                item_code: body.item_code!,
-                description: body.description!,
+                item_code,
+                description,
             },
         });
 

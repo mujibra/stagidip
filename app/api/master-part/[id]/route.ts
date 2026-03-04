@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/app/generated/prisma";
 import { prisma } from "@/lib/prisma";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
 import { parseBody } from "@/lib/parseBody";
+import { hasValidationErrors, isPrismaNotFoundError, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
 
 export const runtime = "nodejs";
@@ -20,12 +22,12 @@ type UpdatePartDTO = {
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await params).id);
-        const body = await parseBody<UpdatePartDTO>(req);
+        const { id } = await params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        if (Number.isNaN(id)) {
-            return validationError({ id: ["Invalid id"] });
-        }
+        const idNum = toNumber(id)!;
+        const body = await parseBody<UpdatePartDTO>(req);
 
         const hasAnyField =
             body.id_mesin !== undefined ||
@@ -37,18 +39,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             body.format !== undefined ||
             body.position !== undefined;
 
-        if (!hasAnyField) {
-            return validationError({ _form: ["Tidak ada data yang diupdate"] });
-        }
+        if (!hasAnyField) return validationError({ _form: ["Tidak ada data yang diupdate"] });
 
-        // If activating MESIN, enforce "only 1 active"
         if (body.types === "MESIN" && body.status === 1 && body.id_mesin) {
             const exists = await prisma.mst_part_number.findFirst({
                 where: {
                     id_mesin: body.id_mesin,
                     types: "MESIN",
                     status: 1,
-                    NOT: { id },
+                    NOT: { id: idNum },
                 },
                 select: { id: true },
             });
@@ -59,13 +58,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                     select: { type: true },
                 });
 
-                return NextResponse.json(
-                    {
-                        success: false,
-                        message: `PartNumber Mesin dengan Type ${mesin?.type ?? ""} hanya boleh 1 yang aktif`,
-                    },
-                    { status: 400 },
-                );
+                return badRequestError(`PartNumber Mesin dengan Type ${mesin?.type ?? ""} hanya boleh 1 yang aktif`);
             }
         }
 
@@ -79,10 +72,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.format !== undefined) data.format = body.format ?? null;
         if (body.position !== undefined) data.position = body.position ?? null;
 
-        const updated = await prisma.mst_part_number.update({
-            where: { id },
-            data,
-        });
+        const updated = await prisma.mst_part_number.update({ where: { id: idNum }, data });
 
         return NextResponse.json({
             success: true,
@@ -90,16 +80,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: serializeId(updated),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Data part tidak ditemukan");
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await params).id);
-        if (Number.isNaN(id)) return validationError({ id: ["Invalid id"] });
+        const { id } = await params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const deleted = await prisma.mst_part_number.delete({ where: { id } });
+        const deleted = await prisma.mst_part_number.delete({ where: { id: toNumber(id)! } });
 
         return NextResponse.json(
             {
@@ -107,9 +99,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
                 message: `Data PartNumber ${deleted.part_no ?? ""}-${deleted.part_desc ?? ""} berhasil dihapus`,
                 data: serializeId(deleted),
             },
-            { status: 200 },
+            { status: 200 }
         );
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Data part tidak ditemukan");
         return serverError(error);
     }
 }

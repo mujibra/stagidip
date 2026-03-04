@@ -31,3 +31,24 @@ This backlog turns identified frontend gaps into prioritized, execution-ready it
 - Pull highest-priority open items first (P0 before P1/P2).
 - Every completed/qa-review item must include evidence in `WEEK1_EVIDENCE_LOG.md`.
 - Mirror status updates in `PARITY_EXECUTION_TRACKER.md` and module audit files.
+
+## Post-Closure Improvement Queue (Next)
+
+With Batch A-E marked `done`, this queue captures improvements that increase confidence,
+operability, and release readiness after baseline parity closure.
+
+| Priority | Item | Why it matters | Acceptance Criteria | Owner | Status | Target PR |
+|---|---|---|---|---|---|---|
+| P0 | UAT revalidation of closure modules | Confirms `done` status with business-side approval before release | UAT sign-off recorded for Dashboard, Purchase Order, Registration, Status Delivery, Warehouse Transfer, Summary, Integration, Spesification, and Staging | _TBD_ | `not-started` | Follow-up |
+| P0 | Owner/reviewer assignment in tracker and audits | Reduces ambiguity for incident handling and future change ownership | All module rows include non-placeholder owner + reviewer in `PARITY_EXECUTION_TRACKER.md` and linked audit files | _TBD_ | `not-started` | Follow-up |
+| P1 | Route + smoke checks in CI gate | Prevents parity regressions from slipping into default branch | CI runs `npm run migration:check-routes` and `npm run qa:smoke` on pull requests touching app routes/modules | _TBD_ | `not-started` | Follow-up |
+| P1 | API contract drift guard from OpenAPI | Keeps frontend/backend behavior aligned as APIs evolve | Regenerated examples (`npm run docs:infer-examples`) are reviewed in PRs and endpoint inventory diffs are documented | _TBD_ | `not-started` | Follow-up |
+| P2 | Evidence log hygiene + traceability links | Speeds future audits and onboarding by making evidence easy to navigate | Each Week 1 evidence entry links to module audit checklist item + QA notes artifact using consistent format | _TBD_ | `not-started` | Follow-up |
+
+### Recommended order
+
+1. Complete UAT revalidation and capture sign-off artifacts.
+2. Assign owners/reviewers for every module and batch carryover policy.
+3. Enforce route/smoke checks in CI before merge.
+4. Add API drift checks to routine parity maintenance.
+5. Normalize evidence traceability formatting.

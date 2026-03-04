@@ -1,17 +1,44 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
+import { hasValidationErrors, mergeValidationBags } from "@/lib/http/validation";
+import { parseUserRoleFilter, parseUserStatusFilter } from "@/lib/http/userQueryValidation";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const users = await prisma.users.findMany();
+        const roleFilter = parseUserRoleFilter(req.nextUrl.searchParams.get("roles"));
+        const statusFilter = parseUserStatusFilter(req.nextUrl.searchParams.get("status"));
+        const errors = mergeValidationBags(roleFilter.errors, statusFilter.errors);
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
+        const { skip, take, page, perPage } = getPagination(req.nextUrl.searchParams, { defaultPerPage: 20 });
+
+        const where: Record<string, unknown> = {};
+        if (roleFilter.role) where.roles = roleFilter.role;
+        if (statusFilter.status !== null) where.status = statusFilter.status;
+        if (q) {
+            where.OR = [
+                { name: { contains: q } },
+                { email: { contains: q } },
+            ];
+        }
+
+        const [users, total] = await Promise.all([
+            prisma.users.findMany({ where, orderBy: { id: "desc" }, skip, take }),
+            prisma.users.count({ where }),
+        ]);
 
         if (!users.length) {
-            return NextResponse.json({ success: true, data: [] });
+            return NextResponse.json({ success: true, totalDatas: total, page, perPage, data: [] });
         }
 
         const customerIds = Array.from(
@@ -40,6 +67,9 @@ export async function GET() {
 
         return NextResponse.json({
             success: true,
+            totalDatas: total,
+            page,
+            perPage,
             data: toJsonSafe(data),
         });
     } catch (error) {

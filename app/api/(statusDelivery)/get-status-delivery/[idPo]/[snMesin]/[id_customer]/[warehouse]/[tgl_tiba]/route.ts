@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { hasValidationErrors, mergeValidationBags, ValidationBag } from "@/lib/http/validation";
+import {
+    parseNullableDateRangeParam,
+    parseNullableParam,
+    parseNullablePositiveIntParam,
+} from "@/lib/http/filterParamValidation";
 
 export const runtime = "nodejs";
-
-function parseDateRange(dateValue: string) {
-    const parsed = new Date(dateValue);
-    if (Number.isNaN(parsed.getTime())) return null;
-    const start = new Date(parsed);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return { start, end };
-}
 
 async function enrich(records: Array<Record<string, unknown>>) {
     const poIds = Array.from(new Set(records.map((row) => row.id_po).filter((id): id is number => Boolean(id))));
@@ -83,11 +79,28 @@ export async function GET(
     ctx: { params: Promise<{ idPo: string; snMesin: string; id_customer: string; warehouse: string; tgl_tiba: string }> }
 ) {
     try {
-        const idPo = (await ctx.params).idPo !== "null" ? Number((await ctx.params).idPo) : null;
-        const snMesin = (await ctx.params).snMesin !== "null" ? (await ctx.params).snMesin : null;
-        const idCustomer = (await ctx.params).id_customer !== "null" ? Number((await ctx.params).id_customer) : null;
-        const warehouse = (await ctx.params).warehouse !== "null" ? Number((await ctx.params).warehouse) : null;
-        const tglTibaValue = (await ctx.params).tgl_tiba !== "null" ? (await ctx.params).tgl_tiba : null;
+        const params = await ctx.params;
+
+        const idPoParsed = parseNullablePositiveIntParam(params.idPo, "idPo");
+        const idCustomerParsed = parseNullablePositiveIntParam(params.id_customer, "id_customer");
+        const warehouseParsed = parseNullablePositiveIntParam(params.warehouse, "warehouse");
+        const tglTibaParsed = parseNullableDateRangeParam(params.tgl_tiba, "tgl_tiba");
+
+        const errors: ValidationBag = mergeValidationBags(
+            idPoParsed.errors,
+            idCustomerParsed.errors,
+            warehouseParsed.errors,
+            tglTibaParsed.errors
+        );
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const idPo = idPoParsed.value;
+        const snMesin = parseNullableParam(params.snMesin);
+        const idCustomer = idCustomerParsed.value;
+        const warehouse = warehouseParsed.value;
 
         let allowedPoIds: number[] | null = null;
         if (idCustomer || warehouse) {
@@ -111,11 +124,8 @@ export async function GET(
         if (allowedPoIds) {
             where.id_po = { in: allowedPoIds };
         }
-        if (tglTibaValue) {
-            const range = parseDateRange(tglTibaValue);
-            if (range) {
-                where.tgl_perkiraan_tiba = { gte: range.start, lt: range.end };
-            }
+        if (tglTibaParsed.range) {
+            where.tgl_perkiraan_tiba = { gte: tglTibaParsed.range.start, lt: tglTibaParsed.range.end };
         }
 
         const records = await prisma.transaksi_status_delivery.findMany({

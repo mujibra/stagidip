@@ -5,66 +5,30 @@ import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
+import {
+    hasValidationErrors,
+    mergeValidationBags,
+    normalizeSnMesinsOptional,
+    parseSnMesins,
+    toDate,
+    toNumber,
+    validatePositiveId,
+    WarehouseTransferBody,
+} from "@/lib/http/warehouseTransferValidation";
+import { isPrismaNotFoundError } from "@/lib/http/validation";
 
 export const runtime = "nodejs";
 
-type WarehouseTransferBody = {
-    id_po?: string | number;
-    id_customer?: string | number;
-    jumlah?: string | number;
-    sn_mesins?: string | string[];
-    from_warehouse?: string | number;
-    to_warehouse?: string | number;
-    tgl_keluar?: string;
-    tgl_masuk?: string;
-    tgl_staging?: string;
-    pic?: string | number;
-};
-
-function toNumber(value: unknown): number | null {
-    if (value === null || value === undefined || value === "") return null;
-    const num = Number(value);
-    return Number.isFinite(num) ? num : null;
-}
-
-function toDate(value: unknown): Date | null {
-    if (!value) return null;
-    const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function normalizeSnMesins(value: unknown): string | undefined {
-    if (value === undefined) return undefined;
-    if (Array.isArray(value)) {
-        return JSON.stringify(value);
-    }
-    if (typeof value === "string") {
-        return value;
-    }
-    if (value) {
-        return JSON.stringify(value);
-    }
-    return "[]";
-}
-
-function parseSnMesins(value: string | null): string[] {
-    if (!value) return [];
-    try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-}
-
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const rowPerPage = Number((await ctx.params).id);
+        const rowPerPageParam = (await ctx.params).id;
+        const rowPerPageErrors = validatePositiveId(rowPerPageParam, "rowPerPage", "Row per page wajib diisi");
 
-        if (!rowPerPage || rowPerPage < 1) {
-            return validationError({ rowPerPage: ["Row per page wajib diisi"] });
+        if (hasValidationErrors(rowPerPageErrors)) {
+            return validationError(rowPerPageErrors);
         }
 
+        const rowPerPage = Number(rowPerPageParam);
         const { skip, take } = getPagination(req.nextUrl.searchParams, { perPageOverride: rowPerPage });
 
         const transfers = await prisma.warehouse_transfer.findMany({
@@ -125,9 +89,15 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const idParam = (await ctx.params).id;
         const body = await parseBody<WarehouseTransferBody>(req);
 
+        const errors = mergeValidationBags(validatePositiveId(idParam, "id", "ID transfer tidak valid"));
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const id = Number(idParam);
         const data: Record<string, unknown> = {
             id_po: toNumber(body.id_po) ?? undefined,
             id_customer: toNumber(body.id_customer) ?? undefined,
@@ -140,7 +110,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
             pic: toNumber(body.pic) ?? undefined,
         };
 
-        const snMesins = normalizeSnMesins(body.sn_mesins);
+        const snMesins = normalizeSnMesinsOptional(body.sn_mesins);
         if (snMesins !== undefined) {
             data.sn_mesins = snMesins;
         }
@@ -156,13 +126,26 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
             data: toJsonSafe(updated),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) {
+            return NextResponse.json(
+                { success: false, type: "NOT_FOUND", message: "Data transfer antar gudang tidak ditemukan" },
+                { status: 404 }
+            );
+        }
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const idParam = (await ctx.params).id;
+        const errors = validatePositiveId(idParam, "id", "ID transfer tidak valid");
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const id = Number(idParam);
         const deleted = await prisma.warehouse_transfer.delete({ where: { id } });
 
         return NextResponse.json({
@@ -171,6 +154,12 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
             data: toJsonSafe(deleted),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) {
+            return NextResponse.json(
+                { success: false, type: "NOT_FOUND", message: "Data transfer antar gudang tidak ditemukan" },
+                { status: 404 }
+            );
+        }
         return serverError(error);
     }
 }

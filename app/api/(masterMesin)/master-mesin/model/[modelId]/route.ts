@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
+import { notFoundError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
 import { serializeMany } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 type RouteParams = {
@@ -9,29 +14,20 @@ type RouteParams = {
 
 // GET /api/master-mesin/model/:modelId
 export async function GET(_req: Request, { params }: RouteParams) {
-    const { modelId } = await params;
+    try {
+        const { modelId } = await params;
+        const idErrors = validateMasterIdParam(modelId);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-    const list = await prisma.mst_mesin.findMany({
-        where: { model: Number(modelId) }, // or string if your schema says so
-    });
+        const list = await prisma.mst_mesin.findMany({ where: { model: toNumber(modelId)! } });
+        if (!list.length) return notFoundError("Data tidak ditemukan", { data: [] });
 
-    if (!list || list.length === 0) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Data tidak ditemukan",
-                data: [],
-            },
-            { status: 400 }
-        );
-    }
-
-    return NextResponse.json(
-        {
+        return NextResponse.json({
             success: true,
             totalDatas: list.length,
             data: serializeMany(list),
-        },
-        { status: 200 }
-    );
+        });
+    } catch (error) {
+        return serverError(error);
+    }
 }
