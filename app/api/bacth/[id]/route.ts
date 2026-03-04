@@ -1,67 +1,66 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const batch = await prisma.bacth_po.findUnique({ where: { id } });
-        if (!batch) {
-            return NextResponse.json({ success: false, message: "Data batch tidak ditemukan", data: "" }, { status: 400 });
-        }
+        const batch = await prisma.bacth_po.findUnique({ where: { id: toNumber(id)! } });
+        if (!batch) return notFoundError("Data batch tidak ditemukan", { data: "" });
 
         return NextResponse.json({ success: true, message: "Detail data batch", data: serializeId(batch) });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Data batch tidak ditemukan", { data: "" });
         return serverError(error);
     }
 }
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
         const body = await parseBody<{ name?: string }>(req);
-        const name = (body.name ?? "").trim();
+        const nameErrors = validateRequiredName(body.name, "name", "Batch tidak boleh kosong");
+        if (hasValidationErrors(nameErrors)) return validationError(nameErrors);
 
-        if (!name) return validationError({ name: ["Batch tidak boleh kosong"] });
+        const idNum = toNumber(id)!;
+        const name = body.name!.trim();
+        const exists = await prisma.bacth_po.findFirst({ where: { name, NOT: { id: idNum } } });
+        if (exists) return badRequestError("Nama Batch sudah ada, harap masukkan Nama Batch lain", { data: "" });
 
-        const exists = await prisma.bacth_po.findFirst({
-            where: { name, NOT: { id } },
-        });
-
-        if (exists) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Nama Batch sudah ada, harap masukkan Nama Batch lain",
-                    data: "",
-                },
-                { status: 400 }
-            );
-        }
-
-        const updated = await prisma.bacth_po.update({ where: { id }, data: { name } });
+        const updated = await prisma.bacth_po.update({ where: { id: idNum }, data: { name } });
 
         return NextResponse.json({ success: true, message: "Bacth berhasil di update", data: serializeId(updated) });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Data batch tidak ditemukan", { data: "" });
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const used = await prisma.tbl_po.findFirst({ where: { batch: id }, select: { id: true } });
+        const idNum = toNumber(id)!;
+        const used = await prisma.tbl_po.findFirst({ where: { batch: idNum }, select: { id: true } });
         if (used) {
-            const batch = await prisma.bacth_po.findUnique({ where: { id }, select: { name: true } });
-            return NextResponse.json({ success: false, message: `${batch?.name ?? "Batch"} Gagal di hapus` }, { status: 400 });
+            const batch = await prisma.bacth_po.findUnique({ where: { id: idNum }, select: { name: true } });
+            return badRequestError(`${batch?.name ?? "Batch"} Gagal di hapus`);
         }
 
-        const deleted = await prisma.bacth_po.delete({ where: { id } });
+        const deleted = await prisma.bacth_po.delete({ where: { id: idNum } });
 
         return NextResponse.json({ success: true, message: "Data berhasil di hapus", data: serializeId(deleted) });
     } catch (error) {
