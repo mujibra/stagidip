@@ -39,6 +39,8 @@ type ApiResponse<T> = {
   message?: string;
   data?: T;
   datas?: T;
+  errors?: Record<string, string[]>;
+  type?: string;
 };
 
 type CrudRow = Record<string, unknown>;
@@ -311,6 +313,7 @@ export default function CrudPage({
   const [form, setForm] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<CrudRow | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [createErrors, setCreateErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setForm(buildPayload(fields, {}));
@@ -334,6 +337,7 @@ export default function CrudPage({
       const data = (dataKey ? (result as Record<string, unknown>)[dataKey] : undefined) ?? result.data ?? result.datas ?? [];
       setItems(Array.isArray(data) ? data : []);
     } catch {
+      console.log("???");
       notify("error", "Failed to load data.");
     } finally {
       setLoading(false);
@@ -454,8 +458,23 @@ export default function CrudPage({
         ...requestBody,
       });
       const result: ApiResponse<CrudRow> = await response.json();
+      console.log("🚀 ~ handleCreate ~ result:", result)
       if (!response.ok || !result.success) {
-        notify("error", result.message ?? "Failed to create data.");
+        if (result.type === "VALIDATION_ERROR" && result.errors) {
+          const formatted: Record<string, string> = {};
+
+          for (const key in result.errors) {
+            const value = result.errors[key];
+            if (Array.isArray(value) && value.length > 0) {
+              formatted[key] = value[0]; // take first error message
+            }
+          }
+
+          setCreateErrors(formatted);
+        } else {
+          notify("error", result.message ?? "Failed to create data.");
+        }
+
         return;
       }
       notify("success", result.message ?? "Data created successfully.");
@@ -582,7 +601,10 @@ export default function CrudPage({
           allowCreate ? (
             <button
               type="button"
-              onClick={() => setOpenCreate(true)}
+              onClick={() => {
+                setCreateErrors({});
+                setOpenCreate(true)
+              }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
             >
               Add New
@@ -723,16 +745,40 @@ export default function CrudPage({
                 {field.type === "textarea" ? (
                   <textarea
                     value={form[field.key] ?? ""}
-                    onChange={(event) => setForm({ ...form, [field.key]: event.target.value })}
-                    className="min-h-[90px] w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
+                    onChange={(event) => {
+                      setForm({ ...form, [field.key]: event.target.value })
+                      if (createErrors[field.key]) {
+                        setCreateErrors(prev => ({ ...prev, [field.key]: "" }));
+                      }
+                    }}
+                    className={`min-h-[90px] w-full rounded-lg border px-3 py-2 text-sm
+                        ${createErrors[field.key]
+                        ? "border-rose-500 focus:ring-rose-200"
+                        : "border-zinc-200"
+                      }`}
                   />
                 ) : (
                   <input
                     type={isDateField(field) ? "datetime-local" : "text"}
                     value={form[field.key] ?? ""}
-                    onChange={(event) => setForm({ ...form, [field.key]: event.target.value })}
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
+                    onChange={(event) => {
+                      setForm({ ...form, [field.key]: event.target.value });
+                      if (createErrors[field.key]) {
+                        setCreateErrors(prev => ({ ...prev, [field.key]: "" }));
+                      }
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                        ${createErrors[field.key]
+                        ? "border-rose-500 focus:ring-rose-200"
+                        : "border-zinc-200"
+                      }`}
                   />
+                )}
+
+                {createErrors[field.key] && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {createErrors[field.key]}
+                  </p>
                 )}
               </label>
             ))}
