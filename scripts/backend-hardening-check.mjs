@@ -49,6 +49,7 @@ const checks = [
       "app/api/master-spesifikasi-mesin/[id]/route.ts",
       "app/api/master-type-spek-mesin/[idType]/route.ts",
       "app/api/master-parent-type-spek-mesin/[idParent]/route.ts",
+      "app/api/master-spek-mesin-f-new/route.ts",
       "app/api/master-spek-mesin-f-new/[idListItem]/route.ts",
       "app/api/(purchaseOrder)/purchaseOrder/[idPo]/route.ts",
       "app/api/(purchaseOrder)/purchaseOrder/[idPo]/cancel/route.ts",
