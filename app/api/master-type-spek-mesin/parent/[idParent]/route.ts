@@ -1,42 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number((await params).idParent);
+        const { idParent } = await params;
+        const idErrors = validateMasterIdParam(idParent);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
         const body = await parseBody<{ val?: string; label?: string }>(req);
 
-        const errors: Record<string, string[]> = {};
-        if (!body.val) errors.val = ["Val tidak boleh kosong"];
-        if (!body.label) errors.label = ["Label tidak boleh kosong"];
+        const errors = {
+            ...validateRequiredName(body.val, "val", "Val tidak boleh kosong"),
+            ...validateRequiredName(body.label, "label", "Label tidak boleh kosong"),
+        };
 
-        if (Object.keys(errors).length > 0) {
-            return validationError(errors);
-        }
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        const parentExists = await prisma.mst_parent_type_spesifikasi_msn.findUnique({
-            where: { id: idParent },
-        });
+        const idParentNum = toNumber(idParent)!;
+        const parentExists = await prisma.mst_parent_type_spesifikasi_msn.findUnique({ where: { id: idParentNum } });
 
-        if (!parentExists) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Insert Child Type Specification Machine was Error !!",
-                },
-                { status: 400 }
-            );
-        }
+        if (!parentExists) return notFoundError("Insert Child Type Specification Machine was Error !!");
 
         const created = await prisma.mst_type_spesifikasi_msn.create({
             data: {
-                id_parent: idParent,
-                val: body.val!,
-                label: body.label!,
+                id_parent: idParentNum,
+                val: body.val!.trim(),
+                label: body.label!.trim(),
             },
         });
 
