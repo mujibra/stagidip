@@ -4,56 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import {
+    hasValidationErrors,
+    mergeValidationBags,
+    normalizeSnMesins,
+    parseSnMesins,
+    toDate,
+    toNumber,
+    validatePositiveId,
+    WarehouseTransferBody,
+} from "@/lib/http/warehouseTransferValidation";
 
 export const runtime = "nodejs";
-
-type WarehouseTransferBody = {
-    id_po?: string | number;
-    id_customer?: string | number;
-    jumlah?: string | number;
-    sn_mesins?: string | string[];
-    from_warehouse?: string | number;
-    to_warehouse?: string | number;
-    tgl_keluar?: string;
-    tgl_masuk?: string;
-    tgl_staging?: string;
-    pic?: string | number;
-};
-
-function toNumber(value: unknown): number | null {
-    if (value === null || value === undefined || value === "") return null;
-    const num = Number(value);
-    return Number.isFinite(num) ? num : null;
-}
-
-function toDate(value: unknown): Date | null {
-    if (!value) return null;
-    const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function normalizeSnMesins(value: unknown): string {
-    if (Array.isArray(value)) {
-        return JSON.stringify(value);
-    }
-    if (typeof value === "string") {
-        return value;
-    }
-    if (value) {
-        return JSON.stringify(value);
-    }
-    return "[]";
-}
-
-function parseSnMesins(value: string | null): string[] {
-    if (!value) return [];
-    try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-}
 
 export async function GET() {
     try {
@@ -142,37 +104,35 @@ export async function POST(req: NextRequest) {
         const jumlah = toNumber(body.jumlah);
         const toWarehouse = toNumber(body.to_warehouse);
 
-        if (!idPo || !jumlah || !toWarehouse) {
-            return validationError({
-                id_po: !idPo ? ["PO wajib dipilih"] : [],
-                jumlah: !jumlah ? ["Jumlah mesin wajib diisi"] : [],
-                to_warehouse: !toWarehouse ? ["Gudang tujuan wajib dipilih"] : [],
-            });
+        const errors = mergeValidationBags(
+            validatePositiveId(body.id_po, "id_po", "PO wajib dipilih"),
+            validatePositiveId(body.jumlah, "jumlah", "Jumlah mesin wajib diisi"),
+            validatePositiveId(body.to_warehouse, "to_warehouse", "Gudang tujuan wajib dipilih")
+        );
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
         }
 
-        const purchaseOrder = await prisma.tbl_po.findUnique({ where: { id: idPo } });
+        const purchaseOrder = await prisma.tbl_po.findUnique({ where: { id: idPo! } });
         if (!purchaseOrder) {
-            return NextResponse.json({ success: false, message: "Data PO tidak ditemukan" }, { status: 400 });
+            return validationError({ id_po: ["Data PO tidak ditemukan"] });
         }
 
-        if (jumlah > purchaseOrder.jumlah) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Transfer Jumlah Mesin tidak boleh melebihi dari total mesin di gudang",
-                },
-                { status: 400 }
-            );
+        if (jumlah! > purchaseOrder.jumlah) {
+            return validationError({
+                jumlah: ["Transfer jumlah mesin tidak boleh melebihi total mesin di gudang"],
+            });
         }
 
         const created = await prisma.warehouse_transfer.create({
             data: {
-                id_po: idPo,
+                id_po: idPo!,
                 id_customer: toNumber(body.id_customer) ?? 0,
-                jumlah,
+                jumlah: jumlah!,
                 sn_mesins: normalizeSnMesins(body.sn_mesins),
                 from_warehouse: toNumber(body.from_warehouse) ?? 0,
-                to_warehouse: toWarehouse,
+                to_warehouse: toWarehouse!,
                 tgl_keluar: toDate(body.tgl_keluar) ?? undefined,
                 tgl_masuk: toDate(body.tgl_masuk) ?? undefined,
                 tgl_staging: toDate(body.tgl_staging) ?? undefined,
