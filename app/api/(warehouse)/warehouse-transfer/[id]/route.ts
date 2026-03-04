@@ -15,17 +15,9 @@ import {
     validatePositiveId,
     WarehouseTransferBody,
 } from "@/lib/http/warehouseTransferValidation";
+import { isPrismaNotFoundError } from "@/lib/http/validation";
 
 export const runtime = "nodejs";
-
-function isPrismaNotFoundError(error: unknown): boolean {
-    return (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: string }).code === "P2025"
-    );
-}
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
