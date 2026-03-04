@@ -36,7 +36,6 @@ Harden API reliability and contract consistency so migration readiness is backed
 3. **Carryover (P2)**
    - Observability baseline and ownership matrix.
 
-
 ## Progress snapshot
 
 - P0 — Standardize API error envelopes: **62%**
