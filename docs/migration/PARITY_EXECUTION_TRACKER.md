@@ -3,7 +3,7 @@
 This tracker is the operational board for migration execution.
 
 Status values must follow `NEXT_EXECUTION_PROCESS.md`:
-`not-started` / `done` / `blocked` / `done` / `done`.
+`not-started` / `in-progress` / `blocked` / `qa-review` / `done`.
 
 ## Batch Progression Board
 
