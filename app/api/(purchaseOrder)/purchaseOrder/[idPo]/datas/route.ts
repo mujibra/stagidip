@@ -1,23 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
 import { toJsonSafe } from "@/lib/serialize";
+import { validateIdPoParam } from "@/lib/http/purchaseOrderRuntimeValidation";
 
 export const runtime = "nodejs";
 
-function toNumber(value: string): number | null {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-}
-
 export async function GET(_req: NextRequest, context: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = toNumber((await context.params).idPo);
-        if (!idPo) return NextResponse.json({ success: true, data: [] });
+        const params = await context.params;
+        const errors = validateIdPoParam(params.idPo);
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const idPo = toNumber(params.idPo)!;
 
         const po = await prisma.tbl_po.findFirst({ where: { id: idPo } });
-        if (!po) return NextResponse.json({ success: true, data: [] });
+        if (!po) {
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "Purchase Order tidak ditemukan", data: [] }, { status: 404 });
+        }
 
         const styleId = po.style ? toNumber(String(po.style)) : null;
         const [model, gudang, customer, pic, mesin, batch, style] = await Promise.all([
