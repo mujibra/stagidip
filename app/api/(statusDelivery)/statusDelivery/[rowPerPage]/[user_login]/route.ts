@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
+import { hasValidationErrors, validatePositiveId } from "@/lib/http/validation";
 
 export const runtime = "nodejs";
 
@@ -81,11 +82,21 @@ async function enrichStatusDeliveries(records: Array<Record<string, unknown>>) {
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage: string; user_login: string }> }) {
     try {
-        const rowPerPage = Number((await ctx.params).rowPerPage);
+        const params = await ctx.params;
+        const paramErrors = {
+            ...validatePositiveId(params.rowPerPage, "rowPerPage", "Row per page wajib diisi"),
+            ...validatePositiveId(params.user_login, "user_login", "User login tidak valid"),
+        };
+
+        if (hasValidationErrors(paramErrors)) {
+            return validationError(paramErrors);
+        }
+
+        const rowPerPage = Number(params.rowPerPage);
         const searchTermRaw = req.nextUrl.searchParams.get("dataSearch");
         const searchTerm = searchTermRaw ? formatDateSearch(searchTermRaw) : null;
 
-        const user = await prisma.users.findUnique({ where: { id: BigInt((await ctx.params).user_login) } });
+        const user = await prisma.users.findUnique({ where: { id: BigInt(params.user_login) } });
         const isGuest = user?.roles === "GUEST_BANK";
 
         let allowedPoIds: number[] | null = null;
