@@ -35,7 +35,7 @@ export async function GET() {
 
         const data = masterPos.map((po) => ({
             ...po,
-            customer: po.id_customer ? customerMap.get(po.id_customer) ?? null : null,
+            customer: po.id_customer ? (customerMap.get(po.id_customer) ?? null) : null,
         }));
 
         return NextResponse.json({
