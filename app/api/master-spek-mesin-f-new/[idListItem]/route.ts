@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 type UpdateSpekMesinDTO = {
@@ -12,7 +15,11 @@ type UpdateSpekMesinDTO = {
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ idListItem: string }> }) {
     try {
-        const id = Number((await params).idListItem);
+        const { idListItem } = await params;
+        const idErrors = validateMasterIdParam(idListItem);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
+        const id = toNumber(idListItem)!;
         const body = await parseBody<UpdateSpekMesinDTO>(req);
 
         if (!body.item_code && !body.description) {
@@ -21,13 +28,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ idLi
             });
         }
 
-        const exists = await prisma.mst_spesifikasi_mesin_fnew.findUnique({
-            where: { id },
-        });
-
-        if (!exists) {
-            return NextResponse.json({ success: false, message: "Data not found" }, { status: 404 });
-        }
+        const exists = await prisma.mst_spesifikasi_mesin_fnew.findUnique({ where: { id } });
+        if (!exists) return notFoundError("Data not found");
 
         const updated = await prisma.mst_spesifikasi_mesin_fnew.update({
             where: { id },
@@ -46,8 +48,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ idLi
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ idListItem: string }> }) {
     try {
-        const idListItem = Number((await params).idListItem);
+        const { idListItem } = await params;
+        const idErrors = validateMasterIdParam(idListItem);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
+        const idListItemNum = toNumber(idListItem)!;
         const rows = await prisma.transaksi_spesifikasi_mesin_dtl_new.findMany({
             select: { fill_description: true },
         });
@@ -66,22 +71,16 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ idListI
             }
         }
 
-        if (usedIds.has(idListItem)) {
-            const item = await prisma.mst_spesifikasi_mesin_fnew.findUnique({
-                where: { id: idListItem },
-            });
+        if (usedIds.has(idListItemNum)) {
+            const item = await prisma.mst_spesifikasi_mesin_fnew.findUnique({ where: { id: idListItemNum } });
 
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: `Remove Item List [${item?.item_code} - ${item?.description}] was Error, Because is using in the Specification Transactions !!`,
-                },
-                { status: 400 }
+            return badRequestError(
+                `Remove Item List [${item?.item_code} - ${item?.description}] was Error, Because is using in the Specification Transactions !!`
             );
         }
 
         const deleted = await prisma.mst_spesifikasi_mesin_fnew.delete({
-            where: { id: idListItem },
+            where: { id: idListItemNum },
         });
 
         return NextResponse.json({

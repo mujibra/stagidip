@@ -1,52 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, toNumber } from "@/lib/http/validation";
 import { toJsonSafe } from "@/lib/serialize";
+import { parseSnMesinItems, validateIdPoParam } from "@/lib/http/purchaseOrderRuntimeValidation";
 
 export const runtime = "nodejs";
-
-type SnMesinItem = {
-    idMesin: number;
-    snMesin: string;
-};
-
-function parseSnMesins(raw: string | null): SnMesinItem[] | null {
-    if (!raw) return null;
-
-    try {
-        const parsed: unknown = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return null;
-
-        const cleaned: SnMesinItem[] = [];
-        for (const item of parsed) {
-            if (typeof item !== "object" || item === null) continue;
-
-            const idMesinRaw = (item as Record<string, unknown>)["idMesin"];
-            const snMesinRaw = (item as Record<string, unknown>)["snMesin"];
-
-            const idMesin = Number(idMesinRaw);
-            const snMesin = typeof snMesinRaw === "string" ? snMesinRaw : "";
-
-            if (Number.isFinite(idMesin) && idMesin > 0 && snMesin) {
-                cleaned.push({ idMesin, snMesin });
-            }
-        }
-
-        return cleaned.length ? cleaned : null;
-    } catch {
-        return null;
-    }
-}
 
 async function cancelPO(idPo: number) {
     const selectPo = await prisma.tbl_po.findUnique({ where: { id: idPo } });
 
     if (!selectPo) {
-        return NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 });
+        return NextResponse.json({ success: false, type: "NOT_FOUND", message: "Data tidak ditemukan" }, { status: 404 });
     }
 
-    // mirror Laravel: always set Cancel + deleted_at
     const now = new Date();
     await prisma.tbl_po.update({
         where: { id: idPo },
@@ -56,22 +24,15 @@ async function cancelPO(idPo: number) {
         },
     });
 
-    // Laravel behavior:
-    // $data_sn = json_decode(sn_mesins) if exists
-    const dataSn = parseSnMesins(selectPo.sn_mesins ?? null);
+    const dataSn = parseSnMesinItems(selectPo.sn_mesins ?? null);
 
-    // If this PO was created from dummy + has sn_mesins,
-    // then release STATUS_MESIN in dummy staging table + remove history rows.
     if (selectPo.copy_from_id_po && dataSn) {
         const fromIdPo = Number(selectPo.copy_from_id_po);
 
         if (Number.isFinite(fromIdPo) && fromIdPo > 0) {
             for (const item of dataSn) {
-                // UPDATE crt_{fromIdPo} SET STATUS_MESIN = NULL WHERE id = {idMesin}
-                await prisma.$executeRawUnsafe(`UPDATE crt_${fromIdPo} SET STATUS_MESIN = NULL WHERE id = ${item.idMesin}`);
+                await prisma.$executeRawUnsafe(`UPDATE crt_${fromIdPo} SET STATUS_MESIN = NULL WHERE id = ?`, item.idMesin);
 
-                // PurchaseOrderHistoryCopyFromDummy::where(...)->delete();
-                // Prisma model: tbl_po_history_dummy_to_valid
                 await prisma.tbl_po_history_dummy_to_valid.deleteMany({
                     where: {
                         from_id_po: fromIdPo,
@@ -84,7 +45,6 @@ async function cancelPO(idPo: number) {
         }
     }
 
-    // drop table crt_{idPo}
     try {
         await prisma.$executeRawUnsafe(`DROP TABLE crt_${idPo}`);
     } catch {
@@ -93,7 +53,7 @@ async function cancelPO(idPo: number) {
                 success: false,
                 message: `PO ${selectPo.no_po ?? ""} gagal di cancel`,
             },
-            { status: 400 },
+            { status: 400 }
         );
     }
 
@@ -103,19 +63,25 @@ async function cancelPO(idPo: number) {
             message: `PO ${selectPo.no_po ?? ""} berhasil di cancel`,
             data: toJsonSafe(selectPo),
         },
-        { status: 200 },
+        { status: 200 }
     );
 }
 
-// Support both POST and PUT so frontend can call either without drama.
 export async function POST(_req: NextRequest, ctx: { params: Promise<{ idPo: string }> }) {
     try {
-        const idPo = Number((await ctx.params).idPo);
-        if (!Number.isFinite(idPo) || idPo <= 0) {
-            return NextResponse.json({ success: false, message: "idPo tidak valid" }, { status: 400 });
+        const params = await ctx.params;
+        const errors = validateIdPoParam(params.idPo);
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
         }
+
+        const idPo = toNumber(params.idPo)!;
         return await cancelPO(idPo);
     } catch (error) {
+        if (isPrismaNotFoundError(error)) {
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "Data tidak ditemukan" }, { status: 404 });
+        }
         return serverError(error);
     }
 }

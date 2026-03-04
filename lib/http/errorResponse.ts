@@ -11,6 +11,30 @@ export function validationError(errors: Record<string, string[]>) {
     );
 }
 
+export function badRequestError(message: string, extra?: Record<string, unknown>) {
+    return NextResponse.json(
+        {
+            success: false,
+            type: "BAD_REQUEST",
+            message,
+            ...(extra ?? {}),
+        },
+        { status: 400 }
+    );
+}
+
+export function notFoundError(message: string, extra?: Record<string, unknown>) {
+    return NextResponse.json(
+        {
+            success: false,
+            type: "NOT_FOUND",
+            message,
+            ...(extra ?? {}),
+        },
+        { status: 404 }
+    );
+}
+
 export function serverError(error: unknown) {
     return NextResponse.json(
         {

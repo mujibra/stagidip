@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { hasValidationErrors, mergeValidationBags, ValidationBag } from "@/lib/http/validation";
+import {
+    parseNullableDateRangeParam,
+    parseNullableParam,
+    parseNullablePositiveIntParam,
+} from "@/lib/http/filterParamValidation";
 
 export const runtime = "nodejs";
 
@@ -16,22 +22,27 @@ function parseSnMesins(value: string | null): string[] {
     }
 }
 
-function parseDateRange(dateValue: string) {
-    const parsed = new Date(dateValue);
-    if (Number.isNaN(parsed.getTime())) return null;
-    const start = new Date(parsed);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return { start, end };
-}
-
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPo: string; snMesin: string; from_warehouse: string; tgl_keluar: string }> }) {
     try {
-        const idPo = (await ctx.params).idPo !== "null" ? Number((await ctx.params).idPo) : null;
-        const snMesin = (await ctx.params).snMesin !== "null" ? (await ctx.params).snMesin : null;
-        const fromWarehouse = (await ctx.params).from_warehouse !== "null" ? Number((await ctx.params).from_warehouse) : null;
-        const tglKeluarValue = (await ctx.params).tgl_keluar !== "null" ? (await ctx.params).tgl_keluar : null;
+        const params = await ctx.params;
+
+        const idPoParsed = parseNullablePositiveIntParam(params.idPo, "idPo");
+        const fromWarehouseParsed = parseNullablePositiveIntParam(params.from_warehouse, "from_warehouse");
+        const tglKeluarParsed = parseNullableDateRangeParam(params.tgl_keluar, "tgl_keluar");
+
+        const errors: ValidationBag = mergeValidationBags(
+            idPoParsed.errors,
+            fromWarehouseParsed.errors,
+            tglKeluarParsed.errors
+        );
+
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
+        }
+
+        const idPo = idPoParsed.value;
+        const snMesin = parseNullableParam(params.snMesin);
+        const fromWarehouse = fromWarehouseParsed.value;
 
         const where: Record<string, unknown> = {};
 
@@ -44,11 +55,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPo: stri
         if (fromWarehouse) {
             where.from_warehouse = fromWarehouse;
         }
-        if (tglKeluarValue) {
-            const range = parseDateRange(tglKeluarValue);
-            if (range) {
-                where.tgl_keluar = { gte: range.start, lt: range.end };
-            }
+        if (tglKeluarParsed.range) {
+            where.tgl_keluar = { gte: tglKeluarParsed.range.start, lt: tglKeluarParsed.range.end };
         }
 
         const transfers = await prisma.warehouse_transfer.findMany({
