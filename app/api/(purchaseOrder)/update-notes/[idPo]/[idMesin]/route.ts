@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { normalizeNoteDescription, validatePoMesinParams } from "@/lib/http/purchaseOrderRuntimeValidation";
 
 export const runtime = "nodejs";
 
@@ -10,27 +12,22 @@ type UpdateNotesBody = {
     note_description?: string;
 };
 
-function toNumber(value: string): number | null {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-}
-
 export async function PUT(
     req: NextRequest,
     context: { params: Promise<{ idPo: string; idMesin: string }> }
 ) {
     try {
-        const idPo = toNumber((await context.params).idPo);
-        const idMesin = toNumber((await context.params).idMesin);
-        const body = await parseBody<UpdateNotesBody>(req);
-        const note = body.note_description ?? "";
+        const params = await context.params;
+        const errors = validatePoMesinParams(params.idPo, params.idMesin);
 
-        if (!idPo || !idMesin) {
-            return NextResponse.json(
-                { success: false, message: "Notes  machine SN is failed." },
-                { status: 400 }
-            );
+        if (hasValidationErrors(errors)) {
+            return validationError(errors);
         }
+
+        const idPo = toNumber(params.idPo)!;
+        const idMesin = toNumber(params.idMesin)!;
+        const body = await parseBody<UpdateNotesBody>(req);
+        const note = normalizeNoteDescription(body.note_description);
 
         const sql = `update crt_${idPo} set NOTES = ? where id = ?`;
         await prisma.$executeRawUnsafe(sql, note, idMesin);

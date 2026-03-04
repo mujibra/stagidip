@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, toNumber } from "@/lib/http/validation";
 import { serializeId } from "@/lib/serialize";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 // PUT /api/master-spesifikasi-mesin/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await params).id);
-        const body = await parseBody<{
-            item: string;
-            description?: string;
-        }>(req);
+        const { id } = await params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        if (!body.item) {
-            return NextResponse.json({ item: ["Item tidak boleh kosong"] }, { status: 400 });
-        }
+        const body = await parseBody<{ item?: string; description?: string }>(req);
+        const bodyErrors = validateRequiredName(body.item, "item", "Item tidak boleh kosong");
+        if (hasValidationErrors(bodyErrors)) return validationError(bodyErrors);
 
         const updated = await prisma.mst_spesifikasi_mesin.update({
-            where: { id },
+            where: { id: toNumber(id)! },
             data: {
-                item: body.item,
-                description: body.description,
+                item: body.item!.trim(),
+                description: body.description ?? null,
             },
         });
 
@@ -31,23 +33,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: serializeId(updated),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : String(error),
-            },
-            { status: 400 }
-        );
+        if (isPrismaNotFoundError(error)) return notFoundError("Data Spesifikasi Mesin tidak ditemukan");
+        return serverError(error);
     }
 }
 
 // DELETE /api/master-spesifikasi-mesin/:id
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await params).id);
+        const { id } = await params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
         const deleted = await prisma.mst_spesifikasi_mesin.delete({
-            where: { id },
+            where: { id: toNumber(id)! },
         });
 
         return NextResponse.json({
@@ -56,12 +55,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
             data: serializeId(deleted),
         });
     } catch (error) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : String(error),
-            },
-            { status: 400 }
-        );
+        if (isPrismaNotFoundError(error)) return notFoundError("Data Spesifikasi Mesin tidak ditemukan");
+        return serverError(error);
     }
 }
