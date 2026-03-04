@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, toNumber } from "@/lib/http/validation";
 import { serializeId } from "@/lib/serialize";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 type UpdateCustomerDTO = {
@@ -12,12 +15,12 @@ type UpdateCustomerDTO = {
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const customer = await prisma.mst_customer.findUnique({ where: { id } });
-        if (!customer) {
-            return NextResponse.json({ success: false, message: "Customer not found", data: [] }, { status: 404 });
-        }
+        const customer = await prisma.mst_customer.findUnique({ where: { id: toNumber(id)! } });
+        if (!customer) return notFoundError("Customer not found", { data: [] });
 
         return NextResponse.json({
             success: true,
@@ -25,24 +28,26 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
             data: serializeId(customer),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Customer not found", { data: [] });
         return serverError(error);
     }
 }
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
         const body = await parseBody<UpdateCustomerDTO>(req);
 
-        const errors: Record<string, string[]> = {};
-        if (!body.bank_desc) errors.bank_desc = ["Nama Customer tidak boleh kosong"];
-
-        if (Object.keys(errors).length) return validationError(errors);
+        const errors = validateRequiredName(body.bank_desc, "bank_desc", "Nama Customer tidak boleh kosong");
+        if (hasValidationErrors(errors)) return validationError(errors);
 
         const updated = await prisma.mst_customer.update({
-            where: { id },
+            where: { id: toNumber(id)! },
             data: {
-                bank_desc: body.bank_desc!,
+                bank_desc: body.bank_desc!.trim(),
                 address: body.address ?? null,
             },
         });
@@ -53,26 +58,18 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
             data: serializeId(updated),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Customer not found", { data: [] });
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number((await ctx.params).id);
+        const { id } = await ctx.params;
+        const idErrors = validateMasterIdParam(id);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const existing = await prisma.mst_customer.findUnique({
-            where: { id },
-            select: { id: true, bank_desc: true },
-        });
-
-        if (!existing) {
-            return NextResponse.json({ success: false, message: "Customer not found", data: [] }, { status: 404 });
-        }
-
-        // Keep existing behavior: direct delete.
-        // If you want Laravel-style "block delete if referenced" behavior, we can add it in the next phase.
-        const deleted = await prisma.mst_customer.delete({ where: { id } });
+        const deleted = await prisma.mst_customer.delete({ where: { id: toNumber(id)! } });
 
         return NextResponse.json({
             success: true,
@@ -80,6 +77,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
             data: serializeId(deleted),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Customer not found", { data: [] });
         return serverError(error);
     }
 }

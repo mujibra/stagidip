@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 type CreateBacthDTO = { name?: string };
@@ -25,23 +28,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateBacthDTO>(req);
-        const name = (body.name ?? "").trim();
+        const nameErrors = validateRequiredName(body.name, "name", "Batch tidak boleh kosong");
+        if (hasValidationErrors(nameErrors)) return validationError(nameErrors);
 
-        if (!name) {
-            return validationError({ name: ["Batch tidak boleh kosong"] });
-        }
-
+        const name = body.name!.trim();
         const exists = await prisma.bacth_po.findFirst({ where: { name } });
-        if (exists) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Nama Batch sudah ada, harap masukkan Nama Batch lain",
-                    data: "",
-                },
-                { status: 400 }
-            );
-        }
+        if (exists) return badRequestError("Nama Batch sudah ada, harap masukkan Nama Batch lain", { data: "" });
 
         const created = await prisma.bacth_po.create({ data: { name } });
 
