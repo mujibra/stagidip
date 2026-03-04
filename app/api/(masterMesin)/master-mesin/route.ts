@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/app/generated/prisma";
+
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { validateRequiredName } from "@/lib/http/masterDataValidation";
+
 export const runtime = "nodejs";
 
 type CreateMesinDTO = {
     merek?: string;
     model?: number;
     type?: string;
-    [key: string]: unknown;
 };
 
 export async function GET() {
@@ -27,38 +31,35 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateMesinDTO>(req);
-        const merek = (body.merek ?? "").trim();
-        const model = body.model;
-        const type = (body.type ?? "").trim();
 
-        const errors: Record<string, string[]> = {};
-        if (!merek) errors.merek = ["Merek tidak boleh kosong !"];
-        if (!model) errors.model = ["Model tidak boleh kosong !"];
-        if (!type) errors.type = ["Type tidak boleh kosong"];
-        if (Object.keys(errors).length) return validationError(errors);
+        const errors = mergeValidationBags(
+            validateRequiredName(body.merek, "merek", "Merek tidak boleh kosong !"),
+            validatePositiveId(body.model, "model", "Model tidak boleh kosong !"),
+            validateRequiredName(body.type, "type", "Type tidak boleh kosong")
+        );
+        if (hasValidationErrors(errors)) return validationError(errors);
 
+        const type = body.type!.trim();
         const data = {
-            merek,
-            model: Number(model),
+            merek: body.merek!.trim(),
+            model: toNumber(body.model)!,
             type,
-            status: "NEW_MODEL",
+            status: "NEW_MODEL" as const,
         };
 
-        try {
-            const mesin = await prisma.mst_mesin.create({ data });
-            return NextResponse.json({
-                success: true,
-                message: "Mesin created successfully.",
-                data: { ...mesin, id: String(mesin.id) },
-            });
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : "Terjadi kesalahan pada database";
-            if (msg.includes("Unique constraint failed")) {
-                return NextResponse.json({ success: false, message: `Model Mesin ${type} sudah ada, Harap Isi Nama Model dengan nama lain` }, { status: 400 });
-            }
-            return NextResponse.json({ success: false, message: msg }, { status: 400 });
-        }
+        const mesin = await prisma.mst_mesin.create({ data });
+        return NextResponse.json({
+            success: true,
+            message: "Mesin created successfully.",
+            data: { ...mesin, id: String(mesin.id) },
+        });
     } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return badRequestError("Model Mesin sudah ada, Harap Isi Nama Model dengan nama lain");
+        }
+        if (error instanceof Error && error.message.includes("Unique constraint failed")) {
+            return badRequestError("Model Mesin sudah ada, Harap Isi Nama Model dengan nama lain");
+        }
         return serverError(error);
     }
 }

@@ -57,6 +57,8 @@ const checks = [
       "app/api/(masterMesin)/master-mesin/model/[modelId]/route.ts",
       "app/api/(masterMesin)/master-mesin/[id]/edit/route.ts",
       "app/api/(masterMesin)/master-mesin/[id]/update/route.ts",
+      "app/api/(masterMesin)/master-mesin/route.ts",
+      "app/api/(masterMesin)/master-mesin/[id]/route.ts",
       "app/api/master-type-spek-mesin/[idType]/route.ts",
       "app/api/master-parent-type-spek-mesin/[idParent]/route.ts",
       "app/api/master-spek-mesin-f-new/route.ts",

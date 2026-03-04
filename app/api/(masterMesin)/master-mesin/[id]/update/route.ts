@@ -3,8 +3,8 @@ import { Prisma } from "@/app/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { badRequestError, validationError, serverError } from "@/lib/http/errorResponse";
-import { hasValidationErrors, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { badRequestError, notFoundError, validationError, serverError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
 import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
         const model = toNumber(body.model)!;
         const type = String(body.type).trim();
 
-        const rest = { ...body };
+        const rest = { ...body } as Record<string, unknown>;
         delete rest.merek;
         delete rest.model;
         delete rest.type;
@@ -59,6 +59,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
         if (error instanceof Error && error.message.includes("Unique constraint failed")) {
             return badRequestError("Model Mesin sudah ada, Harap Isi Nama Model dengan nama lain");
         }
+        if (isPrismaNotFoundError(error)) return notFoundError("Data tidak ditemukan");
         return serverError(error);
     }
 }
