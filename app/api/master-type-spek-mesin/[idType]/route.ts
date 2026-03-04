@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 type UpdateTypeSpekMesinDTO = {
@@ -13,25 +16,22 @@ type UpdateTypeSpekMesinDTO = {
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ idType: string }> }) {
     try {
-        const idType = Number((await params).idType);
+        const { idType } = await params;
+        const idErrors = validateMasterIdParam(idType);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
         const body = await parseBody<UpdateTypeSpekMesinDTO>(req);
+        const idTypeNum = toNumber(idType)!;
 
-        const exists = await prisma.mst_type_spesifikasi_msn.findUnique({
-            where: { id: idType },
-        });
-
-        if (!exists) {
-            return NextResponse.json({ success: false, message: "Data not found" }, { status: 404 });
-        }
+        const exists = await prisma.mst_type_spesifikasi_msn.findUnique({ where: { id: idTypeNum } });
+        if (!exists) return notFoundError("Data not found");
 
         await prisma.mst_type_spesifikasi_msn.update({
-            where: { id: idType },
+            where: { id: idTypeNum },
             data: body,
         });
 
-        const updated = await prisma.mst_type_spesifikasi_msn.findUnique({
-            where: { id: idType },
-        });
+        const updated = await prisma.mst_type_spesifikasi_msn.findUnique({ where: { id: idTypeNum } });
 
         return NextResponse.json({
             success: true,
@@ -45,33 +45,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ idTy
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ idType: string }> }) {
     try {
-        const idType = Number((await params).idType);
+        const { idType } = await params;
+        const idErrors = validateMasterIdParam(idType);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const data = await prisma.mst_type_spesifikasi_msn.findUnique({
-            where: { id: idType },
-        });
+        const idTypeNum = toNumber(idType)!;
+        const data = await prisma.mst_type_spesifikasi_msn.findUnique({ where: { id: idTypeNum } });
+        if (!data) return notFoundError("Data not found");
 
-        if (!data) {
-            return NextResponse.json({ success: false, message: "Data not found" }, { status: 404 });
-        }
-
-        const used = await prisma.mst_spesifikasi_mesin_fnew.findFirst({
-            where: { item_code: data.val },
-        });
-
+        const used = await prisma.mst_spesifikasi_mesin_fnew.findFirst({ where: { item_code: data.val } });
         if (used) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: `Gagal Menghapus ${data.val} - ${data.label}, Silahkan pilih Action Detail , Kemudian Hapus Semua Detail List nya`,
-                },
-                { status: 400 }
+            return badRequestError(
+                `Gagal Menghapus ${data.val} - ${data.label}, Silahkan pilih Action Detail , Kemudian Hapus Semua Detail List nya`
             );
         }
 
-        await prisma.mst_type_spesifikasi_msn.delete({
-            where: { id: idType },
-        });
+        await prisma.mst_type_spesifikasi_msn.delete({ where: { id: idTypeNum } });
 
         return NextResponse.json({
             success: true,

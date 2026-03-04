@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/app/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, isPrismaNotFoundError, toDate, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam, validateRequiredName } from "@/lib/http/masterDataValidation";
 import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
@@ -14,42 +17,23 @@ type MasterPoBody = {
     status_po?: string;
 };
 
-function toDate(value: unknown): Date | null {
-    if (!value) return null;
-    const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function parseCustomerIds(values: Array<string | null | undefined>): number[] {
-    return Array.from(
-        new Set(
-            values
-                .map((id) => Number(id))
-                .filter((id): id is number => Number.isInteger(id) && id > 0),
-        ),
-    );
+    return Array.from(new Set(values.map((id) => toNumber(id)).filter((id): id is number => Number.isInteger(id) && id > 0)));
 }
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number((await ctx.params).idPoMaster);
+        const { idPoMaster } = await ctx.params;
+        const idErrors = validateMasterIdParam(idPoMaster);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const masterPos = await prisma.mst_po.findMany({
-            where: { id: idPoMaster, deleted_at: null },
-        });
+        const idPoMasterNum = toNumber(idPoMaster)!;
+        const masterPos = await prisma.mst_po.findMany({ where: { id: idPoMasterNum, deleted_at: null } });
 
-        if (!masterPos.length) {
-            return NextResponse.json({
-                success: false,
-                message: "Data tidak ditemukan",
-                data: [],
-            });
-        }
+        if (!masterPos.length) return notFoundError("Data tidak ditemukan", { data: [] });
 
         const customerIds = parseCustomerIds(masterPos.map((po) => po.id_customer));
-        const customers = customerIds.length
-            ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds } } })
-            : [];
+        const customers = customerIds.length ? await prisma.mst_customer.findMany({ where: { id: { in: customerIds } } }) : [];
         const customerMap = new Map(customers.map((c) => [String(c.id), c]));
 
         const data = masterPos.map((po) => ({
@@ -69,98 +53,82 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number((await ctx.params).idPoMaster);
+        const { idPoMaster } = await ctx.params;
+        const idErrors = validateMasterIdParam(idPoMaster);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
+        const idPoMasterNum = toNumber(idPoMaster)!;
         const body = await parseBody<MasterPoBody>(req);
 
-        const no_po_master = (body.no_po_master ?? "").trim();
-        const id_customer = (body.id_customer ?? "").trim();
+        const errors = {
+            ...validateRequiredName(body.no_po_master, "no_po_master", "Nomor PO tidak boleh kosong"),
+            ...validateRequiredName(body.id_customer, "id_customer", "Customer wajib dipilih"),
+        };
+        if (hasValidationErrors(errors)) return validationError(errors);
 
-        if (!no_po_master || !id_customer) {
-            return validationError({
-                no_po_master: !no_po_master ? ["Nomor PO tidak boleh kosong"] : [],
-                id_customer: !id_customer ? ["Customer wajib dipilih"] : [],
-            });
-        }
+        const no_po_master = body.no_po_master!.trim();
+        const id_customer = body.id_customer!.trim();
 
-        const masterPo = await prisma.mst_po.findUnique({ where: { id: idPoMaster } });
-        if (!masterPo) {
-            return NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 });
-        }
+        const masterPo = await prisma.mst_po.findUnique({ where: { id: idPoMasterNum } });
+        if (!masterPo) return notFoundError("Data tidak ditemukan");
 
         const hasTransactions = await prisma.tbl_po.findFirst({
-            where: { id_po_master: idPoMaster },
+            where: { id_po_master: idPoMasterNum },
             select: { id: true },
         });
 
         if (hasTransactions && masterPo.no_po_master !== no_po_master) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: `PO ${masterPo.no_po_master} Gagal di Edit, karena sudah terpakai di Transaksi Staging Registration`,
-                },
-                { status: 400 }
+            return badRequestError(
+                `PO ${masterPo.no_po_master} Gagal di Edit, karena sudah terpakai di Transaksi Staging Registration`
             );
         }
 
-        try {
-            const tglPo = toDate(body.tgl_po);
+        const tglPo = toDate(body.tgl_po);
+        const updated = await prisma.mst_po.update({
+            where: { id: idPoMasterNum },
+            data: {
+                no_po_master,
+                id_customer,
+                status_po: body.status_po ?? null,
+                tgl_po: tglPo ?? undefined,
+            },
+        });
 
-            await prisma.mst_po.update({
-                where: { id: idPoMaster },
-                data: {
-                    no_po_master,
-                    id_customer,
-                    status_po: body.status_po ?? null,
-                    tgl_po: tglPo ?? undefined,
-                },
-            });
-
-            return NextResponse.json({
-                success: true,
-                message: "PO Master was Updated.",
-                data: toJsonSafe(masterPo),
-            });
-        } catch (err) {
-            const message = err instanceof Error ? err.message : "Unknown error";
-            if (message.includes("Unique constraint failed") || message.includes("P2002")) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        message: "No PO Sudah ada, harap mengisi dengan No PO yang lain",
-                    },
-                    { status: 400 }
-                );
-            }
-
-            return NextResponse.json({ success: false, data: err }, { status: 400 });
-        }
+        return NextResponse.json({
+            success: true,
+            message: "PO Master was Updated.",
+            data: toJsonSafe(updated),
+        });
     } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return badRequestError("No PO Sudah ada, harap mengisi dengan No PO yang lain");
+        }
+        if (isPrismaNotFoundError(error)) return notFoundError("Data tidak ditemukan");
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {
     try {
-        const idPoMaster = Number((await ctx.params).idPoMaster);
+        const { idPoMaster } = await ctx.params;
+        const idErrors = validateMasterIdParam(idPoMaster);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
+        const idPoMasterNum = toNumber(idPoMaster)!;
         const hasTransactions = await prisma.tbl_po.findFirst({
-            where: { id_po_master: idPoMaster },
+            where: { id_po_master: idPoMasterNum },
             select: { id: true },
         });
 
         if (hasTransactions) {
-            const masterPo = await prisma.mst_po.findUnique({ where: { id: idPoMaster } });
-            return NextResponse.json(
-                {
-                    success: true,
-                    message: `PO ${masterPo?.no_po_master ?? ""} Gagal di hapus, karena sudah terpakai di Transaksi PO Registration`,
-                },
-                { status: 400 }
+            const masterPo = await prisma.mst_po.findUnique({ where: { id: idPoMasterNum } });
+            return badRequestError(
+                `PO ${masterPo?.no_po_master ?? ""} Gagal di hapus, karena sudah terpakai di Transaksi PO Registration`
             );
         }
 
         const deleted = await prisma.mst_po.update({
-            where: { id: idPoMaster },
+            where: { id: idPoMasterNum },
             data: { deleted_at: new Date() },
         });
 
@@ -170,6 +138,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ idPoMas
             data: toJsonSafe(deleted),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) return notFoundError("Data tidak ditemukan");
         return serverError(error);
     }
 }

@@ -5,39 +5,29 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { isPrismaNotFoundError } from "@/lib/http/validation";
+import {
+    hasAnyErrors,
+    toBigIntId,
+    toNullableInt,
+    UpdateUserBody,
+    validateUpdateUserPayload,
+    validateUserRouteParams,
+} from "@/lib/http/userValidation";
 
 export const runtime = "nodejs";
 
-type UpdateUserBody = {
-    name?: string;
-    email?: string;
-    password?: string;
-    roles?: string;
-    id_customer?: number | string | null;
-    id_gudang?: number | string | null;
-    status?: number | string | null;
-};
-
-function toBigInt(value: string): bigint | null {
-    if (!value) return null;
-    const num = Number(value);
-    return Number.isFinite(num) ? BigInt(num) : null;
-}
-
-function toInt(value: unknown): number | null {
-    if (value === null || value === undefined || value === "") return null;
-    const num = Number(value);
-    return Number.isFinite(num) ? num : null;
-}
-
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string; user_login: string }> }) {
     try {
-        const id = toBigInt((await ctx.params).id);
-        const userLoginId = toBigInt((await ctx.params).user_login);
+        const params = await ctx.params;
+        const paramErrors = validateUserRouteParams(params.id, params.user_login);
 
-        if (!id || !userLoginId) {
-            return validationError({ id: ["Invalid user id"] });
+        if (hasAnyErrors(paramErrors)) {
+            return validationError(paramErrors);
         }
+
+        const id = toBigIntId(params.id)!;
+        const userLoginId = toBigIntId(params.user_login)!;
 
         const [loginUser, targetUser] = await Promise.all([
             prisma.users.findUnique({ where: { id: userLoginId }, select: { roles: true } }),
@@ -45,26 +35,22 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string;
         ]);
 
         if (!targetUser) {
-            return NextResponse.json({ success: false, message: "User tidak ditemukan" }, { status: 404 });
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "User tidak ditemukan" }, { status: 404 });
         }
 
         const body = await parseBody<UpdateUserBody>(req);
-
-        if (!body.roles) {
-            return validationError({ roles: ["Roles wajib dipilih"] });
+        const payloadErrors = validateUpdateUserPayload(body);
+        if (hasAnyErrors(payloadErrors)) {
+            return validationError(payloadErrors);
         }
 
-        const status = body.status !== undefined ? toInt(body.status) : null;
+        const status = body.status !== undefined ? toNullableInt(body.status) : null;
         const cannotInactive = loginUser?.roles === "ADMIN" && status === 0 && targetUser.roles === "SUPER_ADMIN";
 
         if (cannotInactive) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Role Admin tidak Bisa melakukan Inactive Role Super Admin.",
-                },
-                { status: 400 }
-            );
+            return validationError({
+                roles: ["Role Admin tidak Bisa melakukan Inactive Role Super Admin."],
+            });
         }
 
         const updateData: Record<string, unknown> = {
@@ -72,8 +58,8 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string;
             email: body.email,
             roles: body.roles,
             status,
-            id_customer: toInt(body.id_customer),
-            id_gudang: toInt(body.id_gudang),
+            id_customer: toNullableInt(body.id_customer),
+            id_gudang: toNullableInt(body.id_gudang),
         };
 
         if (body.password) {
@@ -82,7 +68,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string;
 
         Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
 
-        await prisma.users.update({
+        const updated = await prisma.users.update({
             where: { id },
             data: updateData,
         });
@@ -90,21 +76,27 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string;
         return NextResponse.json({
             success: true,
             message: `Data User ${targetUser.name} berhasil diupdate`,
-            data: toJsonSafe(targetUser),
+            data: toJsonSafe(updated),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) {
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "User tidak ditemukan" }, { status: 404 });
+        }
         return serverError(error);
     }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string; user_login: string }> }) {
     try {
-        const id = toBigInt((await ctx.params).id);
-        const userLoginId = toBigInt((await ctx.params).user_login);
+        const params = await ctx.params;
+        const paramErrors = validateUserRouteParams(params.id, params.user_login);
 
-        if (!id || !userLoginId) {
-            return validationError({ id: ["Invalid user id"] });
+        if (hasAnyErrors(paramErrors)) {
+            return validationError(paramErrors);
         }
+
+        const id = toBigIntId(params.id)!;
+        const userLoginId = toBigIntId(params.user_login)!;
 
         const [loginUser, targetUser] = await Promise.all([
             prisma.users.findUnique({ where: { id: userLoginId }, select: { roles: true } }),
@@ -112,18 +104,14 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
         ]);
 
         if (!targetUser) {
-            return NextResponse.json({ success: false, message: "User tidak ditemukan" }, { status: 404 });
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "User tidak ditemukan" }, { status: 404 });
         }
 
         const cannotDelete = loginUser?.roles === "ADMIN" && targetUser.roles === "SUPER_ADMIN";
         if (cannotDelete) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Role Admin tidak Bisa Menghapus Role Super Admin.",
-                },
-                { status: 400 }
-            );
+            return validationError({
+                roles: ["Role Admin tidak Bisa Menghapus Role Super Admin."],
+            });
         }
 
         const deleted = await prisma.users.delete({ where: { id } });
@@ -134,6 +122,9 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
             data: toJsonSafe(deleted),
         });
     } catch (error) {
+        if (isPrismaNotFoundError(error)) {
+            return NextResponse.json({ success: false, type: "NOT_FOUND", message: "User tidak ditemukan" }, { status: 404 });
+        }
         return serverError(error);
     }
 }

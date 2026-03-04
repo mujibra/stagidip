@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { validationError, serverError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { validateMasterIdParam, validateRequiredArray } from "@/lib/http/masterDataValidation";
 import { serializeId } from "@/lib/serialize";
+
 export const runtime = "nodejs";
 
 type UpdateParentTypeDTO = {
@@ -11,25 +14,20 @@ type UpdateParentTypeDTO = {
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number((await params).idParent);
+        const { idParent } = await params;
+        const idErrors = validateMasterIdParam(idParent);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
+
         const body = await parseBody<UpdateParentTypeDTO>(req);
+        const bodyErrors = validateRequiredArray(body.type_atm, "type_atm", "Type ATM wajib diisi");
+        if (hasValidationErrors(bodyErrors)) return validationError(bodyErrors);
 
-        if (!body.type_atm) {
-            return validationError({
-                type_atm: ["Type ATM wajib diisi"],
-            });
-        }
-
-        const exists = await prisma.mst_parent_type_spesifikasi_msn.findUnique({
-            where: { id: idParent },
-        });
-
-        if (!exists) {
-            return NextResponse.json({ success: false, message: "Data not found" }, { status: 404 });
-        }
+        const idParentNum = toNumber(idParent)!;
+        const exists = await prisma.mst_parent_type_spesifikasi_msn.findUnique({ where: { id: idParentNum } });
+        if (!exists) return notFoundError("Data not found");
 
         const updated = await prisma.mst_parent_type_spesifikasi_msn.update({
-            where: { id: idParent },
+            where: { id: idParentNum },
             data: {
                 type_atm: JSON.stringify(body.type_atm),
             },
@@ -47,39 +45,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ idPa
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ idParent: string }> }) {
     try {
-        const idParent = Number((await params).idParent);
+        const { idParent } = await params;
+        const idErrors = validateMasterIdParam(idParent);
+        if (hasValidationErrors(idErrors)) return validationError(idErrors);
 
-        const parent = await prisma.mst_parent_type_spesifikasi_msn.findUnique({
-            where: { id: idParent },
-        });
+        const idParentNum = toNumber(idParent)!;
+        const parent = await prisma.mst_parent_type_spesifikasi_msn.findUnique({ where: { id: idParentNum } });
+        if (!parent) return notFoundError("Remove Item Parent was Error, Data Not Found");
 
-        if (!parent) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Remove Item Parent was Error, Data Not Found",
-                },
-                { status: 400 }
-            );
-        }
-
-        const hasChild = await prisma.mst_type_spesifikasi_msn.findFirst({
-            where: { id_parent: idParent },
-        });
-
+        const hasChild = await prisma.mst_type_spesifikasi_msn.findFirst({ where: { id_parent: idParentNum } });
         if (hasChild) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: `Gagal Menghapus ${parent.parent}, Silahkan untuk Pilih Action 'Edit Data' -> Kemudian Hapus Semua Data Item nya`,
-                },
-                { status: 400 }
+            return badRequestError(
+                `Gagal Menghapus ${parent.parent}, Silahkan untuk Pilih Action 'Edit Data' -> Kemudian Hapus Semua Data Item nya`
             );
         }
 
-        await prisma.mst_parent_type_spesifikasi_msn.delete({
-            where: { id: idParent },
-        });
+        await prisma.mst_parent_type_spesifikasi_msn.delete({ where: { id: idParentNum } });
 
         return NextResponse.json({
             success: true,

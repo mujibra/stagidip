@@ -1,28 +1,24 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverError, validationError } from "@/lib/http/errorResponse";
+import { hasValidationErrors } from "@/lib/http/validation";
 import { toJsonSafe } from "@/lib/serialize";
+import { resolvePicApprovalRole } from "@/lib/http/userQueryValidation";
 
 export const runtime = "nodejs";
 
-const roleByType: Record<string, string> = {
-    DIP: "OPERATOR_DIP",
-    TSS: "OPERATOR_TSS",
-    MOVER: "OPERATOR_MOVER",
-};
-
 export async function GET(_req: Request, ctx: { params: Promise<{ type: string }> }) {
     try {
-        const type = (await ctx.params).type.toUpperCase();
-        const role = roleByType[type];
+        const { type } = await ctx.params;
+        const resolved = resolvePicApprovalRole(type);
 
-        if (!role) {
-            return NextResponse.json({ success: true, totalDatas: 0, data: [] });
+        if (hasValidationErrors(resolved.errors)) {
+            return validationError(resolved.errors);
         }
 
         const users = await prisma.users.findMany({
-            where: { roles: role },
+            where: { roles: resolved.role! },
         });
 
         return NextResponse.json({
