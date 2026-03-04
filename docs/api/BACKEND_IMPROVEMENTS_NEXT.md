@@ -39,11 +39,13 @@ Harden API reliability and contract consistency so migration readiness is backed
 ## Checks to run per backend PR
 
 ```bash
+npm run qa:backend-hardening
 npm run qa:smoke
 npm run docs:infer-examples
 npm run migration:check-routes
 ```
 
 > Notes:
+> - `qa:backend-hardening` is the batch gate for current hardening scope (validation tests + lint + route/dashboard regressions).
 > - `docs:infer-examples` should be reviewed in PR for intentional OpenAPI changes.
 > - `migration:check-routes` remains a regression guard for frontend/backend route expectations.
