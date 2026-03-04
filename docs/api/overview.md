@@ -12,6 +12,8 @@ This API documentation is now aligned with the **actual implemented handlers** i
   - [`docs/api/openapi.yaml`](./openapi.yaml)
 - Postman collection (ready to import):
   - [`docs/api/stagidip.postman_collection.json`](./stagidip.postman_collection.json)
+- Backend improvement backlog (post-frontend parity):
+  - [`docs/api/BACKEND_IMPROVEMENTS_NEXT.md`](./BACKEND_IMPROVEMENTS_NEXT.md)
 
 ## Base URL
 
