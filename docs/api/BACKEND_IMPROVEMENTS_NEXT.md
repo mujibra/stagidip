@@ -40,7 +40,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 
 - P0 — Standardize API error envelopes: **100%**
 - P0 — Enforce request payload validation on mutable endpoints: **100%**
-- P1 — Normalize pagination/filter query contracts: **82%**
+- P1 — Normalize pagination/filter query contracts: **92%**
 - P1 — Add API contract drift gate in CI: **52%**
 - P1 — Expand smoke API coverage for critical flows: **36%**
 - P2 — API observability baseline: **0%**
@@ -48,7 +48,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 
 ## Continuation plan for active P1 items
 
-### P1 — Normalize pagination/filter query contracts (**82%**)
+### P1 — Normalize pagination/filter query contracts (**92%**)
 
 - Completed in this iteration:
   - Implemented working `page/perPage` pagination metadata (`totalPages`, `page`, `perPage`) for `/api/master-spesifikasi-mesin`.
@@ -57,14 +57,16 @@ Harden API reliability and contract consistency so migration readiness is backed
   - Added normalized pagination metadata to `/api/purchaseOrder` list endpoint (`totalPages`, `page`, `perPage`) with DB-level paging (`skip/take`).
   - Added normalized pagination metadata to `/api/warehouse-transfer` list endpoint (`totalPages`, `page`, `perPage`) with DB-level paging (`skip/take`).
   - Added dedicated unit tests for pagination parsing and fallback behavior in `lib/http/pagination.test.ts` and included it in `qa:backend-hardening`.
+  - Added pagination metadata parity for `/api/(user)/master-user` by including `totalPages` in both empty and populated responses.
+  - Added pagination metadata parity for `/api/(picMover)/picMover/[id]` by returning `totalDatas` from full-count and including `totalPages`, `page`, and `perPage`.
 
 - Extract shared defaults and bounds for `page/perPage/search` to a single utility (`lib/http/pagination.ts`) and adopt it first in high-traffic list endpoints:
-  - `/api/(user)/master-user` consistency review (already paginated, validate response parity)
-  - `/api/(picMover)/picMover/[id]` parity alignment
+  - `/api/master-style` list contract review
+  - `/api/pic-mitra` list contract review
 - Add focused tests for edge contracts: negative page, zero perPage, oversized perPage, empty search, and unknown filter fields.
-- Definition of done for next checkpoint (target **90%**):
-  - At least 3 list endpoints switched to the shared utility.
-  - New tests proving identical fallback behavior.
+- Definition of done for next checkpoint (target **100%**):
+  - Close remaining pagination parity across any route with list semantics and missing `totalPages`.
+  - Add one response-shape contract check in smoke/API tests for paginated endpoints.
 
 ### P1 — Add API contract drift gate in CI (**52%**)
 
