@@ -5,6 +5,7 @@ import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { getPagination } from "@/lib/http/pagination";
 import {
     normalizeCopyFromIdPo,
     normalizeSnMesins,
@@ -14,15 +15,26 @@ import {
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const rows = await prisma.tbl_po.findMany({
-            orderBy: { id: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [rows, total] = await Promise.all([
+            prisma.tbl_po.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.tbl_po.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: rows.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: toJsonSafe(rows),
         });
     } catch (error) {
