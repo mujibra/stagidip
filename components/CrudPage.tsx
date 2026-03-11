@@ -314,6 +314,7 @@ export default function CrudPage({
   const [editForm, setEditForm] = useState<CrudRow | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [createErrors, setCreateErrors] = useState<Record<string, string>>({});
+  const [updateErrors, setUpdateErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setForm(buildPayload(fields, {}));
@@ -504,12 +505,26 @@ export default function CrudPage({
       });
       const result: ApiResponse<CrudRow> = await response.json();
       if (!response.ok || !result.success) {
-        notify("error", result.message ?? "Failed to update data.");
+        if (result.type === "VALIDATION_ERROR" && result.errors) {
+          const formatted: Record<string, string> = {};
+
+          for (const key in result.errors) {
+            const value = result.errors[key];
+            if (Array.isArray(value) && value.length > 0) {
+              formatted[key] = value[0];
+            }
+          }
+
+          setUpdateErrors(formatted);
+        } else {
+          notify("error", result.message ?? "Failed to update data.");
+        }
         return;
       }
       notify("success", result.message ?? "Data updated successfully.");
       setOpenEdit(false);
       setEditForm(null);
+      setUpdateErrors({});
       void loadItems();
     } catch {
       notify("error", "Failed to update data.");
@@ -567,6 +582,7 @@ export default function CrudPage({
                 type="button"
                 onClick={() => {
                   setEditForm(buildEditPayload(fields, row));
+                  setUpdateErrors({});
                   setOpenEdit(true);
                 }}
                 className="rounded-md border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200 cursor-pointer"
@@ -793,7 +809,13 @@ export default function CrudPage({
       ) : null}
 
       {allowEdit && openEdit && editForm ? (
-        <Modal title={`Edit ${title}`} onClose={() => setOpenEdit(false)}>
+        <Modal
+          title={`Edit ${title}`}
+          onClose={() => {
+            setUpdateErrors({});
+            setOpenEdit(false);
+          }}
+        >
           <form onSubmit={handleEdit} className="space-y-4">
             {fields.map((field) => (
               <label key={field.key} className="block text-sm text-zinc-600">
@@ -801,20 +823,40 @@ export default function CrudPage({
                 {field.type === "textarea" ? (
                   <textarea
                     value={asInputValue(editForm[field.key])}
-                    onChange={(event) =>
-                      setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
-                    }
-                    className="min-h-[90px] w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
+                    onChange={(event) => {
+                      setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev));
+                      if (updateErrors[field.key]) {
+                        setUpdateErrors((prev) => ({ ...prev, [field.key]: "" }));
+                      }
+                    }}
+                    className={`min-h-[90px] w-full rounded-lg border px-3 py-2 text-sm text-zinc-700
+                        ${updateErrors[field.key]
+                        ? "border-rose-500 focus:ring-rose-200"
+                        : "border-zinc-200"
+                      }`}
                   />
                 ) : (
                   <input
                     type={isDateField(field) ? "datetime-local" : "text"}
                     value={asInputValue(editForm[field.key])}
-                    onChange={(event) =>
-                      setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
-                    }
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
+                    onChange={(event) => {
+                      setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev));
+                      if (updateErrors[field.key]) {
+                        setUpdateErrors((prev) => ({ ...prev, [field.key]: "" }));
+                      }
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm text-zinc-700
+                        ${updateErrors[field.key]
+                        ? "border-rose-500 focus:ring-rose-200"
+                        : "border-zinc-200"
+                      }`}
                   />
+                )}
+
+                {updateErrors[field.key] && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {updateErrors[field.key]}
+                  </p>
                 )}
               </label>
             ))}
