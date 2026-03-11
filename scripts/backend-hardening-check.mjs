@@ -101,6 +101,11 @@ const checks = [
     args: ["run", "-s", "test:dashboard"],
   },
   {
+    label: "OpenAPI contract drift",
+    cmd: "npm",
+    args: ["run", "-s", "docs:check-contract-drift"],
+  },
+  {
     label: "Canonical route regression check",
     cmd: "npm",
     args: ["run", "-s", "migration:check-routes"],
