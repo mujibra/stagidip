@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 import {
     hasValidationErrors,
     mergeValidationBags,
@@ -17,11 +18,19 @@ import {
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const transfers = await prisma.warehouse_transfer.findMany({
-            orderBy: { id: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [transfers, total] = await Promise.all([
+            prisma.warehouse_transfer.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.warehouse_transfer.count(),
+        ]);
 
         const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id): id is number => typeof id === "number")));
         const customerIds = Array.from(
@@ -89,7 +98,10 @@ export async function GET() {
 
         return NextResponse.json({
             success: true,
-            totalDatas: data.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: toJsonSafe(data),
         });
     } catch (error) {
