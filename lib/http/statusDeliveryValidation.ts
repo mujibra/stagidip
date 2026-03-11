@@ -25,9 +25,5 @@ export function validateStatusDeliveryPayload(payload: StatusDeliveryBody): Vali
     const snMesin = normalizeSnMesin(payload.sn_mesin);
     const snMesinErrors: ValidationBag = snMesin ? {} : { sn_mesin: ["SN Mesin wajib diisi"] };
 
-    return mergeValidationBags(
-        validatePositiveId(payload.id_po, "id_po", "PO wajib diisi"),
-        validatePositiveId(payload.id_mesin, "id_mesin", "Mesin wajib diisi"),
-        snMesinErrors
-    );
+    return mergeValidationBags(validatePositiveId(payload.id_po, "id_po", "PO wajib diisi"), validatePositiveId(payload.id_mesin, "id_mesin", "Mesin wajib diisi"), snMesinErrors);
 }

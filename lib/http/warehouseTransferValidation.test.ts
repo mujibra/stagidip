@@ -1,16 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import {
-    hasValidationErrors,
-    mergeValidationBags,
-    normalizeSnMesins,
-    normalizeSnMesinsOptional,
-    parseSnMesins,
-    toDate,
-    toNumber,
-    validatePositiveId,
-} from "@/lib/http/warehouseTransferValidation";
+import { hasValidationErrors, mergeValidationBags, toDate, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { normalizeSnMesins, normalizeSnMesinsOptional, parseSnMesins } from "@/lib/http/warehouseTransferValidation";
 
 test("toNumber parses valid values and rejects empty/non-number", () => {
     assert.equal(toNumber("12"), 12);
@@ -35,10 +27,7 @@ test("sn_mesins normalization/parsing is stable", () => {
 });
 
 test("validation bag helpers collect field errors", () => {
-    const errors = mergeValidationBags(
-        validatePositiveId("0", "id", "ID invalid"),
-        validatePositiveId("2", "rowPerPage", "Row invalid")
-    );
+    const errors = mergeValidationBags(validatePositiveId("0", "id", "ID invalid"), validatePositiveId("2", "rowPerPage", "Row invalid"));
 
     assert.equal(hasValidationErrors(errors), true);
     assert.deepEqual(errors.id, ["ID invalid"]);

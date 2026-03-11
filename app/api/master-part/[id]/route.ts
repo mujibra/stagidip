@@ -28,6 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const idNum = toNumber(id)!;
         const body = await parseBody<UpdatePartDTO>(req);
+        const errors: Record<string, string[]> = {};
 
         const hasAnyField =
             body.id_mesin !== undefined ||
@@ -40,6 +41,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             body.position !== undefined;
 
         if (!hasAnyField) return validationError({ _form: ["Tidak ada data yang diupdate"] });
+
+        if (!body.id_mesin) errors.id_mesin = ["Type Mesin Wajib dipilih"];
+        if (body.status === undefined) errors.status = ["Status Wajib dipilih"];
+        if (!body.types) errors.types = ["Type wajib diisi"];
+        if (Object.keys(errors).length) return validationError(errors);
 
         if (body.types === "MESIN" && body.status === 1 && body.id_mesin) {
             const exists = await prisma.mst_part_number.findFirst({
@@ -63,14 +69,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         const data: Prisma.mst_part_numberUpdateInput = {};
-        if (body.id_mesin !== undefined) data.id_mesin = body.id_mesin;
+
+        if (body.id_mesin !== undefined) {
+            const idMesin = toNumber(body.id_mesin);
+            if (idMesin !== null) data.id_mesin = idMesin;
+        }
         if (body.part_no !== undefined) data.part_no = body.part_no ?? null;
         if (body.part_desc !== undefined) data.part_desc = body.part_desc ?? null;
         if (body.part_column !== undefined && body.part_column !== null) data.part_column = body.part_column;
-        if (body.status !== undefined) data.status = body.status;
+        if (body.status !== undefined) {
+            const status = toNumber(body.status);
+            if (status !== null) data.status = status;
+        }
+        console.log("🚀 ~ PUT ~ body.types:", !body.types);
+
         if (body.types !== undefined) data.types = body.types;
         if (body.format !== undefined) data.format = body.format ?? null;
-        if (body.position !== undefined) data.position = body.position ?? null;
+        if (body.position !== undefined) {
+            const position = toNumber(body.position);
+            if (position !== null) data.position = position;
+        }
 
         const updated = await prisma.mst_part_number.update({ where: { id: idNum }, data });
 
@@ -99,7 +117,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
                 message: `Data PartNumber ${deleted.part_no ?? ""}-${deleted.part_desc ?? ""} berhasil dihapus`,
                 data: serializeId(deleted),
             },
-            { status: 200 }
+            { status: 200 },
         );
     } catch (error) {
         if (isPrismaNotFoundError(error)) return notFoundError("Data part tidak ditemukan");
