@@ -61,10 +61,7 @@ export async function POST(req: NextRequest) {
     try {
         const body = await parseBody<CreateParentTypeDTO>(req);
 
-        const errors = mergeValidationBags(
-            validateRequiredName(body.parent, "parent", "Parent wajib diisi"),
-            validateRequiredArray(body.type_atm, "type_atm", "Type ATM wajib diisi")
-        );
+        const errors = mergeValidationBags(validateRequiredName(body.parent, "parent", "Parent wajib diisi"), validateRequiredArray(body.type_atm, "type_atm", "Type ATM wajib diisi"));
         if (hasValidationErrors(errors)) return validationError(errors);
 
         const created = await prisma.mst_parent_type_spesifikasi_msn.create({

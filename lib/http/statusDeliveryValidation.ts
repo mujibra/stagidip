@@ -22,11 +22,7 @@ export function normalizeNullableText(value: unknown): string | null {
 
 export function validateStatusDeliveryPayload(payload: StatusDeliveryBody): ValidationBag {
     const snMesin = normalizeSnMesin(payload.sn_mesin);
-    const snMesinErrors = snMesin ? {} : { sn_mesin: ["SN Mesin wajib diisi"] };
+    const snMesinErrors: ValidationBag = snMesin ? {} : { sn_mesin: ["SN Mesin wajib diisi"] };
 
-    return mergeValidationBags(
-        validatePositiveId(payload.id_po, "id_po", "PO wajib diisi"),
-        validatePositiveId(payload.id_mesin, "id_mesin", "Mesin wajib diisi"),
-        snMesinErrors
-    );
+    return mergeValidationBags(validatePositiveId(payload.id_po, "id_po", "PO wajib diisi"), validatePositiveId(payload.id_mesin, "id_mesin", "Mesin wajib diisi"), snMesinErrors);
 }

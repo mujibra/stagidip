@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { badRequestError, notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
 import { hasValidationErrors, isPrismaNotFoundError, mergeValidationBags, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { serializeId } from "@/lib/serialize";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
 
 export const runtime = "nodejs";
@@ -25,11 +26,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
         const mesin = await prisma.mst_mesin.findUnique({ where: { id: idNum } });
         if (!mesin) return notFoundError("Data tidak ditemukan", { data: [] });
 
-        const model = await prisma.models.findUnique({ where: { id: Number(mesin.model) } });
-
         return NextResponse.json({
             success: true,
-            data: { ...mesin, id: String(mesin.id), model },
+            data: serializeId(mesin),
         });
     } catch (error) {
         return serverError(error);
@@ -45,7 +44,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
             validatePositiveId(id, "id", "id tidak valid"),
             validateRequiredName(body.merek, "merek", "Merek tidak boleh kosong !"),
             validatePositiveId(body.model, "model", "Model tidak boleh kosong !"),
-            validateRequiredName(body.type, "type", "Type tidak boleh kosong")
+            validateRequiredName(body.type, "type", "Type tidak boleh kosong"),
         );
         if (hasValidationErrors(errors)) return validationError(errors);
 
@@ -91,9 +90,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
         const usedInPo = await prisma.tbl_po.findFirst({ where: { id_type_mesin: idNum }, select: { id: true } });
         if (usedInPo) {
             const mesin = await prisma.mst_mesin.findUnique({ where: { id: idNum }, select: { type: true } });
-            return badRequestError(
-                `Type Mesin ${mesin?.type ?? ""} Gagal di hapus, karena sudah terpakai di Transaksi Staging Registration`
-            );
+            return badRequestError(`Type Mesin ${mesin?.type ?? ""} Gagal di hapus, karena sudah terpakai di Transaksi Staging Registration`);
         }
 
         const existing = await prisma.mst_mesin.findUnique({ where: { id: idNum } });
