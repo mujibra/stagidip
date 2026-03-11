@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             where: { id: toNumber(id)! },
             data: {
                 item: body.item!.trim(),
-                description: body.description ?? null,
+                description: body.description?.trim() || undefined,
             },
         });
 
