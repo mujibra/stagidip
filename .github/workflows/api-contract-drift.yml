@@ -1,0 +1,32 @@
+name: API Contract Drift
+
+on:
+  pull_request:
+    paths:
+      - "app/api/**"
+      - "docs/api/openapi.yaml"
+      - "prisma/schema.prisma"
+      - "scripts/infer-openapi-examples.mjs"
+      - "scripts/check-openapi-contract-drift.mjs"
+      - "package.json"
+      - "package-lock.json"
+
+jobs:
+  contract-drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check OpenAPI contract drift
+        run: npm run docs:check-contract-drift
