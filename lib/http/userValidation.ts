@@ -1,4 +1,5 @@
-import { ValidationBag, hasValidationErrors, mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import { hasValidationErrors, mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import type { ValidationBag } from "@/lib/http/validation";
 
 export type UpdateUserBody = {
     name?: string;
@@ -33,7 +34,7 @@ export function validateUserRouteParams(id: unknown, userLogin: unknown): Valida
 
 export function validateUpdateUserPayload(body: UpdateUserBody): ValidationBag {
     const role = typeof body.roles === "string" ? body.roles.trim() : "";
-    const roleErrors = role ? {} : { roles: ["Roles wajib dipilih"] };
+    const roleErrors: ValidationBag = role ? {} : { roles: ["Roles wajib dipilih"] };
     return mergeValidationBags(roleErrors);
 }
 

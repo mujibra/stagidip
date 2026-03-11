@@ -1,4 +1,5 @@
-import { ValidationBag, hasValidationErrors, mergeValidationBags, toDate, toNumber, validatePositiveId } from "@/lib/http/validation";
+import { hasValidationErrors, mergeValidationBags, toDate, toNumber, validatePositiveId } from "@/lib/http/validation";
+import type { ValidationBag } from "@/lib/http/validation";
 
 export type WarehouseTransferBody = {
     id_po?: string | number;
@@ -13,7 +14,8 @@ export type WarehouseTransferBody = {
     pic?: string | number;
 };
 
-export { ValidationBag, hasValidationErrors, mergeValidationBags, toDate, toNumber, validatePositiveId };
+export { hasValidationErrors, mergeValidationBags, toDate, toNumber, validatePositiveId };
+export type { ValidationBag };
 
 export function normalizeSnMesins(value: unknown): string {
     if (Array.isArray(value)) return JSON.stringify(value);

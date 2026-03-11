@@ -18,7 +18,7 @@ type MasterPoBody = {
 };
 
 function parseCustomerIds(values: Array<string | null | undefined>): number[] {
-    return Array.from(new Set(values.map((id) => toNumber(id)).filter((id): id is number => Number.isInteger(id) && id > 0)));
+    return Array.from(new Set(values.map((id) => toNumber(id)).filter((id): id is number => id !== null && Number.isInteger(id) && id > 0)));
 }
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ idPoMaster: string }> }) {

@@ -1,4 +1,5 @@
-import { ValidationBag, mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import { mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import type { ValidationBag } from "@/lib/http/validation";
 
 export type StatusDeliveryBody = {
     id_po?: string | number;
@@ -22,7 +23,7 @@ export function normalizeNullableText(value: unknown): string | null {
 
 export function validateStatusDeliveryPayload(payload: StatusDeliveryBody): ValidationBag {
     const snMesin = normalizeSnMesin(payload.sn_mesin);
-    const snMesinErrors = snMesin ? {} : { sn_mesin: ["SN Mesin wajib diisi"] };
+    const snMesinErrors: ValidationBag = snMesin ? {} : { sn_mesin: ["SN Mesin wajib diisi"] };
 
     return mergeValidationBags(
         validatePositiveId(payload.id_po, "id_po", "PO wajib diisi"),

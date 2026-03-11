@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         const spek = await prisma.mst_spesifikasi_mesin.create({
             data: {
                 item: body.item!.trim(),
-                description: body.description ?? null,
+                description: body.description?.trim() || "",
             },
         });
 
