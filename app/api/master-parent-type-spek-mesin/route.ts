@@ -50,8 +50,7 @@ export async function GET() {
                 ...rest,
             }));
 
-            const clean = { ...row };
-            delete clean.type_atm;
+            const { type_atm: _typeAtm, ...clean } = row;
 
             return {
                 ...clean,

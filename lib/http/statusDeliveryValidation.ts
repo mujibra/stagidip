@@ -1,4 +1,5 @@
-import { ValidationBag, mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import { mergeValidationBags, validatePositiveId } from "@/lib/http/validation";
+import type { ValidationBag } from "@/lib/http/validation";
 
 export type StatusDeliveryBody = {
     id_po?: string | number;
