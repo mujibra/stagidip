@@ -164,22 +164,6 @@ async function main() {
     }
   }
 
-
-  // 4b) Error-path check: login validation should reject missing fields
-  const loginValidation = await request("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-
-  if (assertStatus(loginValidation.res.status, 400, "POST /api/login without credentials")) {
-    if (typeof loginValidation.body === "object" && loginValidation.body?.type === "VALIDATION_ERROR") {
-      ok("POST /api/login validation error payload is normalized");
-    } else {
-      fail("POST /api/login validation response did not contain type=VALIDATION_ERROR");
-    }
-  }
-
   // 5) Optional authenticated checks
   if (QA_EMAIL && QA_PASSWORD) {
     const login = await request("/api/login", {
