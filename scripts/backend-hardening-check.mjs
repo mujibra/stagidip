@@ -10,6 +10,7 @@ const checks = [
       "--test",
       "lib/http/validation.test.ts",
       "lib/http/filterParamValidation.test.ts",
+      "lib/http/pagination.test.ts",
       "lib/http/errorResponse.test.ts",
       "lib/http/masterDataValidation.test.ts",
       "lib/http/purchaseOrderValidation.test.ts",
@@ -98,6 +99,11 @@ const checks = [
     label: "Dashboard query param regression tests",
     cmd: "npm",
     args: ["run", "-s", "test:dashboard"],
+  },
+  {
+    label: "OpenAPI contract drift",
+    cmd: "npm",
+    args: ["run", "-s", "docs:check-contract-drift"],
   },
   {
     label: "Canonical route regression check",
