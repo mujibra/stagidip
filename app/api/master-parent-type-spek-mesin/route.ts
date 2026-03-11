@@ -9,9 +9,29 @@ import { serializeId } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 type TypeAtmItem = {
-    type: string;
+    type?: string;
     [key: string]: unknown;
 };
+
+function normalizeTypeAtm(value: string | null): TypeAtmItem[] {
+    if (!value) return [];
+
+    try {
+        const parsed = JSON.parse(value) as unknown;
+
+        if (Array.isArray(parsed)) {
+            return parsed.filter((item): item is TypeAtmItem => item !== null && typeof item === "object");
+        }
+
+        if (parsed && typeof parsed === "object") {
+            return [parsed as TypeAtmItem];
+        }
+
+        return [];
+    } catch {
+        return [];
+    }
+}
 
 export async function GET() {
     try {
@@ -25,10 +45,8 @@ export async function GET() {
                 };
             }
 
-            const parsed = JSON.parse(row.type_atm) as TypeAtmItem[];
-
-            const data_type = parsed.map(({ type, ...rest }) => ({
-                name: type,
+            const data_type = normalizeTypeAtm(row.type_atm).map(({ type, ...rest }) => ({
+                name: type ?? "",
                 ...rest,
             }));
 
