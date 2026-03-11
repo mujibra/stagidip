@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         const typeParam = searchParams.get("type"); // MESIN/PART_MESIN
         const search = (searchParams.get("search") ?? "").trim();
 
-        const { skip, take } = getPagination(searchParams);
+        const { skip, take, page, perPage } = getPagination(searchParams);
 
         const mesinId = toIntOrNull(mesinIdParam);
 
@@ -125,6 +125,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: serializeMany(data),
         });
     } catch (error) {

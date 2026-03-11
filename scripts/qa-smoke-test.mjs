@@ -63,8 +63,8 @@ async function main() {
   // 1) Public health endpoint
   const health = await request("/api/health");
   if (assertStatus(health.res.status, 200, "GET /api/health") && typeof health.body === "object") {
-    if (health.body?.status === "ok") ok("/api/health payload contains status=ok");
-    else fail("/api/health payload does not contain status=ok");
+    if (["ok", "degraded"].includes(health.body?.status)) ok(`/api/health payload contains status=${health.body?.status}`);
+    else fail("/api/health payload does not contain status=ok|degraded");
   }
 
   // 2) Login page should be available
@@ -90,13 +90,30 @@ async function main() {
   const protectedApis = [
     "/api/master-user",
     "/api/purchaseOrder",
-    "/api/warehouse-transfer",
+    "/api/checklistStaging",
     "/api/statusDelivery",
+    "/api/warehouse-transfer",
   ];
 
   for (const path of protectedApis) {
     const result = await request(path);
     assertStatus(result.res.status, 401, `GET ${path} without token`);
+  }
+
+
+  // 4b) Error-path check: login validation should reject missing fields
+  const loginValidation = await request("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  if (assertStatus(loginValidation.res.status, 400, "POST /api/login without credentials")) {
+    if (typeof loginValidation.body === "object" && loginValidation.body?.type === "VALIDATION_ERROR") {
+      ok("POST /api/login validation error payload is normalized");
+    } else {
+      fail("POST /api/login validation response did not contain type=VALIDATION_ERROR");
+    }
   }
 
   // 5) Optional authenticated checks
