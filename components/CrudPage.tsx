@@ -314,7 +314,6 @@ export default function CrudPage({
   const [editForm, setEditForm] = useState<CrudRow | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [createErrors, setCreateErrors] = useState<Record<string, string>>({});
-  const [updateErrors, setUpdateErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setForm(buildPayload(fields, {}));
@@ -459,6 +458,7 @@ export default function CrudPage({
         ...requestBody,
       });
       const result: ApiResponse<CrudRow> = await response.json();
+      console.log("🚀 ~ handleCreate ~ result:", result)
       if (!response.ok || !result.success) {
         if (result.type === "VALIDATION_ERROR" && result.errors) {
           const formatted: Record<string, string> = {};
@@ -504,20 +504,8 @@ export default function CrudPage({
       });
       const result: ApiResponse<CrudRow> = await response.json();
       if (!response.ok || !result.success) {
-        if (result.type === "VALIDATION_ERROR" && result.errors) {
-          const formatted: Record<string, string> = {};
-
-          for (const key in result.errors) {
-            const value = result.errors[key];
-            if (Array.isArray(value) && value.length > 0) {
-              formatted[key] = value[0]; // take first error message
-            }
-          }
-
-          setUpdateErrors(formatted);
-        } else {
-          notify("error", result.message ?? "Failed to update data.");
-        }
+        notify("error", result.message ?? "Failed to update data.");
+        return;
       }
       notify("success", result.message ?? "Data updated successfully.");
       setOpenEdit(false);
@@ -615,7 +603,6 @@ export default function CrudPage({
               type="button"
               onClick={() => {
                 setCreateErrors({});
-                setUpdateErrors({});
                 setOpenCreate(true)
               }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 cursor-pointer"
@@ -814,42 +801,20 @@ export default function CrudPage({
                 {field.type === "textarea" ? (
                   <textarea
                     value={asInputValue(editForm[field.key])}
-                    onChange={(event) => {
+                    onChange={(event) =>
                       setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
-                      if (updateErrors[field.key]) {
-                        setUpdateErrors(prev => ({ ...prev, [field.key]: "" }));
-                      }
                     }
-                    }
-                    className={`min-h-[90px] w-full rounded-lg border px-3 py-2 text-sm
-                        ${updateErrors[field.key]
-                        ? "border-rose-500 focus:ring-rose-200"
-                        : "border-zinc-200"
-                      }`}
+                    className="min-h-[90px] w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
                   />
                 ) : (
                   <input
                     type={isDateField(field) ? "datetime-local" : "text"}
                     value={asInputValue(editForm[field.key])}
-                    onChange={(event) => {
+                    onChange={(event) =>
                       setEditForm((prev) => (prev ? { ...prev, [field.key]: event.target.value } : prev))
-                      if (updateErrors[field.key]) {
-                        setUpdateErrors(prev => ({ ...prev, [field.key]: "" }));
-                      }
                     }
-                    }
-                    className={`w-full rounded-lg border px-3 py-2 text-sm
-                        ${updateErrors[field.key]
-                        ? "border-rose-500 focus:ring-rose-200"
-                        : "border-zinc-200"
-                      }`}
+                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700"
                   />
-                )}
-
-                {updateErrors[field.key] && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {updateErrors[field.key]}
-                  </p>
                 )}
               </label>
             ))}
