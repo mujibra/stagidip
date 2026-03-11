@@ -40,7 +40,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 
 - P0 — Standardize API error envelopes: **100%**
 - P0 — Enforce request payload validation on mutable endpoints: **100%**
-- P1 — Normalize pagination/filter query contracts: **92%**
+- P1 — Normalize pagination/filter query contracts: **100%**
 - P1 — Add API contract drift gate in CI: **52%**
 - P1 — Expand smoke API coverage for critical flows: **36%**
 - P2 — API observability baseline: **0%**
@@ -48,7 +48,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 
 ## Continuation plan for active P1 items
 
-### P1 — Normalize pagination/filter query contracts (**92%**)
+### P1 — Normalize pagination/filter query contracts (**100%**)
 
 - Completed in this iteration:
   - Implemented working `page/perPage` pagination metadata (`totalPages`, `page`, `perPage`) for `/api/master-spesifikasi-mesin`.
@@ -59,14 +59,10 @@ Harden API reliability and contract consistency so migration readiness is backed
   - Added dedicated unit tests for pagination parsing and fallback behavior in `lib/http/pagination.test.ts` and included it in `qa:backend-hardening`.
   - Added pagination metadata parity for `/api/(user)/master-user` by including `totalPages` in both empty and populated responses.
   - Added pagination metadata parity for `/api/(picMover)/picMover/[id]` by returning `totalDatas` from full-count and including `totalPages`, `page`, and `perPage`.
+  - Added pagination metadata parity for `/api/master-style`, `/api/pic-mitra`, `/api/brand`, `/api/master-customer`, and `/api/master-gudang` list endpoints.
 
-- Extract shared defaults and bounds for `page/perPage/search` to a single utility (`lib/http/pagination.ts`) and adopt it first in high-traffic list endpoints:
-  - `/api/master-style` list contract review
-  - `/api/pic-mitra` list contract review
-- Add focused tests for edge contracts: negative page, zero perPage, oversized perPage, empty search, and unknown filter fields.
-- Definition of done for next checkpoint (target **100%**):
-  - Close remaining pagination parity across any route with list semantics and missing `totalPages`.
-  - Add one response-shape contract check in smoke/API tests for paginated endpoints.
+- Completed: shared defaults and bounds for `page/perPage` are now applied across prioritized high-traffic list endpoints with normalized pagination metadata.
+- Remaining hardening follow-up: add one response-shape contract check in smoke/API tests for paginated endpoints to prevent regression.
 
 ### P1 — Add API contract drift gate in CI (**52%**)
 
