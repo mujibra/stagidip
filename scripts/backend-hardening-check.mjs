@@ -10,6 +10,7 @@ const checks = [
       "--test",
       "lib/http/validation.test.ts",
       "lib/http/filterParamValidation.test.ts",
+      "lib/http/pagination.test.ts",
       "lib/http/errorResponse.test.ts",
       "lib/http/masterDataValidation.test.ts",
       "lib/http/purchaseOrderValidation.test.ts",
