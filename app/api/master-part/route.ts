@@ -75,10 +75,6 @@ export async function GET(req: NextRequest) {
         if (typeParam) baseWhere.types = typeParam;
         if (statusParam) baseWhere.status = statusParam === "ACTIVE" ? 1 : 0;
 
-        // Laravel indexPaging behavior:
-        // - search may match mesin.type or mesin.id, then filter parts by id_mesin IN those ids
-        // - else search matches part columns
-        // - also search "Active/Inactive" maps to status filter when search >= 3
         let where: Prisma.mst_part_numberWhereInput = { ...baseWhere };
 
         if (search.length > 0) {
