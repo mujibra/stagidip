@@ -6,6 +6,7 @@ import { serverError, validationError } from "@/lib/http/errorResponse";
 import { hasValidationErrors } from "@/lib/http/validation";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -13,16 +14,27 @@ type CreateStyleDTO = {
     name?: string;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const styles = await prisma.mst_style.findMany({
-            where: { deleted_at: null },
-            orderBy: { id: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [styles, total] = await Promise.all([
+            prisma.mst_style.findMany({
+                where: { deleted_at: null },
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.mst_style.count({ where: { deleted_at: null } }),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: styles.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: serializeMany(styles),
         });
     } catch (error) {
