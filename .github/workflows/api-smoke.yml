@@ -1,0 +1,63 @@
+name: API Smoke
+
+on:
+  pull_request:
+    paths:
+      - "app/api/**"
+      - "scripts/qa-smoke-test.mjs"
+      - "scripts/backend-hardening-check.mjs"
+      - "package.json"
+      - "package-lock.json"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start app server
+        run: |
+          nohup npm run dev > /tmp/stagidip-dev.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+              echo "App is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App failed to start"
+          tail -n 200 /tmp/stagidip-dev.log
+          exit 1
+
+      - name: Run API smoke checks
+        env:
+          BASE_URL: http://127.0.0.1:3000
+          QA_SMOKE_REPORT_PATH: artifacts/qa-smoke-report.json
+        run: npm run qa:smoke
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-smoke-report
+          path: artifacts/qa-smoke-report.json
+          if-no-files-found: warn
+
+      - name: Upload dev server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-smoke-dev-log
+          path: /tmp/stagidip-dev.log
+          if-no-files-found: warn
