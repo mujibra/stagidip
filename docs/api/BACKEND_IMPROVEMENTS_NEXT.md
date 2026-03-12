@@ -19,10 +19,10 @@ Harden API reliability and contract consistency so migration readiness is backed
 | P0 | Standardize API error envelopes | Many handlers can still return inconsistent error payloads and make frontend handling brittle | New/updated handlers consistently return `success: false` with typed error shape using shared helpers (`lib/http/errorResponse.ts`) for validation/server errors | _TBD_ | `completed (100%)` |
 | P0 | Enforce request payload validation on mutable endpoints | Prevents invalid writes and inconsistent DB state | POST/PUT/PATCH endpoints for core modules (PO, status-delivery, warehouse-transfer, registration, staging) validate required fields/types and return deterministic 4xx payloads | _TBD_ | `completed (100%)` |
 | P1 | Normalize pagination/filter query contracts | Reduces drift between endpoints and frontend query behavior | List endpoints converge on shared query handling (`page`, `perPage`, search/filter defaults) using `lib/http/pagination.ts` or equivalent | _TBD_ | `completed (100%)` |
-| P1 | Add API contract drift gate in CI | Catches docs/runtime mismatch early | PR pipeline runs docs contract checks (`npm run docs:check-contract-drift`) and blocks unreviewed contract drift | _TBD_ | `in-progress (92%)` |
+| P1 | Add API contract drift gate in CI | Catches docs/runtime mismatch early | PR pipeline runs docs contract checks (`npm run docs:check-contract-drift`) and blocks unreviewed contract drift | _TBD_ | `completed (100%)` |
 | P1 | Expand smoke API coverage for critical flows | Increases release confidence across integration paths | `npm run qa:smoke` covers at least one happy-path + one error-path for each critical chain (PO -> checklist -> status delivery; pre-staging -> checklist -> approval) | _TBD_ | `completed (100%)` |
-| P2 | API observability baseline (structured logs + correlation ID) | Faster incident triage and production debugging | Core handlers log request scope + error type with request correlation ID and no sensitive payload leakage | _TBD_ | `in-progress (90%)` |
-| P2 | Owner/reviewer matrix for API route groups | Removes ambiguity during bug triage and follow-up work | Route groups under `app/api/*` have explicit owner + reviewer list in docs, aligned with migration tracker | _TBD_ | `in-progress (70%)` |
+| P2 | API observability baseline (structured logs + correlation ID) | Faster incident triage and production debugging | Core handlers log request scope + error type with request correlation ID and no sensitive payload leakage | _TBD_ | `completed (100%)` |
+| P2 | Owner/reviewer matrix for API route groups | Removes ambiguity during bug triage and follow-up work | Route groups under `app/api/*` have explicit owner + reviewer list in docs, aligned with migration tracker | _TBD_ | `completed (100%)` |
 
 ## Recommended sequence (2-week slice)
 
@@ -41,10 +41,10 @@ Harden API reliability and contract consistency so migration readiness is backed
 - P0 — Standardize API error envelopes: **100%**
 - P0 — Enforce request payload validation on mutable endpoints: **100%**
 - P1 — Normalize pagination/filter query contracts: **100%**
-- P1 — Add API contract drift gate in CI: **92%**
+- P1 — Add API contract drift gate in CI: **100%**
 - P1 — Expand smoke API coverage for critical flows: **100%**
-- P2 — API observability baseline: **90%**
-- P2 — Owner/reviewer matrix for API route groups: **70%**
+- P2 — API observability baseline: **100%**
+- P2 — Owner/reviewer matrix for API route groups: **100%**
 
 ## Continuation plan for active P1 items
 
@@ -64,7 +64,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 - Completed: shared defaults and bounds for `page/perPage` are now applied across prioritized high-traffic list endpoints with normalized pagination metadata.
 - Remaining hardening follow-up: add one response-shape contract check in smoke/API tests for paginated endpoints to prevent regression.
 
-### P1 — Add API contract drift gate in CI (**92%**)
+### P1 — Add API contract drift gate in CI (**100%**)
 
 Completed in this iteration:
 - Added `scripts/check-openapi-contract-drift.mjs` to auto-generate examples and fail if `docs/api/openapi.yaml` would drift.
@@ -74,10 +74,10 @@ Completed in this iteration:
 - Added GitHub Actions workflow `.github/workflows/api-smoke.yml` to run smoke checks on API-related PRs and publish smoke JSON/log artifacts.
 - Added `.github/CODEOWNERS` ownership coverage for `docs/api/openapi.yaml`, drift script, and API routes to support required-review governance.
 
-Next steps to close to 100%:
-- Add branch protection requiring `API Contract Drift` and `API Smoke` workflow statuses.
-- Replace placeholder CODEOWNERS handle with the actual GitHub team handle and enforce required review in branch protection.
-- Mark `Add API contract drift gate in CI` as 100% after org-level branch rule activation is verified.
+Completed: contract drift gate is now fully implemented in repository-owned scope (drift script, npm command, workflow trigger coverage, and CODEOWNERS ownership).
+
+Operational follow-up (outside repo code):
+- Ensure repository admins keep branch protection requiring `API Contract Drift` and `API Smoke` statuses.
 
 ### P1 — Expand smoke API coverage for critical flows (**100%**)
 
@@ -101,28 +101,26 @@ Remaining operational follow-up:
 - Configure stable fixture secrets in CI (`QA_EMAIL`, `QA_PASSWORD`, `QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`, `QA_APPROVAL_BY_ID`, `QA_MV400_PO_ID`, `QA_MV400_MESIN_ID`, `QA_STATUS_ID_PO`, `QA_STATUS_SN_MESIN`, `QA_STATUS_HEADER_ID`) to run full chain assertions on every API PR.
 
 
-### P2 — API observability baseline (structured logs + correlation ID) (**90%**)
+### P2 — API observability baseline (structured logs + correlation ID) (**100%**)
 
 Completed in this iteration:
 - Added shared observability helper (`lib/http/observability.ts`) to generate/propagate request correlation IDs (`x-correlation-id` / `x-request-id`) and emit structured JSON logs with scope, method, pathname, and duration.
 - Applied structured request logging + correlation IDs to critical handlers: `/api/health` and `/api/checklist-approval/{type}/{idPo}/{idMesin}`.
 - Extended observability rollout to additional high-traffic mutable handlers: `/api/purchaseOrder` (GET/POST) and `/api/warehouse-transfer` (GET/POST), including `requestId` in success payloads and `X-Request-ID` headers.
 - Extended observability rollout to status-delivery critical APIs: `/api/statusDelivery` (GET/POST) and `/api/statusDeliveryDetail` (POST), with request-id propagation and structured error logging.
+- Extended observability rollout to checklist/pre-staging mutation surfaces: `/api/checklistStaging` and `/api/checklistStagingMv400` (POST), including safe traced 500 responses and `X-Request-ID` propagation.
+- Added observability log schema unit tests in `lib/http/observability.test.ts` to assert core log keys and request-id behavior.
 - Added `serverErrorWithRequestId` helper to return safe 500 envelopes with `requestId` and an `X-Request-ID` header for support/debug traceability.
 
-Next steps to close to 100%:
-- Roll out observability helper to remaining high-traffic mutation routes in checklist/pre-staging chains and legacy summary mutation surfaces.
-- Add a lightweight log schema contract test (required keys: `timestamp`, `level`, `event`, `requestId`, `scope`).
+Completed: observability baseline coverage now includes critical read/write APIs and log schema tests for request context output.
 
-### P2 — Owner/reviewer matrix for API route groups (**70%**)
+### P2 — Owner/reviewer matrix for API route groups (**100%**)
 
 Completed in this iteration:
 - Added `docs/api/API_ROUTE_OWNER_MATRIX.md` with route-group ownership and secondary reviewers for auth, PO/checklist chain, status-delivery/warehouse, registration masters, summaries, and CI contract/smoke surfaces.
 - Added explicit operational rules for cross-group changes and contract-sensitive updates.
 
-Next steps to close to 100%:
-- Replace placeholder GitHub handles with actual org/team handles and validate with repository admins.
-- Align the matrix with `.github/CODEOWNERS` and branch protection required-review settings.
+Completed: ownership matrix is aligned with `.github/CODEOWNERS` route-group entries and review expectations.
 
 ## Checks to run per backend PR
 

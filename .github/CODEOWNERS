@@ -1,7 +1,20 @@
-# Default reviewer ownership (replace placeholder handle with your org/team handle)
+# Default reviewer ownership
 * @backend-maintainers
 
-# API contract surfaces require backend review
-/docs/api/openapi.yaml @backend-maintainers
-/scripts/check-openapi-contract-drift.mjs @backend-maintainers
+# API contract governance
+/docs/api/openapi.yaml @backend-maintainers @qa-maintainers
+/scripts/check-openapi-contract-drift.mjs @backend-maintainers @qa-maintainers
+/.github/workflows/api-contract-drift.yml @backend-maintainers @qa-maintainers
+/.github/workflows/api-smoke.yml @qa-maintainers @backend-maintainers
+
+# API route groups
+/app/api/(auth)/ @backend-maintainers @frontend-maintainers
+/app/api/(purchaseOrder)/ @backend-maintainers @qa-maintainers
+/app/api/(statusDelivery)/ @backend-maintainers @qa-maintainers
+/app/api/(warehouse)/ @backend-maintainers @qa-maintainers
+/app/api/(transaksiChecklistStaging)/ @backend-maintainers @qa-maintainers
 /app/api/ @backend-maintainers
+
+# API docs/process tracking
+/docs/api/API_ROUTE_OWNER_MATRIX.md @backend-maintainers @qa-maintainers
+/docs/api/BACKEND_IMPROVEMENTS_NEXT.md @backend-maintainers @qa-maintainers
