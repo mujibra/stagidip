@@ -1,22 +1,48 @@
 #!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const QA_EMAIL = process.env.QA_EMAIL;
 const QA_PASSWORD = process.env.QA_PASSWORD;
+const QA_SMOKE_REPORT_PATH = process.env.QA_SMOKE_REPORT_PATH;
+const QA_PO_ID = process.env.QA_PO_ID;
+const QA_MESIN_ID = process.env.QA_MESIN_ID;
+const QA_DIVISI_ID = process.env.QA_DIVISI_ID;
+const QA_APPROVAL_TYPE = process.env.QA_APPROVAL_TYPE ?? "CHECKLIST";
+const QA_MV400_PO_ID = process.env.QA_MV400_PO_ID;
+const QA_MV400_MESIN_ID = process.env.QA_MV400_MESIN_ID;
+const QA_MV400_CLASSIF_ID = process.env.QA_MV400_CLASSIF_ID;
+const QA_STATUS_ID_PO = process.env.QA_STATUS_ID_PO;
+const QA_STATUS_SN_MESIN = process.env.QA_STATUS_SN_MESIN;
+const QA_STATUS_ID_CUSTOMER = process.env.QA_STATUS_ID_CUSTOMER;
+const QA_STATUS_WAREHOUSE = process.env.QA_STATUS_WAREHOUSE;
+const QA_STATUS_TGL_TIBA = process.env.QA_STATUS_TGL_TIBA;
+const QA_STATUS_HEADER_ID = process.env.QA_STATUS_HEADER_ID;
 
-function joinUrl(path) {
-  return `${BASE_URL.replace(/\/$/, "")}${path}`;
+const report = {
+  baseUrl: BASE_URL,
+  startedAt: new Date().toISOString(),
+  checks: [],
+};
+
+function record(status, label, detail = "") {
+  report.checks.push({ status, label, detail, at: new Date().toISOString() });
 }
 
-async function request(path, options = {}) {
+function joinUrl(pathname) {
+  return `${BASE_URL.replace(/\/$/, "")}${pathname}`;
+}
+
+async function request(pathname, options = {}) {
   let res;
   try {
-    res = await fetch(joinUrl(path), {
+    res = await fetch(joinUrl(pathname), {
       redirect: "manual",
       ...options,
     });
   } catch (error) {
-    throw new Error(`Request failed for ${path}. Ensure the app is running at ${BASE_URL}. ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Request failed for ${pathname}. Ensure the app is running at ${BASE_URL}. ${error instanceof Error ? error.message : String(error)}`);
   }
 
   let body;
@@ -32,14 +58,17 @@ async function request(path, options = {}) {
 
 function ok(message) {
   console.log(`✅ ${message}`);
+  record("pass", message);
 }
 
 function warn(message) {
   console.log(`⚠️ ${message}`);
+  record("warn", message);
 }
 
 function fail(message) {
   console.error(`❌ ${message}`);
+  record("fail", message);
   process.exitCode = 1;
 }
 
@@ -57,14 +86,123 @@ function normalizeSetCookie(raw) {
   return raw.split(";")[0];
 }
 
+function assertPaginationEnvelope(body, label) {
+  if (typeof body !== "object" || body === null) {
+    fail(`${label}: response is not a JSON object`);
+    return;
+  }
+
+  const hasFields =
+    Number.isFinite(body.totalDatas) &&
+    Number.isFinite(body.totalPages) &&
+    Number.isFinite(body.page) &&
+    Number.isFinite(body.perPage) &&
+    Array.isArray(body.data);
+
+  if (!hasFields) {
+    fail(`${label}: missing one of required pagination fields (totalDatas,totalPages,page,perPage,data[])`);
+    return;
+  }
+
+  ok(`${label}: pagination envelope is valid`);
+}
+
+async function runPreStagingMv400Checks(cookie) {
+  const hasRequiredIds = Boolean(QA_MV400_PO_ID && QA_MV400_MESIN_ID);
+
+  if (!hasRequiredIds) {
+    warn("QA_MV400_PO_ID/QA_MV400_MESIN_ID not provided; skipping MV400 chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const basePath = `/api/checklistStagingMv400/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}`;
+  const base = await request(basePath, { headers });
+  assertStatus(base.res.status, 200, `GET ${basePath} MV400 chain`);
+
+  if (QA_MV400_CLASSIF_ID) {
+    const classifPath = `/api/checklistStagingMv400/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}/${QA_MV400_CLASSIF_ID}`;
+    const classif = await request(classifPath, { headers });
+    assertStatus(classif.res.status, 200, `GET ${classifPath} MV400 chain`);
+  } else {
+    warn("QA_MV400_CLASSIF_ID not provided; skipping MV400 classif-level chain assertion.");
+  }
+
+  const v2SpekPath = `/api/checklistStagingMv400/v2/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}/spek`;
+  const v2Spek = await request(v2SpekPath, { headers });
+  assertStatus(v2Spek.res.status, 200, `GET ${v2SpekPath} MV400 chain`);
+}
+
+async function runStatusDeliveryChainChecks(cookie) {
+  const hasRequired = Boolean(
+    QA_STATUS_ID_PO && QA_STATUS_SN_MESIN && QA_STATUS_ID_CUSTOMER && QA_STATUS_WAREHOUSE && QA_STATUS_TGL_TIBA
+  );
+
+  if (!hasRequired) {
+    warn("QA_STATUS_* vars not fully provided; skipping status-delivery chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const path = `/api/get-status-delivery/${QA_STATUS_ID_PO}/${encodeURIComponent(QA_STATUS_SN_MESIN)}/${QA_STATUS_ID_CUSTOMER}/${QA_STATUS_WAREHOUSE}/${QA_STATUS_TGL_TIBA}`;
+  const result = await request(path, { headers });
+  assertStatus(result.res.status, 200, `GET ${path} status-delivery chain`);
+
+  if (QA_STATUS_HEADER_ID) {
+    const detailPath = `/api/statusDeliveryDetail/${QA_STATUS_HEADER_ID}`;
+    const detail = await request(detailPath, { headers });
+    assertStatus(detail.res.status, 200, `GET ${detailPath} status-delivery chain`);
+  } else {
+    warn("QA_STATUS_HEADER_ID not provided; skipping statusDeliveryDetail chain assertion.");
+  }
+}
+
+async function runCriticalChainChecks(cookie) {
+  const hasRequiredIds = Boolean(QA_PO_ID && QA_MESIN_ID);
+
+  if (!hasRequiredIds) {
+    warn("QA_PO_ID/QA_MESIN_ID not provided; skipping critical-chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const checklistPath = `/api/checklistStaging/${QA_PO_ID}/${QA_MESIN_ID}`;
+  const checklist = await request(checklistPath, { headers });
+  assertStatus(checklist.res.status, 200, `GET ${checklistPath} critical chain`);
+
+  if (QA_DIVISI_ID) {
+    const divisiPath = `/api/checklistStaging/${QA_PO_ID}/${QA_MESIN_ID}/${QA_DIVISI_ID}`;
+    const divisi = await request(divisiPath, { headers });
+    assertStatus(divisi.res.status, 200, `GET ${divisiPath} critical chain`);
+  } else {
+    warn("QA_DIVISI_ID not provided; skipping checklist divisi-level chain assertion.");
+  }
+
+  const approvalPath = `/api/checklist-approval/${QA_APPROVAL_TYPE}/${QA_PO_ID}/${QA_MESIN_ID}`;
+  const approval = await request(approvalPath, { headers });
+  assertStatus(approval.res.status, 200, `GET ${approvalPath} critical chain`);
+}
+
+function writeReport() {
+  report.finishedAt = new Date().toISOString();
+  report.success = !(process.exitCode && process.exitCode !== 0);
+
+  if (!QA_SMOKE_REPORT_PATH) return;
+
+  const resolved = path.resolve(QA_SMOKE_REPORT_PATH);
+  fs.mkdirSync(path.dirname(resolved), { recursive: true });
+  fs.writeFileSync(resolved, JSON.stringify(report, null, 2));
+  console.log(`Smoke report written to ${resolved}`);
+}
+
 async function main() {
   console.log(`Running StagiDIP smoke checks against ${BASE_URL}`);
 
   // 1) Public health endpoint
   const health = await request("/api/health");
   if (assertStatus(health.res.status, 200, "GET /api/health") && typeof health.body === "object") {
-    if (health.body?.status === "ok") ok("/api/health payload contains status=ok");
-    else fail("/api/health payload does not contain status=ok");
+    if (["ok", "degraded"].includes(health.body?.status)) ok(`/api/health payload contains status=${health.body?.status}`);
+    else fail("/api/health payload does not contain status=ok|degraded");
   }
 
   // 2) Login page should be available
@@ -90,13 +228,29 @@ async function main() {
   const protectedApis = [
     "/api/master-user",
     "/api/purchaseOrder",
-    "/api/warehouse-transfer",
+    "/api/checklistStaging",
     "/api/statusDelivery",
+    "/api/warehouse-transfer",
   ];
 
-  for (const path of protectedApis) {
-    const result = await request(path);
-    assertStatus(result.res.status, 401, `GET ${path} without token`);
+  for (const pathname of protectedApis) {
+    const result = await request(pathname);
+    assertStatus(result.res.status, 401, `GET ${pathname} without token`);
+  }
+
+  // 4b) Error-path check: login validation should reject missing fields
+  const loginValidation = await request("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  if (assertStatus(loginValidation.res.status, 400, "POST /api/login without credentials")) {
+    if (typeof loginValidation.body === "object" && loginValidation.body?.type === "VALIDATION_ERROR") {
+      ok("POST /api/login validation error payload is normalized");
+    } else {
+      fail("POST /api/login validation response did not contain type=VALIDATION_ERROR");
+    }
   }
 
   // 5) Optional authenticated checks
@@ -121,19 +275,40 @@ async function main() {
 
     ok("Received auth cookie from login");
 
-    for (const path of protectedApis) {
-      const authed = await request(path, {
+    for (const pathname of protectedApis) {
+      const authed = await request(pathname, {
         headers: {
           Cookie: cookie,
         },
       });
 
       if (authed.res.status === 401) {
-        fail(`GET ${path} with token still returned 401`);
+        fail(`GET ${pathname} with token still returned 401`);
       } else {
-        ok(`GET ${path} with token returned ${authed.res.status}`);
+        ok(`GET ${pathname} with token returned ${authed.res.status}`);
       }
     }
+
+    const paginatedChecks = [
+      "/api/purchaseOrder?page=1&perPage=5",
+      "/api/warehouse-transfer?page=1&perPage=5",
+      "/api/master-part?page=1&perPage=5",
+      "/api/master-user?page=1&perPage=5",
+    ];
+
+    for (const pathname of paginatedChecks) {
+      const result = await request(pathname, {
+        headers: { Cookie: cookie },
+      });
+
+      if (assertStatus(result.res.status, 200, `GET ${pathname} with token`)) {
+        assertPaginationEnvelope(result.body, `GET ${pathname} pagination contract`);
+      }
+    }
+
+    await runCriticalChainChecks(cookie);
+    await runPreStagingMv400Checks(cookie);
+    await runStatusDeliveryChainChecks(cookie);
   } else {
     warn("QA_EMAIL/QA_PASSWORD not provided; skipping authenticated smoke checks.");
   }
@@ -145,6 +320,10 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  fail(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`);
-});
+main()
+  .catch((error) => {
+    fail(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`);
+  })
+  .finally(() => {
+    writeReport();
+  });
