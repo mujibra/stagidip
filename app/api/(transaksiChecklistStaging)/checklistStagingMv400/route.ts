@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { ensureChecklistApprovalRecord, updateChecklistTimeTodo } from "@/lib/services/checklistStagingDb";
 import { parseBody } from "@/lib/parseBody";
-import { serverError } from "@/lib/http/errorResponse";
+import { serverErrorWithRequestId } from "@/lib/http/errorResponse";
+import { createApiRequestContext } from "@/lib/http/observability";
 import { toJsonSafe } from "@/lib/serialize";
 
 export const runtime = "nodejs";
@@ -25,7 +27,18 @@ type ChecklistItem = {
     fix_description?: string | null;
 };
 
+function jsonWithRequestId(body: Record<string, unknown>, requestId: string, status = 200) {
+    return NextResponse.json(body, {
+        status,
+        headers: {
+            "X-Request-ID": requestId,
+        },
+    });
+}
+
 export async function POST(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.checklistStagingMv400.POST");
+
     try {
         const payload = await parseBody<ChecklistPayload[]>(req);
         const batch = payload?.[0];
@@ -33,33 +46,25 @@ export async function POST(req: NextRequest) {
         const timeTodo = batch?.time_todo ?? null;
 
         if (!Array.isArray(dataChecklist) || dataChecklist.length === 0) {
-            return NextResponse.json(
+            requestContext.warn("checklist_staging_mv400.validation_failed", { reason: "empty_payload" });
+            return jsonWithRequestId(
                 {
                     success: false,
+                    requestId: requestContext.requestId,
                     message: "Gagal input data Checklist Staging Mv400",
                     data: [],
                 },
-                { status: 400 }
+                requestContext.requestId,
+                400
             );
         }
 
         const first = dataChecklist[0] as ChecklistItem;
-        const approvalExists = await prisma.transaksi_checklist_stag_approval.count({
-            where: {
-                id_po: Number(first.id_po ?? 0),
-                no_mesin: Number(first.no_mesin ?? 0),
-            },
+        await ensureChecklistApprovalRecord({
+            idPo: Number(first.id_po ?? 0),
+            noMesin: Number(first.no_mesin ?? 0),
+            snMesin: String(first.sn_mesin ?? ""),
         });
-
-        if (approvalExists < 1) {
-            await prisma.transaksi_checklist_stag_approval.create({
-                data: {
-                    id_po: Number(first.id_po ?? 0),
-                    no_mesin: Number(first.no_mesin ?? 0),
-                    sn_mesin: String(first.sn_mesin ?? ""),
-                },
-            });
-        }
 
         const created = [] as unknown[];
 
@@ -86,10 +91,7 @@ export async function POST(req: NextRequest) {
 
                 created.push(inserted);
 
-                if (idPo && idMesin && timeTodo) {
-                    const sql = `update crt_${idPo} set TIME_CHECKLIST = ? where id = ?`;
-                    await prisma.$executeRawUnsafe(sql, timeTodo, idMesin);
-                }
+                await updateChecklistTimeTodo({ idPo, idMesin, timeTodo });
             } catch (error) {
                 await prisma.transaksi_checklist_stag_mv400.deleteMany({
                     where: {
@@ -99,28 +101,38 @@ export async function POST(req: NextRequest) {
                     },
                 });
 
-                return serverError(error);
+                requestContext.error("checklist_staging_mv400.create_batch_failed", error);
+                return serverErrorWithRequestId(requestContext.requestId);
             }
         }
 
         if (created.length > 0) {
-            return NextResponse.json({
-                success: true,
-                message: "Berhasil Insert data Checklist Staging Mv400",
-                totalDatas: created.length,
-                data: toJsonSafe(created),
-            });
+            requestContext.done("request.completed", { statusCode: 200, totalDatas: created.length });
+            return jsonWithRequestId(
+                {
+                    success: true,
+                    requestId: requestContext.requestId,
+                    message: "Berhasil Insert data Checklist Staging Mv400",
+                    totalDatas: created.length,
+                    data: toJsonSafe(created),
+                },
+                requestContext.requestId
+            );
         }
 
-        return NextResponse.json(
+        requestContext.warn("checklist_staging_mv400.no_rows_created");
+        return jsonWithRequestId(
             {
                 success: false,
+                requestId: requestContext.requestId,
                 message: "Gagal input data Checklist Staging Mv400",
                 data: [],
             },
-            { status: 400 }
+            requestContext.requestId,
+            400
         );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("checklist_staging_mv400.unhandled_error", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }

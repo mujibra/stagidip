@@ -5,6 +5,7 @@ import { serverError, validationError } from "@/lib/http/errorResponse";
 import { hasValidationErrors } from "@/lib/http/validation";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -13,15 +14,26 @@ type CreateCustomerDTO = {
     address?: string | null;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const customers = await prisma.mst_customer.findMany({
-            orderBy: { created_at: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [customers, total] = await Promise.all([
+            prisma.mst_customer.findMany({
+                skip,
+                take,
+                orderBy: { created_at: "desc" },
+            }),
+            prisma.mst_customer.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: customers.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: serializeMany(customers),
         });
     } catch (error) {
