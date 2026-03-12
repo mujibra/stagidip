@@ -18,6 +18,7 @@ const QA_STATUS_SN_MESIN = process.env.QA_STATUS_SN_MESIN;
 const QA_STATUS_ID_CUSTOMER = process.env.QA_STATUS_ID_CUSTOMER;
 const QA_STATUS_WAREHOUSE = process.env.QA_STATUS_WAREHOUSE;
 const QA_STATUS_TGL_TIBA = process.env.QA_STATUS_TGL_TIBA;
+const QA_STATUS_HEADER_ID = process.env.QA_STATUS_HEADER_ID;
 
 const report = {
   baseUrl: BASE_URL,
@@ -126,6 +127,10 @@ async function runPreStagingMv400Checks(cookie) {
   } else {
     warn("QA_MV400_CLASSIF_ID not provided; skipping MV400 classif-level chain assertion.");
   }
+
+  const v2SpekPath = `/api/checklistStagingMv400/v2/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}/spek`;
+  const v2Spek = await request(v2SpekPath, { headers });
+  assertStatus(v2Spek.res.status, 200, `GET ${v2SpekPath} MV400 chain`);
 }
 
 async function runStatusDeliveryChainChecks(cookie) {
@@ -142,6 +147,14 @@ async function runStatusDeliveryChainChecks(cookie) {
   const path = `/api/get-status-delivery/${QA_STATUS_ID_PO}/${encodeURIComponent(QA_STATUS_SN_MESIN)}/${QA_STATUS_ID_CUSTOMER}/${QA_STATUS_WAREHOUSE}/${QA_STATUS_TGL_TIBA}`;
   const result = await request(path, { headers });
   assertStatus(result.res.status, 200, `GET ${path} status-delivery chain`);
+
+  if (QA_STATUS_HEADER_ID) {
+    const detailPath = `/api/statusDeliveryDetail/${QA_STATUS_HEADER_ID}`;
+    const detail = await request(detailPath, { headers });
+    assertStatus(detail.res.status, 200, `GET ${detailPath} status-delivery chain`);
+  } else {
+    warn("QA_STATUS_HEADER_ID not provided; skipping statusDeliveryDetail chain assertion.");
+  }
 }
 
 async function runCriticalChainChecks(cookie) {
