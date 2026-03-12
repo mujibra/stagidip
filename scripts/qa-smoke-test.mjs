@@ -13,6 +13,11 @@ const QA_APPROVAL_TYPE = process.env.QA_APPROVAL_TYPE ?? "CHECKLIST";
 const QA_MV400_PO_ID = process.env.QA_MV400_PO_ID;
 const QA_MV400_MESIN_ID = process.env.QA_MV400_MESIN_ID;
 const QA_MV400_CLASSIF_ID = process.env.QA_MV400_CLASSIF_ID;
+const QA_STATUS_ID_PO = process.env.QA_STATUS_ID_PO;
+const QA_STATUS_SN_MESIN = process.env.QA_STATUS_SN_MESIN;
+const QA_STATUS_ID_CUSTOMER = process.env.QA_STATUS_ID_CUSTOMER;
+const QA_STATUS_WAREHOUSE = process.env.QA_STATUS_WAREHOUSE;
+const QA_STATUS_TGL_TIBA = process.env.QA_STATUS_TGL_TIBA;
 
 const report = {
   baseUrl: BASE_URL,
@@ -121,6 +126,22 @@ async function runPreStagingMv400Checks(cookie) {
   } else {
     warn("QA_MV400_CLASSIF_ID not provided; skipping MV400 classif-level chain assertion.");
   }
+}
+
+async function runStatusDeliveryChainChecks(cookie) {
+  const hasRequired = Boolean(
+    QA_STATUS_ID_PO && QA_STATUS_SN_MESIN && QA_STATUS_ID_CUSTOMER && QA_STATUS_WAREHOUSE && QA_STATUS_TGL_TIBA
+  );
+
+  if (!hasRequired) {
+    warn("QA_STATUS_* vars not fully provided; skipping status-delivery chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const path = `/api/get-status-delivery/${QA_STATUS_ID_PO}/${encodeURIComponent(QA_STATUS_SN_MESIN)}/${QA_STATUS_ID_CUSTOMER}/${QA_STATUS_WAREHOUSE}/${QA_STATUS_TGL_TIBA}`;
+  const result = await request(path, { headers });
+  assertStatus(result.res.status, 200, `GET ${path} status-delivery chain`);
 }
 
 async function runCriticalChainChecks(cookie) {
@@ -274,6 +295,7 @@ async function main() {
 
     await runCriticalChainChecks(cookie);
     await runPreStagingMv400Checks(cookie);
+    await runStatusDeliveryChainChecks(cookie);
   } else {
     warn("QA_EMAIL/QA_PASSWORD not provided; skipping authenticated smoke checks.");
   }
