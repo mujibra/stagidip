@@ -6,6 +6,13 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const QA_EMAIL = process.env.QA_EMAIL;
 const QA_PASSWORD = process.env.QA_PASSWORD;
 const QA_SMOKE_REPORT_PATH = process.env.QA_SMOKE_REPORT_PATH;
+const QA_PO_ID = process.env.QA_PO_ID;
+const QA_MESIN_ID = process.env.QA_MESIN_ID;
+const QA_DIVISI_ID = process.env.QA_DIVISI_ID;
+const QA_APPROVAL_TYPE = process.env.QA_APPROVAL_TYPE ?? "CHECKLIST";
+const QA_MV400_PO_ID = process.env.QA_MV400_PO_ID;
+const QA_MV400_MESIN_ID = process.env.QA_MV400_MESIN_ID;
+const QA_MV400_CLASSIF_ID = process.env.QA_MV400_CLASSIF_ID;
 
 const report = {
   baseUrl: BASE_URL,
@@ -92,6 +99,54 @@ function assertPaginationEnvelope(body, label) {
   }
 
   ok(`${label}: pagination envelope is valid`);
+}
+
+async function runPreStagingMv400Checks(cookie) {
+  const hasRequiredIds = Boolean(QA_MV400_PO_ID && QA_MV400_MESIN_ID);
+
+  if (!hasRequiredIds) {
+    warn("QA_MV400_PO_ID/QA_MV400_MESIN_ID not provided; skipping MV400 chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const basePath = `/api/checklistStagingMv400/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}`;
+  const base = await request(basePath, { headers });
+  assertStatus(base.res.status, 200, `GET ${basePath} MV400 chain`);
+
+  if (QA_MV400_CLASSIF_ID) {
+    const classifPath = `/api/checklistStagingMv400/${QA_MV400_PO_ID}/${QA_MV400_MESIN_ID}/${QA_MV400_CLASSIF_ID}`;
+    const classif = await request(classifPath, { headers });
+    assertStatus(classif.res.status, 200, `GET ${classifPath} MV400 chain`);
+  } else {
+    warn("QA_MV400_CLASSIF_ID not provided; skipping MV400 classif-level chain assertion.");
+  }
+}
+
+async function runCriticalChainChecks(cookie) {
+  const hasRequiredIds = Boolean(QA_PO_ID && QA_MESIN_ID);
+
+  if (!hasRequiredIds) {
+    warn("QA_PO_ID/QA_MESIN_ID not provided; skipping critical-chain assertions.");
+    return;
+  }
+
+  const headers = { Cookie: cookie };
+  const checklistPath = `/api/checklistStaging/${QA_PO_ID}/${QA_MESIN_ID}`;
+  const checklist = await request(checklistPath, { headers });
+  assertStatus(checklist.res.status, 200, `GET ${checklistPath} critical chain`);
+
+  if (QA_DIVISI_ID) {
+    const divisiPath = `/api/checklistStaging/${QA_PO_ID}/${QA_MESIN_ID}/${QA_DIVISI_ID}`;
+    const divisi = await request(divisiPath, { headers });
+    assertStatus(divisi.res.status, 200, `GET ${divisiPath} critical chain`);
+  } else {
+    warn("QA_DIVISI_ID not provided; skipping checklist divisi-level chain assertion.");
+  }
+
+  const approvalPath = `/api/checklist-approval/${QA_APPROVAL_TYPE}/${QA_PO_ID}/${QA_MESIN_ID}`;
+  const approval = await request(approvalPath, { headers });
+  assertStatus(approval.res.status, 200, `GET ${approvalPath} critical chain`);
 }
 
 function writeReport() {
@@ -216,6 +271,9 @@ async function main() {
         assertPaginationEnvelope(result.body, `GET ${pathname} pagination contract`);
       }
     }
+
+    await runCriticalChainChecks(cookie);
+    await runPreStagingMv400Checks(cookie);
   } else {
     warn("QA_EMAIL/QA_PASSWORD not provided; skipping authenticated smoke checks.");
   }
