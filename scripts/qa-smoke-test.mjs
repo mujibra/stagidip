@@ -10,6 +10,7 @@ const QA_PO_ID = process.env.QA_PO_ID;
 const QA_MESIN_ID = process.env.QA_MESIN_ID;
 const QA_DIVISI_ID = process.env.QA_DIVISI_ID;
 const QA_APPROVAL_TYPE = process.env.QA_APPROVAL_TYPE ?? "CHECKLIST";
+const QA_APPROVAL_BY_ID = process.env.QA_APPROVAL_BY_ID;
 const QA_MV400_PO_ID = process.env.QA_MV400_PO_ID;
 const QA_MV400_MESIN_ID = process.env.QA_MV400_MESIN_ID;
 const QA_MV400_CLASSIF_ID = process.env.QA_MV400_CLASSIF_ID;
@@ -181,6 +182,20 @@ async function runCriticalChainChecks(cookie) {
   const approvalPath = `/api/checklist-approval/${QA_APPROVAL_TYPE}/${QA_PO_ID}/${QA_MESIN_ID}`;
   const approval = await request(approvalPath, { headers });
   assertStatus(approval.res.status, 200, `GET ${approvalPath} critical chain`);
+
+  if (QA_APPROVAL_BY_ID) {
+    const approvalUpdate = await request(approvalPath, {
+      method: "PUT",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ approval_by: Number(QA_APPROVAL_BY_ID) }),
+    });
+    assertStatus(approvalUpdate.res.status, 200, `PUT ${approvalPath} critical chain mutation`);
+  } else {
+    warn("QA_APPROVAL_BY_ID not provided; skipping checklist-approval mutation assertion.");
+  }
 }
 
 function writeReport() {

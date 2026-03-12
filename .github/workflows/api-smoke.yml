@@ -50,6 +50,7 @@ jobs:
           QA_MESIN_ID: ${{ secrets.QA_MESIN_ID }}
           QA_DIVISI_ID: ${{ secrets.QA_DIVISI_ID }}
           QA_APPROVAL_TYPE: ${{ secrets.QA_APPROVAL_TYPE }}
+          QA_APPROVAL_BY_ID: ${{ secrets.QA_APPROVAL_BY_ID }}
           QA_MV400_PO_ID: ${{ secrets.QA_MV400_PO_ID }}
           QA_MV400_MESIN_ID: ${{ secrets.QA_MV400_MESIN_ID }}
           QA_MV400_CLASSIF_ID: ${{ secrets.QA_MV400_CLASSIF_ID }}
