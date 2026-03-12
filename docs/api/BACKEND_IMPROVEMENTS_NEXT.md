@@ -119,6 +119,8 @@ Completed: observability baseline coverage now includes critical read/write APIs
 Completed in this iteration:
 - Added `docs/api/API_ROUTE_OWNER_MATRIX.md` with route-group ownership and secondary reviewers for auth, PO/checklist chain, status-delivery/warehouse, registration masters, summaries, and CI contract/smoke surfaces.
 - Added explicit operational rules for cross-group changes and contract-sensitive updates.
+- Added `docs/api/API_ENDPOINT_DUPLICATE_AUDIT.md` and completed a runtime-path audit confirming no exact duplicate API URL paths; documented duplicate-like legacy families and DB source trace.
+- Refactored checklist staging families to share DB logic in `lib/services/checklistStagingDb.ts` (`ensureChecklistApprovalRecord`, `updateChecklistTimeTodo`) to remove duplicated handler logic.
 
 Completed: ownership matrix is aligned with `.github/CODEOWNERS` route-group entries and review expectations.
 
