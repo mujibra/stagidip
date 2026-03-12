@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { serverErrorWithRequestId, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { hasValidationErrors, toNumber } from "@/lib/http/validation";
+import { getPagination } from "@/lib/http/pagination";
+import { createApiRequestContext } from "@/lib/http/observability";
 import {
     normalizeCopyFromIdPo,
     normalizeSnMesins,
@@ -14,28 +16,59 @@ import {
 
 export const runtime = "nodejs";
 
-export async function GET() {
-    try {
-        const rows = await prisma.tbl_po.findMany({
-            orderBy: { id: "desc" },
-        });
+function jsonWithRequestId(body: Record<string, unknown>, requestId: string, status = 200) {
+    return NextResponse.json(body, {
+        status,
+        headers: {
+            "X-Request-ID": requestId,
+        },
+    });
+}
 
-        return NextResponse.json({
-            success: true,
-            totalDatas: rows.length,
-            data: toJsonSafe(rows),
-        });
+export async function GET(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.purchaseOrder.GET");
+
+    try {
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [rows, total] = await Promise.all([
+            prisma.tbl_po.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.tbl_po.count(),
+        ]);
+
+        requestContext.done("request.completed", { statusCode: 200, totalDatas: total, page, perPage });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                totalDatas: total,
+                totalPages: Math.ceil(total / perPage),
+                page,
+                perPage,
+                data: toJsonSafe(rows),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("purchase_order.list_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }
 
 export async function POST(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.purchaseOrder.POST");
+
     try {
         const body = await parseBody<PurchaseOrderCreateBody>(req);
         const payloadErrors = validatePurchaseOrderCreatePayload(body);
 
         if (hasValidationErrors(payloadErrors)) {
+            requestContext.warn("purchase_order.validation_failed", { reason: "payload_invalid" });
             return validationError(payloadErrors);
         }
 
@@ -51,6 +84,7 @@ export async function POST(req: NextRequest) {
 
         if (!hasPartMesin || !hasPart) {
             const mstMesin = await prisma.mst_mesin.findFirst({ where: { id: idTypeMesin } });
+            requestContext.warn("purchase_order.validation_failed", { reason: "missing_part_number_registration", idTypeMesin });
             return validationError({
                 id_type_mesin: [`Silahkan untuk melakukan Registrasi Part Number untuk mesin ${mstMesin?.type ?? ""}`],
             });
@@ -71,6 +105,7 @@ export async function POST(req: NextRequest) {
         );
 
         if (existsPair.length === 0) {
+            requestContext.warn("purchase_order.validation_failed", { reason: "invalid_model_type_pair", idTypeMesin, model });
             return validationError({
                 model: ["Staging Registration PO was Error !! Please check Types and Models."],
             });
@@ -101,6 +136,7 @@ export async function POST(req: NextRequest) {
         const partColumns = parts.map((p) => p.part_column).filter((c): c is string => typeof c === "string" && c.length > 0);
 
         if (partColumns.length === 0) {
+            requestContext.warn("purchase_order.validation_failed", { reason: "missing_part_columns", idTypeMesin });
             return validationError({ id_type_mesin: ["No part columns found for this machine"] });
         }
 
@@ -140,12 +176,18 @@ export async function POST(req: NextRequest) {
             await prisma.$executeRawUnsafe(insertSql);
         }
 
-        return NextResponse.json({
-            success: true,
-            message: "Staging Registration PO created successfully",
-            data: toJsonSafe(createdPo),
-        });
+        requestContext.done("request.completed", { statusCode: 200, createdPoId: createdPo.id, jumlah });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                message: "Staging Registration PO created successfully",
+                data: toJsonSafe(createdPo),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("purchase_order.create_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }

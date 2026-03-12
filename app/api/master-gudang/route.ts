@@ -4,6 +4,7 @@ import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { hasValidationErrors } from "@/lib/http/validation";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -11,13 +12,22 @@ type CreateGudangDTO = {
     gudang_desc?: string;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const gudangs = await prisma.mst_gudang.findMany();
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [gudangs, total] = await Promise.all([
+            prisma.mst_gudang.findMany({ skip, take }),
+            prisma.mst_gudang.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: gudangs.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: gudangs.map((g) => ({ ...g, id: String(g.id) })),
         });
     } catch (error) {
