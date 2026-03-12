@@ -53,6 +53,11 @@ jobs:
           QA_MV400_PO_ID: ${{ secrets.QA_MV400_PO_ID }}
           QA_MV400_MESIN_ID: ${{ secrets.QA_MV400_MESIN_ID }}
           QA_MV400_CLASSIF_ID: ${{ secrets.QA_MV400_CLASSIF_ID }}
+          QA_STATUS_ID_PO: ${{ secrets.QA_STATUS_ID_PO }}
+          QA_STATUS_SN_MESIN: ${{ secrets.QA_STATUS_SN_MESIN }}
+          QA_STATUS_ID_CUSTOMER: ${{ secrets.QA_STATUS_ID_CUSTOMER }}
+          QA_STATUS_WAREHOUSE: ${{ secrets.QA_STATUS_WAREHOUSE }}
+          QA_STATUS_TGL_TIBA: ${{ secrets.QA_STATUS_TGL_TIBA }}
         run: npm run qa:smoke
 
       - name: Upload smoke report
