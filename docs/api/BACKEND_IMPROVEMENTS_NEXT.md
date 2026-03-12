@@ -21,7 +21,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 | P1 | Normalize pagination/filter query contracts | Reduces drift between endpoints and frontend query behavior | List endpoints converge on shared query handling (`page`, `perPage`, search/filter defaults) using `lib/http/pagination.ts` or equivalent | _TBD_ | `completed (100%)` |
 | P1 | Add API contract drift gate in CI | Catches docs/runtime mismatch early | PR pipeline runs docs contract checks (`npm run docs:check-contract-drift`) and blocks unreviewed contract drift | _TBD_ | `in-progress (92%)` |
 | P1 | Expand smoke API coverage for critical flows | Increases release confidence across integration paths | `npm run qa:smoke` covers at least one happy-path + one error-path for each critical chain (PO -> checklist -> status delivery; pre-staging -> checklist -> approval) | _TBD_ | `completed (100%)` |
-| P2 | API observability baseline (structured logs + correlation ID) | Faster incident triage and production debugging | Core handlers log request scope + error type with request correlation ID and no sensitive payload leakage | _TBD_ | `in-progress (80%)` |
+| P2 | API observability baseline (structured logs + correlation ID) | Faster incident triage and production debugging | Core handlers log request scope + error type with request correlation ID and no sensitive payload leakage | _TBD_ | `in-progress (90%)` |
 | P2 | Owner/reviewer matrix for API route groups | Removes ambiguity during bug triage and follow-up work | Route groups under `app/api/*` have explicit owner + reviewer list in docs, aligned with migration tracker | _TBD_ | `in-progress (70%)` |
 
 ## Recommended sequence (2-week slice)
@@ -43,7 +43,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 - P1 — Normalize pagination/filter query contracts: **100%**
 - P1 — Add API contract drift gate in CI: **92%**
 - P1 — Expand smoke API coverage for critical flows: **100%**
-- P2 — API observability baseline: **80%**
+- P2 — API observability baseline: **90%**
 - P2 — Owner/reviewer matrix for API route groups: **70%**
 
 ## Continuation plan for active P1 items
@@ -101,16 +101,17 @@ Remaining operational follow-up:
 - Configure stable fixture secrets in CI (`QA_EMAIL`, `QA_PASSWORD`, `QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`, `QA_APPROVAL_BY_ID`, `QA_MV400_PO_ID`, `QA_MV400_MESIN_ID`, `QA_STATUS_ID_PO`, `QA_STATUS_SN_MESIN`, `QA_STATUS_HEADER_ID`) to run full chain assertions on every API PR.
 
 
-### P2 — API observability baseline (structured logs + correlation ID) (**80%**)
+### P2 — API observability baseline (structured logs + correlation ID) (**90%**)
 
 Completed in this iteration:
 - Added shared observability helper (`lib/http/observability.ts`) to generate/propagate request correlation IDs (`x-correlation-id` / `x-request-id`) and emit structured JSON logs with scope, method, pathname, and duration.
 - Applied structured request logging + correlation IDs to critical handlers: `/api/health` and `/api/checklist-approval/{type}/{idPo}/{idMesin}`.
 - Extended observability rollout to additional high-traffic mutable handlers: `/api/purchaseOrder` (GET/POST) and `/api/warehouse-transfer` (GET/POST), including `requestId` in success payloads and `X-Request-ID` headers.
+- Extended observability rollout to status-delivery critical APIs: `/api/statusDelivery` (GET/POST) and `/api/statusDeliveryDetail` (POST), with request-id propagation and structured error logging.
 - Added `serverErrorWithRequestId` helper to return safe 500 envelopes with `requestId` and an `X-Request-ID` header for support/debug traceability.
 
 Next steps to close to 100%:
-- Roll out observability helper to remaining high-traffic mutable handlers (`statusDelivery` and follow-on mutation routes).
+- Roll out observability helper to remaining high-traffic mutation routes in checklist/pre-staging chains and legacy summary mutation surfaces.
 - Add a lightweight log schema contract test (required keys: `timestamp`, `level`, `event`, `requestId`, `scope`).
 
 ### P2 — Owner/reviewer matrix for API route groups (**70%**)
