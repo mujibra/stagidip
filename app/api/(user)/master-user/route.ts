@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
         ]);
 
         if (!users.length) {
-            return NextResponse.json({ success: true, totalDatas: total, page, perPage, data: [] });
+            return NextResponse.json({ success: true, totalDatas: total, totalPages: Math.ceil(total / perPage), page, perPage, data: [] });
         }
 
         const customerIds = Array.from(
@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
             page,
             perPage,
             data: toJsonSafe(data),
