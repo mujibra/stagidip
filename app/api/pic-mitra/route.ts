@@ -4,16 +4,26 @@ import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { hasValidationErrors } from "@/lib/http/validation";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const list = await prisma.pic_mitra.findMany({ orderBy: { created_at: "desc" } });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [list, total] = await Promise.all([
+            prisma.pic_mitra.findMany({ skip, take, orderBy: { created_at: "desc" } }),
+            prisma.pic_mitra.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: list.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: list.map((x) => ({ ...x, id: String(x.id) })),
         });
     } catch (error) {

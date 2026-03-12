@@ -39,6 +39,9 @@ type ApiResponse<T> = {
   message?: string;
   data?: T;
   datas?: T;
+  totalPages?: number;
+  page?: number;
+  perPage?: number;
   errors?: Record<string, string[]>;
   type?: string;
 };
@@ -48,6 +51,21 @@ type CrudRow = Record<string, unknown>;
 const DEFAULT_MESSAGE_TIMEOUT = 3000;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
+
+function withPaginationQuery(url: string, page: number, perPage: number) {
+  const [pathPart, hashPart] = url.split("#");
+  const [basePath, queryString] = pathPart.split("?");
+  const params = new URLSearchParams(queryString ?? "");
+  params.set("page", String(page));
+  params.set("perPage", String(perPage));
+  const next = params.toString();
+  return `${basePath}${next ? `?${next}` : ""}${hashPart ? `#${hashPart}` : ""}`;
+}
+
+function extractRows(result: ApiResponse<CrudRow[]>, dataKey?: string) {
+  const raw = (dataKey ? (result as Record<string, unknown>)[dataKey] : undefined) ?? result.data ?? result.datas ?? [];
+  return Array.isArray(raw) ? raw : [];
+}
 
 function isDateField(field: CrudField) {
   if (field.type === "datetime") return true;
@@ -328,18 +346,42 @@ export default function CrudPage({
   const loadItems = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(listEndpoint ?? endpoint);
-      const result: ApiResponse<CrudRow[]> = await response.json();
-      if (!response.ok || !result.success) {
-        notify("error", result.message ?? "Failed to load data.");
+      const baseEndpoint = listEndpoint ?? endpoint;
+      const firstResponse = await fetch(withPaginationQuery(baseEndpoint, 1, 100));
+      const firstResult: ApiResponse<CrudRow[]> = await firstResponse.json();
+
+      if (!firstResponse.ok || !firstResult.success) {
+        notify("error", firstResult.message ?? "Failed to load data.");
         setItems([]);
         return;
       }
-      const data = (dataKey ? (result as Record<string, unknown>)[dataKey] : undefined) ?? result.data ?? result.datas ?? [];
-      setItems(Array.isArray(data) ? data : []);
+
+      const firstPageRows = extractRows(firstResult, dataKey);
+      const totalPages = Number.isFinite(firstResult.totalPages) ? Number(firstResult.totalPages) : 1;
+
+      if (totalPages <= 1) {
+        setItems(firstPageRows);
+        return;
+      }
+
+      const pagesToFetch = Math.min(totalPages, 20);
+      const restPageRequests = Array.from({ length: pagesToFetch - 1 }, (_, i) =>
+        fetch(withPaginationQuery(baseEndpoint, i + 2, 100)).then(async (res) => {
+          const payload = (await res.json()) as ApiResponse<CrudRow[]>;
+          if (!res.ok || !payload.success) {
+            throw new Error(payload.message ?? `Failed to load page ${i + 2}`);
+          }
+          return extractRows(payload, dataKey);
+        })
+      );
+
+      const restRows = await Promise.all(restPageRequests);
+      const merged = firstPageRows.concat(...restRows);
+
+      setItems(merged);
     } catch {
-      console.log("???");
       notify("error", "Failed to load data.");
+      setItems([]);
     } finally {
       setLoading(false);
     }
