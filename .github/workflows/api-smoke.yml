@@ -58,6 +58,7 @@ jobs:
           QA_STATUS_ID_CUSTOMER: ${{ secrets.QA_STATUS_ID_CUSTOMER }}
           QA_STATUS_WAREHOUSE: ${{ secrets.QA_STATUS_WAREHOUSE }}
           QA_STATUS_TGL_TIBA: ${{ secrets.QA_STATUS_TGL_TIBA }}
+          QA_STATUS_HEADER_ID: ${{ secrets.QA_STATUS_HEADER_ID }}
         run: npm run qa:smoke
 
       - name: Upload smoke report
