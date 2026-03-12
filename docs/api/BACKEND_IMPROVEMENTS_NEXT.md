@@ -20,7 +20,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 | P0 | Enforce request payload validation on mutable endpoints | Prevents invalid writes and inconsistent DB state | POST/PUT/PATCH endpoints for core modules (PO, status-delivery, warehouse-transfer, registration, staging) validate required fields/types and return deterministic 4xx payloads | _TBD_ | `completed (100%)` |
 | P1 | Normalize pagination/filter query contracts | Reduces drift between endpoints and frontend query behavior | List endpoints converge on shared query handling (`page`, `perPage`, search/filter defaults) using `lib/http/pagination.ts` or equivalent | _TBD_ | `completed (100%)` |
 | P1 | Add API contract drift gate in CI | Catches docs/runtime mismatch early | PR pipeline runs docs contract checks (`npm run docs:check-contract-drift`) and blocks unreviewed contract drift | _TBD_ | `in-progress (74%)` |
-| P1 | Expand smoke API coverage for critical flows | Increases release confidence across integration paths | `npm run qa:smoke` covers at least one happy-path + one error-path for each critical chain (PO -> checklist -> status delivery; pre-staging -> checklist -> approval) | _TBD_ | `in-progress (72%)` |
+| P1 | Expand smoke API coverage for critical flows | Increases release confidence across integration paths | `npm run qa:smoke` covers at least one happy-path + one error-path for each critical chain (PO -> checklist -> status delivery; pre-staging -> checklist -> approval) | _TBD_ | `in-progress (84%)` |
 | P2 | API observability baseline (structured logs + correlation ID) | Faster incident triage and production debugging | Core handlers log request scope + error type with request correlation ID and no sensitive payload leakage | _TBD_ | `not-started` |
 | P2 | Owner/reviewer matrix for API route groups | Removes ambiguity during bug triage and follow-up work | Route groups under `app/api/*` have explicit owner + reviewer list in docs, aligned with migration tracker | _TBD_ | `not-started` |
 
@@ -42,7 +42,7 @@ Harden API reliability and contract consistency so migration readiness is backed
 - P0 — Enforce request payload validation on mutable endpoints: **100%**
 - P1 — Normalize pagination/filter query contracts: **100%**
 - P1 — Add API contract drift gate in CI: **74%**
-- P1 — Expand smoke API coverage for critical flows: **72%**
+- P1 — Expand smoke API coverage for critical flows: **84%**
 - P2 — API observability baseline: **0%**
 - P2 — Owner/reviewer matrix for API route groups: **0%**
 
@@ -77,7 +77,7 @@ Next steps to close to 100%:
 - Add branch protection requiring this workflow status.
 - Add CODEOWNERS review requirement for `docs/api/openapi.yaml`.
 
-### P1 — Expand smoke API coverage for critical flows (**72%**)
+### P1 — Expand smoke API coverage for critical flows (**84%**)
 
 Completed in this iteration:
 - Extended `qa:smoke` with an explicit error-path check (`POST /api/login` without credentials => 400 + `VALIDATION_ERROR`).
@@ -85,11 +85,12 @@ Completed in this iteration:
 - Updated health assertion to accept `status: ok|degraded` for realistic environments.
 - Added paginated response-shape contract checks in `qa:smoke` for authenticated critical list endpoints (`purchaseOrder`, `warehouse-transfer`, `master-part`, `master-user`).
 - Added optional machine-readable smoke report output via `QA_SMOKE_REPORT_PATH` for CI artifact/trend consumption.
+- Added optional env-driven critical chain assertions in `qa:smoke` for checklist and approval flow endpoints (`QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`, `QA_APPROVAL_TYPE`).
+- Wired `api-smoke` workflow to pass optional QA secrets to smoke checks so authenticated/fixture chain assertions can run in CI when configured.
 
 Next steps to close to 100%:
-- Continue expanding authenticated chain assertions with fixture data for:
-  - PO -> checklist -> status delivery
-  - pre-staging -> checklist -> approval
+- Configure stable fixture secrets in CI (`QA_EMAIL`, `QA_PASSWORD`, `QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`) to run full chain assertions on every API PR.
+- Add one additional pre-staging chain assertion endpoint once fixture coverage is available.
 
 ## Checks to run per backend PR
 
