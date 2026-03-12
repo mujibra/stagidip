@@ -1,0 +1,7 @@
+# Default reviewer ownership (replace placeholder handle with your org/team handle)
+* @backend-maintainers
+
+# API contract surfaces require backend review
+/docs/api/openapi.yaml @backend-maintainers
+/scripts/check-openapi-contract-drift.mjs @backend-maintainers
+/app/api/ @backend-maintainers
