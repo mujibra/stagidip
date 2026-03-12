@@ -122,6 +122,60 @@ Next steps to close to 100%:
 - Replace placeholder GitHub handles with actual org/team handles and validate with repository admins.
 - Align the matrix with `.github/CODEOWNERS` and branch protection required-review settings.
 
+## Continuation plan for active P1 items
+
+### P1 — Normalize pagination/filter query contracts (**100%**)
+
+- Completed in this iteration:
+  - Implemented working `page/perPage` pagination metadata (`totalPages`, `page`, `perPage`) for `/api/master-spesifikasi-mesin`.
+  - Added pagination support for `/api/master-spesifikasi-mesin/grouped` and `/api/master-spesifikasi-mesin/by-item/{item}` to keep contracts consistent.
+  - Added normalized pagination metadata to `/api/master-part` list endpoint (`totalPages`, `page`, `perPage`).
+  - Added normalized pagination metadata to `/api/purchaseOrder` list endpoint (`totalPages`, `page`, `perPage`) with DB-level paging (`skip/take`).
+  - Added normalized pagination metadata to `/api/warehouse-transfer` list endpoint (`totalPages`, `page`, `perPage`) with DB-level paging (`skip/take`).
+  - Added dedicated unit tests for pagination parsing and fallback behavior in `lib/http/pagination.test.ts` and included it in `qa:backend-hardening`.
+  - Added pagination metadata parity for `/api/(user)/master-user` by including `totalPages` in both empty and populated responses.
+  - Added pagination metadata parity for `/api/(picMover)/picMover/[id]` by returning `totalDatas` from full-count and including `totalPages`, `page`, and `perPage`.
+  - Added pagination metadata parity for `/api/master-style`, `/api/pic-mitra`, `/api/brand`, `/api/master-customer`, and `/api/master-gudang` list endpoints.
+
+- Completed: shared defaults and bounds for `page/perPage` are now applied across prioritized high-traffic list endpoints with normalized pagination metadata.
+- Remaining hardening follow-up: add one response-shape contract check in smoke/API tests for paginated endpoints to prevent regression.
+
+### P1 — Add API contract drift gate in CI (**92%**)
+
+Completed in this iteration:
+- Added `scripts/check-openapi-contract-drift.mjs` to auto-generate examples and fail if `docs/api/openapi.yaml` would drift.
+- Added npm script: `docs:check-contract-drift`.
+- Added GitHub Actions workflow `.github/workflows/api-contract-drift.yml` to run the drift gate on API/docs/schema PR changes.
+- Added `docs:check-contract-drift` execution to `qa:backend-hardening` so local/CI hardening gate also enforces contract sync.
+- Added GitHub Actions workflow `.github/workflows/api-smoke.yml` to run smoke checks on API-related PRs and publish smoke JSON/log artifacts.
+- Added `.github/CODEOWNERS` ownership coverage for `docs/api/openapi.yaml`, drift script, and API routes to support required-review governance.
+
+Next steps to close to 100%:
+- Add branch protection requiring `API Contract Drift` and `API Smoke` workflow statuses.
+- Replace placeholder CODEOWNERS handle with the actual GitHub team handle and enforce required review in branch protection.
+- Mark `Add API contract drift gate in CI` as 100% after org-level branch rule activation is verified.
+
+### P1 — Expand smoke API coverage for critical flows (**100%**)
+
+Completed in this iteration:
+- Extended `qa:smoke` with an explicit error-path check (`POST /api/login` without credentials => 400 + `VALIDATION_ERROR`).
+- Expanded protected API coverage to include `/api/checklistStaging` in unauthenticated and authenticated checks.
+- Updated health assertion to accept `status: ok|degraded` for realistic environments.
+- Added paginated response-shape contract checks in `qa:smoke` for authenticated critical list endpoints (`purchaseOrder`, `warehouse-transfer`, `master-part`, `master-user`).
+- Added optional machine-readable smoke report output via `QA_SMOKE_REPORT_PATH` for CI artifact/trend consumption.
+- Added optional env-driven critical chain assertions in `qa:smoke` for checklist and approval flow endpoints (`QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`, `QA_APPROVAL_TYPE`).
+- Wired `api-smoke` workflow to pass optional QA secrets to smoke checks so authenticated/fixture chain assertions can run in CI when configured.
+- Added optional MV400/pre-staging chain assertions in `qa:smoke` (`QA_MV400_PO_ID`, `QA_MV400_MESIN_ID`, `QA_MV400_CLASSIF_ID`).
+- Added optional status-delivery chain assertions in `qa:smoke` (`QA_STATUS_ID_PO`, `QA_STATUS_SN_MESIN`, `QA_STATUS_ID_CUSTOMER`, `QA_STATUS_WAREHOUSE`, `QA_STATUS_TGL_TIBA`).
+- Updated `api-smoke` workflow to pass optional status-delivery fixture secrets into smoke execution.
+- Added MV400 v2 spek chain assertions and optional `statusDeliveryDetail` chain assertion (`QA_STATUS_HEADER_ID`) to increase read-chain parity.
+- Added optional mutation-path smoke assertion for checklist approval update (`PUT /api/checklist-approval/{type}/{idPo}/{idMesin}`) controlled via `QA_APPROVAL_BY_ID`.
+
+Completed: smoke now covers happy-path + error-path checks for the prioritized critical chains, including an optional mutation-path assertion.
+
+Remaining operational follow-up:
+- Configure stable fixture secrets in CI (`QA_EMAIL`, `QA_PASSWORD`, `QA_PO_ID`, `QA_MESIN_ID`, `QA_DIVISI_ID`, `QA_APPROVAL_BY_ID`, `QA_MV400_PO_ID`, `QA_MV400_MESIN_ID`, `QA_STATUS_ID_PO`, `QA_STATUS_SN_MESIN`, `QA_STATUS_HEADER_ID`) to run full chain assertions on every API PR.
+
 ## Checks to run per backend PR
 
 ```bash
