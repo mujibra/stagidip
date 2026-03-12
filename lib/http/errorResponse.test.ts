@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { badRequestError, notFoundError, validationError } from "@/lib/http/errorResponse";
+import { badRequestError, notFoundError, serverErrorWithRequestId, validationError } from "@/lib/http/errorResponse";
 
 test("validationError returns typed 400 envelope", async () => {
     const response = validationError({ id: ["id tidak valid"] });
@@ -33,4 +33,17 @@ test("notFoundError returns typed 404 envelope", async () => {
     assert.equal(body.type, "NOT_FOUND");
     assert.equal(body.message, "not found");
     assert.deepEqual(body.data, []);
+});
+
+
+test("serverErrorWithRequestId returns typed 500 envelope with request id", async () => {
+    const response = serverErrorWithRequestId("req-123");
+    assert.equal(response.status, 500);
+    assert.equal(response.headers.get("x-request-id"), "req-123");
+
+    const body = await response.json();
+    assert.equal(body.success, false);
+    assert.equal(body.type, "SERVER_ERROR");
+    assert.equal(body.message, "Internal server error");
+    assert.equal(body.requestId, "req-123");
 });
