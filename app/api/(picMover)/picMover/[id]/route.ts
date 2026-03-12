@@ -21,17 +21,23 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
             return validationError({ rowPerPage: ["Row per page wajib diisi"] });
         }
 
-        const { skip, take } = getPagination(req.nextUrl.searchParams, { perPageOverride: rowPerPage });
+        const { skip, take, page, perPage } = getPagination(req.nextUrl.searchParams, { perPageOverride: rowPerPage });
 
-        const data = await prisma.pic_mover.findMany({
-            skip,
-            take,
-            orderBy: { id: "desc" },
-        });
+        const [data, total] = await Promise.all([
+            prisma.pic_mover.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.pic_mover.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: data.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: toJsonSafe(data),
         });
     } catch (error) {
