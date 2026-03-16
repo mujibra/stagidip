@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { ensureChecklistApprovalRecord, updateChecklistTimeTodo } from "@/lib/services/checklistStagingDb";
 import { parseBody } from "@/lib/parseBody";
 import { serverErrorWithRequestId } from "@/lib/http/errorResponse";
 import { createApiRequestContext } from "@/lib/http/observability";
@@ -59,22 +60,11 @@ export async function POST(req: NextRequest) {
         }
 
         const first = dataChecklist[0] as ChecklistItem;
-        const approvalExists = await prisma.transaksi_checklist_stag_approval.count({
-            where: {
-                id_po: Number(first.id_po ?? 0),
-                no_mesin: Number(first.no_mesin ?? 0),
-            },
+        await ensureChecklistApprovalRecord({
+            idPo: Number(first.id_po ?? 0),
+            noMesin: Number(first.no_mesin ?? 0),
+            snMesin: String(first.sn_mesin ?? ""),
         });
-
-        if (approvalExists < 1) {
-            await prisma.transaksi_checklist_stag_approval.create({
-                data: {
-                    id_po: Number(first.id_po ?? 0),
-                    no_mesin: Number(first.no_mesin ?? 0),
-                    sn_mesin: String(first.sn_mesin ?? ""),
-                },
-            });
-        }
 
         const created = [] as unknown[];
 
@@ -101,10 +91,7 @@ export async function POST(req: NextRequest) {
 
                 created.push(inserted);
 
-                if (idPo && idMesin && timeTodo) {
-                    const sql = `update crt_${idPo} set TIME_CHECKLIST = ? where id = ?`;
-                    await prisma.$executeRawUnsafe(sql, timeTodo, idMesin);
-                }
+                await updateChecklistTimeTodo({ idPo, idMesin, timeTodo });
             } catch (error) {
                 await prisma.transaksi_checklist_stag_mv400.deleteMany({
                     where: {

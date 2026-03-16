@@ -18,3 +18,4 @@
 # API docs/process tracking
 /docs/api/API_ROUTE_OWNER_MATRIX.md @backend-maintainers @qa-maintainers
 /docs/api/BACKEND_IMPROVEMENTS_NEXT.md @backend-maintainers @qa-maintainers
+/docs/api/API_ENDPOINT_DUPLICATE_AUDIT.md @backend-maintainers @qa-maintainers
