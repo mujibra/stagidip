@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-        const { skip, take } = getPagination(searchParams);
+        const { skip, take, page, perPage } = getPagination(searchParams);
 
         const [data, total] = await Promise.all([
             prisma.mst_spesifikasi_mesin.findMany({
@@ -32,6 +32,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: safeData,
         });
     } catch (error) {

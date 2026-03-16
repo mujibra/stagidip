@@ -45,3 +45,16 @@ export function serverError(error: unknown) {
         { status: 500 }
     );
 }
+
+
+export function serverErrorWithRequestId(requestId: string) {
+    return NextResponse.json(
+        {
+            success: false,
+            type: "SERVER_ERROR",
+            message: "Internal server error",
+            requestId,
+        },
+        { status: 500, headers: { "X-Request-ID": requestId } }
+    );
+}
