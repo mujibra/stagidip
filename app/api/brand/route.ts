@@ -4,18 +4,30 @@ import { badRequestError, serverError, validationError } from "@/lib/http/errorR
 import { hasValidationErrors } from "@/lib/http/validation";
 import { validateRequiredName } from "@/lib/http/masterDataValidation";
 import { serializeId, serializeMany } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const brands = await prisma.brand.findMany({
-            orderBy: { created_at: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [brands, total] = await Promise.all([
+            prisma.brand.findMany({
+                skip,
+                take,
+                orderBy: { created_at: "desc" },
+            }),
+            prisma.brand.count(),
+        ]);
 
         return NextResponse.json({
             success: true,
-            totalDatas: brands.length,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
             data: serializeMany(brands),
         });
     } catch (error) {

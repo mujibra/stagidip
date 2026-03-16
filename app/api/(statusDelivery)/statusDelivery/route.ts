@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { serverErrorWithRequestId, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
+import { createApiRequestContext } from "@/lib/http/observability";
 import { hasValidationErrors, toDate, toNumber } from "@/lib/http/validation";
 import {
     normalizeNullableText,
@@ -15,10 +16,21 @@ import {
 
 export const runtime = "nodejs";
 
+function jsonWithRequestId(body: Record<string, unknown>, requestId: string, status = 200) {
+    return NextResponse.json(body, {
+        status,
+        headers: {
+            "X-Request-ID": requestId,
+        },
+    });
+}
+
 export async function GET(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.statusDelivery.GET");
+
     try {
         const { searchParams } = new URL(req.url);
-        const { skip, take } = getPagination(searchParams);
+        const { skip, take, page, perPage } = getPagination(searchParams);
 
         const [rows, total] = await Promise.all([
             prisma.transaksi_status_delivery.findMany({
@@ -29,22 +41,34 @@ export async function GET(req: NextRequest) {
             prisma.transaksi_status_delivery.count(),
         ]);
 
-        return NextResponse.json({
-            success: true,
-            totalDatas: total,
-            data: toJsonSafe(rows),
-        });
+        requestContext.done("request.completed", { statusCode: 200, totalDatas: total, page, perPage });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                totalDatas: total,
+                totalPages: Math.ceil(total / perPage),
+                page,
+                perPage,
+                data: toJsonSafe(rows),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("status_delivery.list_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }
 
 export async function POST(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.statusDelivery.POST");
+
     try {
         const body = await parseBody<StatusDeliveryBody>(req);
         const errors = validateStatusDeliveryPayload(body);
 
         if (hasValidationErrors(errors)) {
+            requestContext.warn("status_delivery.validation_failed", { reason: "payload_invalid" });
             return validationError(errors);
         }
 
@@ -57,6 +81,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (exists) {
+            requestContext.warn("status_delivery.validation_failed", { reason: "duplicate_sn", idPo, snMesin });
             return validationError({
                 sn_mesin: [`Transaksi Status Delivery dengan SN Number ${snMesin} sudah ada.`],
             });
@@ -73,12 +98,18 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Transaksi Status Delivery created successfully.",
-            data: toJsonSafe(created),
-        });
+        requestContext.done("request.completed", { statusCode: 200, createdStatusDeliveryId: created.id });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                message: "Transaksi Status Delivery created successfully.",
+                data: toJsonSafe(created),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("status_delivery.create_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }

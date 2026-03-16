@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { serverErrorWithRequestId, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
+import { createApiRequestContext } from "@/lib/http/observability";
 import {
     hasValidationErrors,
     mergeValidationBags,
@@ -17,11 +19,30 @@ import {
 
 export const runtime = "nodejs";
 
-export async function GET() {
+function jsonWithRequestId(body: Record<string, unknown>, requestId: string, status = 200) {
+    return NextResponse.json(body, {
+        status,
+        headers: {
+            "X-Request-ID": requestId,
+        },
+    });
+}
+
+export async function GET(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.warehouseTransfer.GET");
+
     try {
-        const transfers = await prisma.warehouse_transfer.findMany({
-            orderBy: { id: "desc" },
-        });
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [transfers, total] = await Promise.all([
+            prisma.warehouse_transfer.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.warehouse_transfer.count(),
+        ]);
 
         const poIds = Array.from(new Set(transfers.map((item) => item.id_po).filter((id): id is number => typeof id === "number")));
         const customerIds = Array.from(
@@ -87,17 +108,28 @@ export async function GET() {
             };
         });
 
-        return NextResponse.json({
-            success: true,
-            totalDatas: data.length,
-            data: toJsonSafe(data),
-        });
+        requestContext.done("request.completed", { statusCode: 200, totalDatas: total, page, perPage });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                totalDatas: total,
+                totalPages: Math.ceil(total / perPage),
+                page,
+                perPage,
+                data: toJsonSafe(data),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("warehouse_transfer.list_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }
 
 export async function POST(req: NextRequest) {
+    const requestContext = createApiRequestContext(req, "api.warehouseTransfer.POST");
+
     try {
         const body = await parseBody<WarehouseTransferBody>(req);
         const idPo = toNumber(body.id_po);
@@ -111,15 +143,18 @@ export async function POST(req: NextRequest) {
         );
 
         if (hasValidationErrors(errors)) {
+            requestContext.warn("warehouse_transfer.validation_failed", { reason: "payload_invalid" });
             return validationError(errors);
         }
 
         const purchaseOrder = await prisma.tbl_po.findUnique({ where: { id: idPo! } });
         if (!purchaseOrder) {
+            requestContext.warn("warehouse_transfer.validation_failed", { reason: "po_not_found", idPo });
             return validationError({ id_po: ["Data PO tidak ditemukan"] });
         }
 
         if (jumlah! > purchaseOrder.jumlah) {
+            requestContext.warn("warehouse_transfer.validation_failed", { reason: "jumlah_exceeds_po", idPo, jumlah });
             return validationError({
                 jumlah: ["Transfer jumlah mesin tidak boleh melebihi total mesin di gudang"],
             });
@@ -140,12 +175,18 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Transfer Warehouse created successfully.",
-            data: toJsonSafe(created),
-        });
+        requestContext.done("request.completed", { statusCode: 200, createdWarehouseTransferId: created.id });
+        return jsonWithRequestId(
+            {
+                success: true,
+                requestId: requestContext.requestId,
+                message: "Transfer Warehouse created successfully.",
+                data: toJsonSafe(created),
+            },
+            requestContext.requestId
+        );
     } catch (error) {
-        return serverError(error);
+        requestContext.error("warehouse_transfer.create_failed", error);
+        return serverErrorWithRequestId(requestContext.requestId);
     }
 }
