@@ -17,6 +17,7 @@ The codebase still contains endpoint families that are semantically related (leg
 - checklist staging family (`/api/checklistStaging*`, `/api/checklistStagingMv400*`)
 - status delivery family (`/api/statusDelivery*`, `/api/get-status-delivery/*`)
 - warehouse transfer family (`/api/warehouse-transfer*`, `/api/get-warehouse-transfer/*`)
+- setting pre-staging id family (`/api/settingPreStaging/[id]` and `/api/settingPreStaging/id/[id]`)
 
 These are not exact URL duplicates, but they can overlap in domain behavior.
 
@@ -50,6 +51,9 @@ Refactored routes:
   - dynamic `crt_{id_po}`
 
 - Shared source map now centralized in `lib/services/checklistStagingDb.ts` comments and helper calls.
+
+
+- Additional cleanup: extracted shared implementation for `/api/settingPreStaging/[id]` and `/api/settingPreStaging/id/[id]` into `app/api/(settingPreStaging)/settingPreStaging/_idRouteShared.ts` to remove duplicated route logic while preserving compatibility aliases.
 
 ## Next recommended cleanup
 
