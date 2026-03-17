@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { serverError, validationError } from "@/lib/http/errorResponse";
+import { notFoundError, serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
 import { getPagination } from "@/lib/http/pagination";
 import { hasValidationErrors, validatePositiveId } from "@/lib/http/validation";
@@ -21,9 +21,7 @@ async function enrichStatusDeliveries(records: Array<Record<string, unknown>>) {
     const poIds = Array.from(new Set(records.map((row) => row.id_po).filter((id): id is number => Boolean(id))));
 
     const purchaseOrders = poIds.length ? await prisma.tbl_po.findMany({ where: { id: { in: poIds } } }) : [];
-    const poMasterIds = Array.from(
-        new Set(purchaseOrders.map((po) => po.id_po_master).filter((id): id is number => Boolean(id)))
-    );
+    const poMasterIds = Array.from(new Set(purchaseOrders.map((po) => po.id_po_master).filter((id): id is number => Boolean(id))));
     const [masterPos, customers, gudangs] = await Promise.all([
         poMasterIds.length ? prisma.mst_po.findMany({ where: { id: { in: poMasterIds } } }) : [],
         purchaseOrders.length
@@ -65,9 +63,9 @@ async function enrichStatusDeliveries(records: Array<Record<string, unknown>>) {
         const detailPo = po
             ? {
                   ...po,
-                  po_master: po.id_po_master ? masterPoMap.get(po.id_po_master) ?? null : null,
-                  customer: po.customer ? customerMap.get(po.customer) ?? null : null,
-                  gudang: po.nama_gudang ? gudangMap.get(po.nama_gudang) ?? null : null,
+                  po_master: po.id_po_master ? (masterPoMap.get(po.id_po_master) ?? null) : null,
+                  customer: po.customer ? (customerMap.get(po.customer) ?? null) : null,
+                  gudang: po.nama_gudang ? (gudangMap.get(po.nama_gudang) ?? null) : null,
               }
             : null;
 
@@ -97,6 +95,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage:
         const searchTerm = searchTermRaw ? formatDateSearch(searchTermRaw) : null;
 
         const user = await prisma.users.findUnique({ where: { id: BigInt(params.user_login) } });
+        if (!user) return notFoundError("User tidak ditemukan");
+
         const isGuest = user?.roles === "GUEST_BANK";
 
         let allowedPoIds: number[] | null = null;
@@ -127,12 +127,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ rowPerPage:
             data = data.filter((row) => {
                 const sn = String(row.detailPo?.sn_mesins ?? "").toLowerCase();
                 const noPo = String(row.detailPo?.no_po ?? "").toLowerCase();
-                const updatedAt = (row as { tgl_keluar?: Date | null }).tgl_keluar
-                    ? String((row as { tgl_keluar?: Date | null }).tgl_keluar).toLowerCase()
-                    : "";
-                const receivedAt = (row as { tgl_received?: Date | null }).tgl_received
-                    ? String((row as { tgl_received?: Date | null }).tgl_received).toLowerCase()
-                    : "";
+                const updatedAt = (row as { tgl_keluar?: Date | null }).tgl_keluar ? String((row as { tgl_keluar?: Date | null }).tgl_keluar).toLowerCase() : "";
+                const receivedAt = (row as { tgl_received?: Date | null }).tgl_received ? String((row as { tgl_received?: Date | null }).tgl_received).toLowerCase() : "";
 
                 return sn.includes(termLower) || noPo.includes(termLower) || updatedAt.includes(termLower) || receivedAt.includes(termLower);
             });

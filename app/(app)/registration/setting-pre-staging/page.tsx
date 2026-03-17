@@ -6,7 +6,7 @@ export default function Page() {
       title="Setting Pre-Staging"
       subtitle="Configure pre-staging settings."
       endpoint="/api/settingPreStaging"
-      listEndpoint="/api/settingPreStaging/10?page=1"
+      listEndpoint="/api/settingPreStaging?page=1"
       fields={[
         { key: "types", label: "Type" },
         { key: "description", label: "Description", type: "textarea" },

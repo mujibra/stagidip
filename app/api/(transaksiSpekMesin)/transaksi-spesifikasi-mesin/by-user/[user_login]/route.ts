@@ -69,7 +69,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ user_login: st
 
         const enriched = await Promise.all(
             rows.map(async (r) => {
-                const [detailPo, model, mesin, customer, picStaging, picTss] = await Promise.all([
+                const [detailPo, model, mesin, customer, picStaging, picTss, details] = await Promise.all([
                     r.id_po ? prisma.tbl_po.findFirst({ where: { id: r.id_po } }) : Promise.resolve(null),
                     prisma.models.findFirst({ where: { id: r.model } }),
                     prisma.mst_mesin.findFirst({ where: { id: r.id_type_mesin } }),
@@ -102,6 +102,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ user_login: st
                               },
                           })
                         : Promise.resolve(null),
+                    prisma.transaksi_spesifikasi_mesin_dtl.findFirst({ where: { id_spek_mesin_hdr: r.id } }),
                 ]);
 
                 // Laravel mutates fields: sn_mesins decoded, attach relations, unset id_po/id_type_mesin.
@@ -119,6 +120,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ user_login: st
                     updated_at: r.updated_at,
                     detail_po: detailPo,
                     mesin,
+                    details,
                 };
             }),
         );

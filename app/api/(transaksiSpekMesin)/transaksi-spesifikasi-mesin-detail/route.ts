@@ -19,9 +19,30 @@ const MULTI_FILL_ITEMS = new Set<string>([
     "KABEL HDMI TO DVI",
     "CUSTOMER DISPLAY",
     "CUSTOMER INPUT",
+    "OS",
+    "PROCESSOR",
+    "MAINBOARD_CE",
+    "MCU",
 ]);
 
-const MULTI_FILL_ITEMS_UPDATE = new Set<string>(["MEMORY", "MONITOR", "HDD", "CARDBIN", "CASSETTE", "REJECT", "KUNCI FASCIA ATAS", "KUNCI CASSETTE/REJECT", "LAN CARD", "KABEL HDMI TO DVI"]);
+const MULTI_FILL_ITEMS_UPDATE = new Set<string>([
+    "MEMORY",
+    "MONITOR",
+    "HDD",
+    "CARDBIN",
+    "CASSETTE",
+    "REJECT",
+    "KUNCI FASCIA ATAS",
+    "KUNCI CASSETTE/REJECT",
+    "LAN CARD",
+    "KABEL HDMI TO DVI",
+    "CUSTOMER DISPLAY",
+    "CUSTOMER INPUT",
+    "OS",
+    "PROCESSOR",
+    "MAINBOARD_CE",
+    "MCU",
+]);
 
 type DetailRow = {
     id_spek_mesin_hdr: number;
@@ -116,10 +137,13 @@ export async function POST(req: NextRequest) {
 // Mirrors TransaksiSpesifikasiMesinDetailController@update
 export async function PUT(req: NextRequest) {
     try {
-        const rows = await parseBody<DetailRow[]>(req);
+        const body = await req.json();
 
-        if (!Array.isArray(rows) || rows.length === 0) {
-            return validationError({ body: ["Payload must be a non-empty array"] });
+        // normalize payload → always array
+        const rows: DetailRow[] = Array.isArray(body) ? body : [body];
+
+        if (rows.length === 0) {
+            return validationError({ body: ["Payload must not be empty"] });
         }
 
         const updatedCounts: number[] = [];
@@ -129,7 +153,6 @@ export async function PUT(req: NextRequest) {
 
             let fill_description: string | null;
 
-            // Laravel update encodes only a slightly smaller set
             if (MULTI_FILL_ITEMS_UPDATE.has(r.item_desc)) {
                 try {
                     fill_description = JSON.stringify(r.fill_description);
@@ -138,6 +161,7 @@ export async function PUT(req: NextRequest) {
                 }
             } else {
                 const n = typeof r.fill_description === "number" ? r.fill_description : Number(r.fill_description);
+
                 fill_description = Number.isFinite(n) ? String(n) : null;
             }
 
@@ -158,7 +182,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json(
             {
                 success: true,
-                message: "Transaksi Spesifikasi Mesin Detail updated successfully.",
+                message: "Updated successfully",
                 data: updatedCounts,
             },
             { status: 200 },

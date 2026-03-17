@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/parseBody";
 import { serverError, validationError } from "@/lib/http/errorResponse";
 import { toJsonSafe } from "@/lib/serialize";
+import { getPagination } from "@/lib/http/pagination";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,38 @@ type SettingPreStagingBody = {
     types?: string;
     description?: string;
 };
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const { skip, take, page, perPage } = getPagination(searchParams);
+
+        const [data, total] = await Promise.all([
+            prisma.setting_prestaging.findMany({
+                skip,
+                take,
+                orderBy: { id: "desc" },
+            }),
+            prisma.setting_prestaging.count(),
+        ]);
+
+        const safeData = data.map((d) => ({
+            ...d,
+            id: String(d.id),
+        }));
+
+        return NextResponse.json({
+            success: true,
+            totalDatas: total,
+            totalPages: Math.ceil(total / perPage),
+            page,
+            perPage,
+            data: safeData,
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
