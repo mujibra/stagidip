@@ -9,6 +9,12 @@ import { serializeId, serializeMany } from "@/lib/serialize";
 export const runtime = "nodejs";
 
 type CreateBacthDTO = { name?: string };
+type BatchUpdateItem = { id?: number | string; name?: string };
+
+function toBatchId(value: number | string | undefined) {
+    const id = typeof value === "number" ? value : Number(value);
+    return Number.isInteger(id) && id > 0 ? id : null;
+}
 
 export async function GET() {
     try {
@@ -41,6 +47,88 @@ export async function POST(req: NextRequest) {
             success: true,
             message: "Bacth baru berhasil ditambahkan",
             data: serializeId(created),
+        });
+    } catch (error) {
+        return serverError(error);
+    }
+}
+
+export async function PATCH(req: NextRequest) {
+    try {
+        const body = await parseBody<{ items?: BatchUpdateItem[] }>(req);
+        const items = Array.isArray(body.items) ? body.items : [];
+
+        if (!items.length) {
+            return validationError({ items: ["items wajib diisi minimal 1 data"] });
+        }
+
+        const results = await Promise.all(
+            items.map(async (item) => {
+                const id = toBatchId(item.id);
+                const name = item.name?.trim();
+
+                if (!id) {
+                    return {
+                        id: item.id ?? null,
+                        success: false,
+                        message: "ID batch tidak valid",
+                    };
+                }
+
+                if (!name) {
+                    return {
+                        id,
+                        success: false,
+                        message: "Nama Batch tidak boleh kosong",
+                    };
+                }
+
+                const duplicate = await prisma.bacth_po.findFirst({
+                    where: { name, NOT: { id } },
+                    select: { id: true },
+                });
+
+                if (duplicate) {
+                    return {
+                        id,
+                        success: false,
+                        message: "Nama Batch sudah digunakan",
+                    };
+                }
+
+                const existing = await prisma.bacth_po.findUnique({ where: { id }, select: { id: true } });
+                if (!existing) {
+                    return {
+                        id,
+                        success: false,
+                        message: "Data batch tidak ditemukan",
+                    };
+                }
+
+                const updated = await prisma.bacth_po.update({ where: { id }, data: { name } });
+
+                return {
+                    id,
+                    success: true,
+                    message: "Batch berhasil diupdate",
+                    data: serializeId(updated),
+                };
+            }),
+        );
+
+        const total = results.length;
+        const updated = results.filter((item) => item.success).length;
+        const failed = total - updated;
+        const progressPercentage = Number(((updated / total) * 100).toFixed(2));
+
+        return NextResponse.json({
+            success: failed === 0,
+            message: "Batch update selesai",
+            total,
+            updated,
+            failed,
+            progressPercentage,
+            results,
         });
     } catch (error) {
         return serverError(error);

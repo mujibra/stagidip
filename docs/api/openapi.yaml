@@ -143,6 +143,8 @@ tags:
   -
     name: health
   -
+    name: implementation-progress
+  -
     name: "implement-summary"
   -
     name: "implement-summary-v2"
@@ -5765,6 +5767,57 @@ paths:
                   value:
                     success: false
                     message: Bad request
+        500:
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericServerError"
+              examples:
+                serverError:
+                  value:
+                    success: false
+                    message: Internal server error
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            example:
+              no_po: PO-IMS-001
+              id_po_master: 1001
+              id_type_mesin: 2
+              jumlah: 10
+              status_po: IMS_IMPORTED
+  /implementation-progress:
+    get:
+      tags:
+        - implementation-progress
+      summary: GET /implementation-progress
+      description: "Handler source: `app/api/implementation-progress/route.ts`"
+      operationId: get_implementation_progress
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericSuccess"
+              examples:
+                success:
+                  value:
+                    success: true
+                    message: Batch API implementation progress report
+                    totalRoutes: 188
+                    totalMethods: 266
+                    implementedMethods: 266
+                    unimplementedMethods: 0
+                    progressPercentage: 100
+                    pendingApiCount: 0
+                    pendingApis: []
         500:
           description: Server Error
           content:
@@ -12654,29 +12707,16 @@ paths:
       parameters: []
       responses:
         200:
-          description: Success
+          description: CSV export stream
           content:
-            application/json:
+            text/csv:
               schema:
-                $ref: "#/components/schemas/GenericSuccess"
+                type: string
               examples:
                 success:
-                  value:
-                    success: true
-                    message: Request processed successfully
-                    data:
-                      example: Refer to endpoint payload in handler
-        400:
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericValidationError"
-              examples:
-                validationError:
-                  value:
-                    success: false
-                    message: Bad request
+                  value: |
+                    id,no_po,id_po_master,jumlah,status_mesin,created_at
+                    1,PO-001,1001,10,STAGING,2026-03-25T00:00:00.000Z
         500:
           description: Server Error
           content:
@@ -12698,29 +12738,15 @@ paths:
       parameters: []
       responses:
         200:
-          description: Success
+          description: PDF export stream
           content:
-            application/json:
+            application/pdf:
               schema:
-                $ref: "#/components/schemas/GenericSuccess"
+                type: string
+                format: binary
               examples:
                 success:
-                  value:
-                    success: true
-                    message: Request processed successfully
-                    data:
-                      example: Refer to endpoint payload in handler
-        400:
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericValidationError"
-              examples:
-                validationError:
-                  value:
-                    success: false
-                    message: Bad request
+                  value: <binary pdf response>
         500:
           description: Server Error
           content:
@@ -13923,20 +13949,11 @@ paths:
                 success:
                   value:
                     success: true
-                    message: Request processed successfully
-                    data:
-                      example: Refer to endpoint payload in handler
-        400:
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericValidationError"
-              examples:
-                validationError:
-                  value:
-                    success: false
-                    message: Bad request
+                    message: API is healthy
+                    route: /test
+                    database: connected
+                    timestamp: "2026-03-25T00:00:00.000Z"
+                    durationMs: 8
         500:
           description: Server Error
           content:
@@ -13947,7 +13964,9 @@ paths:
                 serverError:
                   value:
                     success: false
-                    message: Internal server error
+                    message: API is unhealthy
+                    route: /test
+                    database: disconnected
   /transaksi-spesifikasi-mesin:
     post:
       tags:
